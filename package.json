@@ -1,0 +1,10 @@
+{
+  "name": "voxlibrary",
+  "version": "1.0.0",
+  "description": "Professional AI voice generation platform",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "dependencies": {}
+}

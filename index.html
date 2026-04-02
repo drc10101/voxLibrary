@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoxLibrary — Voice Generation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0f0f1a;
+      color: #fff;
+      min-height: 100vh;
+    }
+    
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #1a1a2e, #2d2d44);
+      padding: 20px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #333;
+    }
+    
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    .account-info {
+      display: flex;
+      gap: 30px;
+      align-items: center;
+    }
+    
+    .stat {
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #667eea;
+    }
+    
+    .stat-label {
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+    }
+    
+    .chars-bar {
+      width: 150px;
+      height: 8px;
+      background: #333;
+      border-radius: 4px;
+      margin-top: 5px;
+      overflow: hidden;
+    }
+    
+    .chars-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 4px;
+      width: 35%;
+    }
+    
+    .days-left {
+      color: #4caf50;
+      font-weight: bold;
+    }
+    
+    /* Navigation */
+    nav {
+      background: #1a1a2e;
+      padding: 15px 40px;
+      display: flex;
+      gap: 30px;
+      border-bottom: 1px solid #333;
+    }
+    
+    .nav-btn {
+      background: none;
+      border: none;
+      color: #888;
+      font-size: 14px;
+      cursor: pointer;
+      padding: 10px 20px;
+      border-radius: 8px;
+      transition: all 0.3s;
+    }
+    
+    .nav-btn.active {
+      background: #667eea;
+      color: white;
+    }
+    
+    .nav-btn:hover {
+      background: #333;
+      color: white;
+    }
+    
+    /* Main Content */
+    main {
+      padding: 40px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    /* Screen visibility */
+    .screen { display: none; }
+    .screen.active { display: block; }
+    
+    /* Voice Browser */
+    .section-title {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+    
+    .categories {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 30px;
+      flex-wrap: wrap;
+    }
+    
+    .cat-btn {
+      background: #2d2d44;
+      border: 1px solid #444;
+      color: #aaa;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 13px;
+      transition: all 0.3s;
+    }
+    
+    .cat-btn.active, .cat-btn:hover {
+      background: #667eea;
+      color: white;
+      border-color: #667eea;
+    }
+    
+    .voice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    
+    .voice-card {
+      background: #1a1a2e;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .voice-card:hover {
+      border-color: #667eea;
+      transform: translateY(-2px);
+    }
+    
+    .voice-card.selected {
+      border-color: #667eea;
+      background: #252540;
+    }
+    
+    .voice-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 15px;
+    }
+    
+    .voice-name {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .voice-desc {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    
+    .play-btn {
+      background: #333;
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .play-btn:hover {
+      background: #444;
+    }
+    
+    .selected-badge {
+      background: #667eea;
+      color: white;
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-top: 10px;
+      display: inline-block;
+    }
+    
+    /* Generator Screen */
+    .generator-layout {
+      display: grid;
+      grid-template-columns: 1fr 350px;
+      gap: 30px;
+    }
+    
+    .text-area-wrap {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #333;
+    }
+    
+    .text-area {
+      width: 100%;
+      height: 250px;
+      background: #0f0f1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: white;
+      padding: 15px;
+      font-size: 14px;
+      resize: none;
+      font-family: inherit;
+    }
+    
+    .text-area:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .char-count {
+      text-align: right;
+      font-size: 12px;
+      color: #888;
+      margin-top: 10px;
+    }
+    
+    .controls-panel {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 20px;
+      border: 1px solid #333;
+    }
+    
+    .control-group {
+      margin-bottom: 25px;
+    }
+    
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    
+    .control-icons {
+      display: flex;
+      gap: 5px;
+      color: #888;
+    }
+    
+    .slider {
+      width: 100%;
+      height: 8px;
+      -webkit-appearance: none;
+      background: #333;
+      border-radius: 4px;
+      outline: none;
+    }
+    
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 50%;
+      cursor: pointer;
+    }
+    
+    .format-picker {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .format-btn {
+      flex: 1;
+      background: #333;
+      border: 2px solid #333;
+      color: #aaa;
+      padding: 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      text-align: center;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    
+    .format-btn.active {
+      border-color: #667eea;
+      color: white;
+      background: #252540;
+    }
+    
+    .generate-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #4caf50, #45a049);
+      border: none;
+      color: white;
+      padding: 18px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s;
+    }
+    
+    .generate-btn:hover {
+      transform: scale(1.02);
+      box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Download Screen */
+    .download-screen {
+      text-align: center;
+      padding: 60px 20px;
+    }
+    
+    .success-icon {
+      width: 100px;
+      height: 100px;
+      background: linear-gradient(135deg, #4caf50, #45a049);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 50px;
+      margin: 0 auto 30px;
+    }
+    
+    .audio-preview {
+      background: #1a1a2e;
+      border-radius: 12px;
+      padding: 30px;
+      max-width: 500px;
+      margin: 0 auto 30px;
+      border: 1px solid #333;
+    }
+    
+    .audio-player {
+      width: 100%;
+      margin: 20px 0;
+    }
+    
+    .download-btn {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border: none;
+      color: white;
+      padding: 18px 40px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin: 10px;
+      transition: all 0.3s;
+    }
+    
+    .download-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+    }
+    
+    .secondary-btn {
+      background: #333;
+      color: white;
+      padding: 18px 40px;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 10px;
+      border: none;
+    }
+    
+    .secondary-btn:hover {
+      background: #444;
+    }
+    
+    /* Screens */
+    #browse-screen, #generate-screen, #download-screen {
+      animation: fadeIn 0.3s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .voice-selected-info {
+      background: #252540;
+      border: 1px solid #667eea;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .back-link {
+      color: #667eea;
+      cursor: pointer;
+      margin-bottom: 20px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎙️ VoxLibrary</div>
+  <div class="account-info">
+    <div class="stat">
+      <div class="stat-value">248 <span style="font-size: 12px; color: #888;">/ 8,000</span></div>
+      <div class="stat-label">Characters</div>
+      <div class="chars-bar"><div class="chars-fill"></div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-value days-left">347</div>
+      <div class="stat-label">Days Left</div>
+    </div>
+  </div>
+</header>
+
+<nav>
+  <button class="nav-btn active" onclick="showScreen('browse')">🔊 Browse Voices</button>
+  <button class="nav-btn" onclick="showScreen('generate')" id="gen-nav">✍️ Generator</button>
+  <button class="nav-btn" onclick="showScreen('download')" id="dl-nav">📥 Download</button>
+</nav>
+
+<main>
+
+<!-- BROWSE SCREEN -->
+<div id="browse-screen" class="screen active">
+  <h1 class="section-title">Choose a Voice</h1>
+  
+  <div class="categories">
+    <button class="cat-btn active" onclick="filterVoices('all')">All</button>
+    <button class="cat-btn" onclick="filterVoices('professional')">Board Room</button>
+    <button class="cat-btn" onclick="filterVoices('western')">Wild West</button>
+    <button class="cat-btn" onclick="filterVoices('story')">Storyteller</button>
+    <button class="cat-btn" onclick="filterVoices('social')">Influencer</button>
+    <button class="cat-btn" onclick="filterVoices('regional')">Regional</button>
+    <button class="cat-btn" onclick="filterVoices('character')">Character</button>
+    <button class="cat-btn" onclick="filterVoices('everyman')">Everyman</button>
+  </div>
+  
+  <div class="voice-grid" id="voice-grid">
+    <!-- Voices will be populated by JS -->
+  </div>
+</div>
+
+<!-- GENERATE SCREEN -->
+<div id="generate-screen" class="screen">
+  <span class="back-link" onclick="showScreen('browse')">← Back to voices</span>
+  
+  <div class="voice-selected-info" id="selected-voice-info">
+    <div class="voice-icon">🎩</div>
+    <div>
+      <strong id="selected-voice-name">Select a voice</strong>
+      <div style="color: #888; font-size: 12px;">Ready to generate</div>
+    </div>
+  </div>
+  
+  <div class="generator-layout">
+    <div class="text-area-wrap">
+      <textarea class="text-area" placeholder="Paste or type your text here..." id="text-input">Welcome to VoxLibrary! This is a test of the AI voice generation system. Pretty cool, right?</textarea>
+      <div class="char-count"><span id="char-count">142</span> characters</div>
+    </div>
+    
+    <div class="controls-panel">
+      <div class="control-group">
+        <div class="control-label">
+          <span>Speed</span>
+          <div class="control-icons">🐢 ... 🐇</div>
+        </div>
+        <input type="range" class="slider" min="0.5" max="2" step="0.1" value="1" id="speed-slider">
+      </div>
+      
+      <div class="control-group">
+        <div class="control-label">
+          <span>Pitch</span>
+          <div class="control-icons">🔈 ... 🔊</div>
+        </div>
+        <input type="range" class="slider" min="-50" max="50" step="5" value="0" id="pitch-slider">
+      </div>
+      
+      <div class="control-group">
+        <div class="control-label">
+          <span>Timber</span>
+          <div class="control-icons">❄️ ... 🔥</div>
+        </div>
+        <input type="range" class="slider" min="0" max="100" step="5" value="50" id="timber-slider">
+      </div>
+      
+      <div class="control-group">
+        <div class="control-label"><span>Format</span></div>
+        <div class="format-picker">
+          <button class="format-btn active" onclick="selectFormat('mp3')">MP3</button>
+          <button class="format-btn" onclick="selectFormat('wav')">WAV</button>
+          <button class="format-btn" onclick="selectFormat('ogg')">OGG</button>
+        </div>
+      </div>
+      
+      <button class="generate-btn" onclick="generateAudio()">🎵 Generate Audio</button>
+    </div>
+  </div>
+</div>
+
+<!-- DOWNLOAD SCREEN -->
+<div id="download-screen" class="screen">
+  <div class="download-screen">
+    <div class="success-icon">✓</div>
+    <h2 style="margin-bottom: 10px;">Generation Complete!</h2>
+    <p style="color: #888; margin-bottom: 30px;">Your audio is ready to download</p>
+    
+    <div class="audio-preview">
+      <div style="color: #888; font-size: 12px; margin-bottom: 10px;">VOICE: Eric — Smooth & Trustworthy</div>
+      <div style="color: #667eea; font-size: 14px; margin-bottom: 15px;">"Welcome to VoxLibrary! This is a test..."</div>
+      <audio controls class="audio-player">
+        <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+      </audio>
+      <div style="font-size: 12px; color: #888;">Duration: 0:08 | Format: MP3 | Size: 128 KB</div>
+    </div>
+    
+    <button class="download-btn" onclick="downloadFile()">📥 Download MP3</button>
+    <br>
+    <button class="secondary-btn" onclick="showScreen('browse')">← Generate Another</button>
+    <button class="secondary-btn" onclick="showScreen('generate')">✍️ New Text</button>
+  </div>
+</div>
+
+</main>
+
+<script>
+// Voice data
+const voices = [
+  { id: 1, name: "Eric", desc: "Smooth & Trustworthy", category: "professional", icon: "🎩" },
+  { id: 2, name: "Sarah", desc: "Professional Executive", category: "professional", icon: "👩‍💼" },
+  { id: 3, name: "Marcus", desc: "Deep Authority", category: "professional", icon: "🎖️" },
+  { id: 4, name: "Old Cowboy", desc: "Wild West Tales", category: "western", icon: "🤠" },
+  { id: 5, name: "Trail Guide", desc: "Frontier Spirit", category: "western", icon: "🪓" },
+  { id: 6, name: "Grandma", desc: "Warm Stories", category: "story", icon: "👵" },
+  { id: 7, name: "Storyteller", desc: "Narrative Voice", category: "story", icon: "📖" },
+  { id: 8, name: "Gen Z", desc: "Young & Hype", category: "social", icon: "🔥" },
+  { id: 9, name: "Trendsetter", desc: "Cool Vibes", category: "social", icon: "😎" },
+  { id: 10, name: "Southern Charm", desc: "Southern USA", category: "regional", icon: "🌴" },
+  { id: 11, name: "British RP", desc: "British Accent", category: "regional", icon: "🎩" },
+  { id: 12, name: "Hero", desc: "Animation Hero", category: "character", icon: "🦸" },
+  { id: 13, name: "Villain", desc: "Dark Character", category: "character", icon: "🦹" },
+  { id: 14, name: "Everyday Joe", desc: "Neutral Voice", category: "everyman", icon: "👨" },
+  { id: 15, name: "Friendly", desc: "Helpful Voice", category: "everyman", icon: "🙂" },
+];
+
+let selectedVoice = null;
+let selectedFormat = 'mp3';
+
+function renderVoices(filter = 'all') {
+  const grid = document.getElementById('voice-grid');
+  const filtered = filter === 'all' ? voices : voices.filter(v => v.category === filter);
+  
+  grid.innerHTML = filtered.map(voice => `
+    <div class="voice-card ${selectedVoice?.id === voice.id ? 'selected' : ''}" onclick="selectVoice(${voice.id})">
+      <div class="voice-icon">${voice.icon}</div>
+      <div class="voice-name">${voice.name}</div>
+      <div class="voice-desc">${voice.desc}</div>
+      <button class="play-btn" onclick="event.stopPropagation(); playVoice('${voice.name}')">▶ Play</button>
+      ${selectedVoice?.id === voice.id ? '<span class="selected-badge">✓ Selected</span>' : ''}
+    </div>
+  `).join('');
+}
+
+function filterVoices(category) {
+  document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+  renderVoices(category);
+}
+
+function selectVoice(id) {
+  selectedVoice = voices.find(v => v.id === id);
+  document.getElementById('selected-voice-name').textContent = selectedVoice.name;
+  renderVoices();
+  showScreen('generate');
+}
+
+function playVoice(name) {
+  // Mock play - would use actual audio
+  alert(`🔊 Playing ${name} voice sample...`);
+}
+
+function showScreen(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  
+  if (screen === 'browse') {
+    document.getElementById('browse-screen').classList.add('active');
+    document.querySelectorAll('.nav-btn')[0].classList.add('active');
+  } else if (screen === 'generate') {
+    document.getElementById('generate-screen').classList.add('active');
+    document.querySelectorAll('.nav-btn')[1].classList.add('active');
+  } else if (screen === 'download') {
+    document.getElementById('download-screen').classList.add('active');
+    document.querySelectorAll('.nav-btn')[2].classList.add('active');
+  }
+}
+
+function selectFormat(format) {
+  selectedFormat = format;
+  document.querySelectorAll('.format-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function generateAudio() {
+  if (!selectedVoice) {
+    alert('Please select a voice first!');
+    return;
+  }
+  
+  const text = document.getElementById('text-input').value;
+  if (!text.trim()) {
+    alert('Please enter some text!');
+    return;
+  }
+  
+  // Update char count
+  document.getElementById('char-count').textContent = text.length;
+  
+  // Show download screen
+  showScreen('download');
+}
+
+function downloadFile() {
+  alert(`📥 Downloading ${selectedVoice.name}_${Date.now()}.${selectedFormat}`);
+}
+
+function updateCharCount() {
+  const text = document.getElementById('text-input').value;
+  document.getElementById('char-count').textContent = text.length;
+}
+
+document.getElementById('text-input').addEventListener('input', updateCharCount);
+
+// Initialize
+renderVoices();
+</script>
+
+</body>
+</html>
