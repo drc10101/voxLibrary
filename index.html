@@ -736,8 +736,8 @@ async function previewAudio() {
     previewAudioEl.load();
     
   } catch (error) {
-    console.error('Error:', error);
-    alert('Preview failed. Please try again.');
+    console.error('Preview error:', error);
+    alert('Preview failed: ' + error.message);
   } finally {
     btn.textContent = '👁️ Preview';
     btn.disabled = false;
@@ -769,8 +769,9 @@ async function generateWithElevenLabs(voiceId, text, timber, format) {
   });
   
   if (!response.ok) {
-    const err = await response.json();
-    throw new Error(err.detail?.message || 'Generation failed');
+    const errBody = await response.text();
+    console.error('ElevenLabs error:', response.status, errBody);
+    throw new Error(`API error ${response.status}`);
   }
   
   return await response.blob();
@@ -808,6 +809,12 @@ async function generateAudio() {
       timber,
       selectedFormat
     );
+    
+    // Validate blob
+    if (!audioBlob || audioBlob.size === 0) {
+      throw new Error('Empty audio response');
+    }
+    console.log('Audio generated:', audioBlob.size, 'bytes');
     
     const audioUrl = URL.createObjectURL(audioBlob);
     
