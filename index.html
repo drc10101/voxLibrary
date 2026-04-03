@@ -555,10 +555,10 @@
     <p style="color: #888; margin-bottom: 30px;">Your audio is ready to download</p>
     
     <div class="audio-preview">
-      <div style="color: #888; font-size: 12px; margin-bottom: 10px;">VOICE: Eric — Smooth & Trustworthy</div>
-      <div style="color: #667eea; font-size: 14px; margin-bottom: 15px;">"Welcome to VoxLibrary! This is a test..."</div>
+      <div class="voice-info" style="color: #888; font-size: 12px; margin-bottom: 10px;">VOICE: Eric — Smooth & Trustworthy</div>
+      <div class="text-preview" style="color: #667eea; font-size: 14px; margin-bottom: 15px;">"Welcome to VoxLibrary! This is a test..."</div>
       <audio controls class="audio-player">
-        <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=" type="audio/wav">
+        <source src="" type="audio/mpeg">
       </audio>
       <div style="font-size: 12px; color: #888;">Duration: 0:08 | Format: MP3 | Size: 128 KB</div>
     </div>
@@ -573,23 +573,23 @@
 </main>
 
 <script>
-// Voice data
+// Voice data - key must match backend VOICES object
 const voices = [
-  { id: 1, name: "Eric", desc: "Smooth & Trustworthy", category: "professional", icon: "🎩" },
-  { id: 2, name: "Sarah", desc: "Professional Executive", category: "professional", icon: "👩‍💼" },
-  { id: 3, name: "Marcus", desc: "Deep Authority", category: "professional", icon: "🎖️" },
-  { id: 4, name: "Old Cowboy", desc: "Wild West Tales", category: "western", icon: "🤠" },
-  { id: 5, name: "Trail Guide", desc: "Frontier Spirit", category: "western", icon: "🪓" },
-  { id: 6, name: "Grandma", desc: "Warm Stories", category: "story", icon: "👵" },
-  { id: 7, name: "Storyteller", desc: "Narrative Voice", category: "story", icon: "📖" },
-  { id: 8, name: "Gen Z", desc: "Young & Hype", category: "social", icon: "🔥" },
-  { id: 9, name: "Trendsetter", desc: "Cool Vibes", category: "social", icon: "😎" },
-  { id: 10, name: "Southern Charm", desc: "Southern USA", category: "regional", icon: "🌴" },
-  { id: 11, name: "British RP", desc: "British Accent", category: "regional", icon: "🎩" },
-  { id: 12, name: "Hero", desc: "Animation Hero", category: "character", icon: "🦸" },
-  { id: 13, name: "Villain", desc: "Dark Character", category: "character", icon: "🦹" },
-  { id: 14, name: "Everyday Joe", desc: "Neutral Voice", category: "everyman", icon: "👨" },
-  { id: 15, name: "Friendly", desc: "Helpful Voice", category: "everyman", icon: "🙂" },
+  { id: 1, key: 'eric', name: "Eric", desc: "Smooth & Trustworthy", category: "professional", icon: "🎩" },
+  { id: 2, key: 'sarah', name: "Sarah", desc: "Professional Executive", category: "professional", icon: "👩‍💼" },
+  { id: 3, key: 'marcus', name: "Marcus", desc: "Deep Authority", category: "professional", icon: "🎖️" },
+  { id: 4, key: 'oldcowboy', name: "Old Cowboy", desc: "Wild West Tales", category: "western", icon: "🤠" },
+  { id: 5, key: 'trailguide', name: "Trail Guide", desc: "Frontier Spirit", category: "western", icon: "🪓" },
+  { id: 6, key: 'grandma', name: "Grandma", desc: "Warm Stories", category: "story", icon: "👵" },
+  { id: 7, key: 'storyteller', name: "Storyteller", desc: "Narrative Voice", category: "story", icon: "📖" },
+  { id: 8, key: 'genz', name: "Gen Z", desc: "Young & Hype", category: "social", icon: "🔥" },
+  { id: 9, key: 'trendsetter', name: "Trendsetter", desc: "Cool Vibes", category: "social", icon: "😎" },
+  { id: 10, key: 'southern', name: "Southern Charm", desc: "Southern USA", category: "regional", icon: "🌴" },
+  { id: 11, key: 'british', name: "British RP", desc: "British Accent", category: "regional", icon: "🎩" },
+  { id: 12, key: 'hero', name: "Hero", desc: "Animation Hero", category: "character", icon: "🦸" },
+  { id: 13, key: 'villain', name: "Villain", desc: "Dark Character", category: "character", icon: "🦹" },
+  { id: 14, key: 'everydayjoe', name: "Everyday Joe", desc: "Neutral Voice", category: "everyman", icon: "👨" },
+  { id: 15, key: 'friendly', name: "Friendly", desc: "Helpful Voice", category: "everyman", icon: "🙂" },
 ];
 
 let selectedVoice = null;
@@ -618,7 +618,7 @@ function filterVoices(category) {
 
 function selectVoice(id) {
   selectedVoice = voices.find(v => v.id === id);
-  document.getElementById('selected-voice-name').textContent = selectedVoice.name;
+  document.getElementById('selected-voice-name').textContent = selectedVoice.name + ' — ' + selectedVoice.desc;
   renderVoices();
   showScreen('generate');
 }
@@ -650,7 +650,7 @@ function selectFormat(format) {
   event.target.classList.add('active');
 }
 
-function generateAudio() {
+async function generateAudio() {
   if (!selectedVoice) {
     alert('Please select a voice first!');
     return;
@@ -665,12 +665,67 @@ function generateAudio() {
   // Update char count
   document.getElementById('char-count').textContent = text.length;
   
-  // Show download screen
-  showScreen('download');
+  // Show loading state
+  const btn = document.querySelector('.generate-btn');
+  btn.textContent = '⏳ Generating...';
+  btn.disabled = true;
+  
+  try {
+    const speed = parseFloat(document.getElementById('speed-slider').value);
+    const pitch = parseInt(document.getElementById('pitch-slider').value);
+    const timber = parseInt(document.getElementById('timber-slider').value);
+    
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        voiceKey: selectedVoice.key,
+        text: text,
+        speed: speed,
+        pitch: pitch,
+        timber: timber,
+        format: selectedFormat
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Generation failed');
+    }
+    
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    
+    // Store audio URL for download
+    window.generatedAudioUrl = audioUrl;
+    window.generatedAudioFilename = `${selectedVoice.name}_${Date.now()}.${selectedFormat}`;
+    
+    // Show download screen
+    showScreen('download');
+    
+    // Update download screen with audio
+    const audioPreview = document.querySelector('.audio-preview audio');
+    audioPreview.src = audioUrl;
+    document.querySelector('.audio-preview .voice-info').textContent = `VOICE: ${selectedVoice.name} — ${selectedVoice.desc}`;
+    document.querySelector('.audio-preview .text-preview').textContent = `"${text.substring(0, 100)}..."`;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Generation failed. Please try again.');
+  } finally {
+    btn.textContent = '🎵 Generate Audio';
+    btn.disabled = false;
+  }
 }
 
 function downloadFile() {
-  alert(`📥 Downloading ${selectedVoice.name}_${Date.now()}.${selectedFormat}`);
+  if (window.generatedAudioUrl) {
+    const a = document.createElement('a');
+    a.href = window.generatedAudioUrl;
+    a.download = window.generatedAudioFilename || 'audio.mp3';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
 }
 
 function updateCharCount() {
