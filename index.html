@@ -6,8 +6,9 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>VoxLibrary 🎙️ v41062b8</title>
+  <title>VoxLibrary 🎙️ vf138476</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://js.stripe.com/v3/"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -751,6 +752,16 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let authMode = 'signup';
+
+// Stripe
+const STRIPE_PK = 'pk_test_51TIFTVGfRLc2oae0U19SK1BkaAtq1FGU42FWeax0gynHt6lUq2rOqeMP1Gt7NpcXNEJO6cCI1pRzfUccoAs9k64S00Qz6cetyE';
+const PRICE_IDS = {
+  starter: 'price_1TIFXkGfRLc2oae0ILw2xSUJ',
+  creator: 'price_1TIFXlGfRLc2oae0CqG1tpI6',
+  studio: 'price_1TIFXlGfRLc2oae0Y6lAbdCU',
+  pro: 'price_1TIFXlGfRLc2oae0FWlOhBZ5'
+};
+let stripe = Stripe(STRIPE_PK);
 
 function updateAuthUI(user) {
   const headerAuth = document.getElementById('header-auth');
