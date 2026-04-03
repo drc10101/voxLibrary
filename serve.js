@@ -15,7 +15,11 @@ const mimeTypes = {
   '.wav': 'audio/wav',
 };
 
+console.log(`Starting server on port ${PORT}...`);
+
 const server = http.createServer((req, res) => {
+  console.log(`Request: ${req.url}`);
+  
   let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
   
   const ext = path.extname(filePath);
@@ -23,9 +27,11 @@ const server = http.createServer((req, res) => {
   
   fs.readFile(filePath, (err, content) => {
     if (err) {
+      console.log(`404: ${filePath}`);
       res.writeHead(404);
       res.end('File not found');
     } else {
+      console.log(`200: ${filePath}`);
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(content);
     }
@@ -33,5 +39,5 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server running at http://0.0.0.0:${PORT}/`);
 });
