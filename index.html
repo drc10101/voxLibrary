@@ -749,7 +749,7 @@
 const SUPABASE_URL = 'https://kxnqwpavjhiphgvkevvj.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bnF3cGF2amhpcGhndmtldnZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMjQxNzQsImV4cCI6MjA5MDgwMDE3NH0.BnZOeI9x5AzirRwT617ccMhjPCO4howf8ROL8fVc5u0';
 
-let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let authMode = 'signup';
 
 function updateAuthUI(user) {
@@ -787,11 +787,11 @@ async function handleAuth() {
   errorEl.style.display = 'none';
   try {
     if (authMode === 'signup') {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await sb.auth.signUp({ email, password });
       if (error) throw error;
       if (data.session) { updateAuthUI(data.user); closeAuthModal(); } else { errorEl.textContent = 'Check your email to confirm'; errorEl.style.display = 'block'; }
     } else {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
       updateAuthUI(data.user);
       closeAuthModal();
@@ -800,15 +800,15 @@ async function handleAuth() {
 }
 
 async function handleGoogleLogin() {
-  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
   if (error) { document.getElementById('auth-error').textContent = error.message; document.getElementById('auth-error').style.display = 'block'; }
 }
 
-async function logout() { await supabase.auth.signOut(); updateAuthUI(null); }
+async function logout() { await sb.auth.signOut(); updateAuthUI(null); }
 
 // Init auth on page load
-supabase.auth.getSession().then(({ data: { session } }) => updateAuthUI(session ? session.user : null));
-supabase.auth.onAuthStateChange((event, session) => { if (event === 'SIGNED_IN' && session) updateAuthUI(session.user); else if (event === 'SIGNED_OUT') updateAuthUI(null); });
+sb.auth.getSession().then(({ data: { session } }) => updateAuthUI(session ? session.user : null));
+sb.auth.onAuthStateChange((event, session) => { if (event === 'SIGNED_IN' && session) updateAuthUI(session.user); else if (event === 'SIGNED_OUT') updateAuthUI(null); });
 
 // ElevenLabs API key - for direct browser calls
 const ELEVENLABS_API_KEY = 'sk_84ebebc8813d25d47e2a643ca556b6739ef7badfe396fb52';
@@ -962,7 +962,7 @@ async function generateWithElevenLabs(voiceId, text, speed, stability, similarit
 
 async function generateAudio() {
   // Check if logged in
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await sb.auth.getSession();
   if (!session) { openAuthModal(); return; }
 
   if (!selectedVoice) {
