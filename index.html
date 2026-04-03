@@ -597,7 +597,7 @@
       </div>
       
       <div style="display: flex; gap: 10px;">
-        <button class="preview-btn" onclick="previewAudio()">👁️ Preview</button>
+        <button class="preview-btn" onclick="previewAudio()">🎧 Listen</button>
         <button class="generate-btn" onclick="generateAudio()">🎵 Generate</button>
       </div>
     </div>
@@ -762,7 +762,7 @@ async function previewAudio() {
   const previewText = text.substring(0, 150) + (text.length > 150 ? '...' : '');
   
   const btn = document.querySelector('.preview-btn');
-  btn.textContent = '⏳ Loading...';
+  btn.textContent = '⏳ Listening...';
   btn.disabled = true;
   
   try {
