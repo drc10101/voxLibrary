@@ -75,6 +75,11 @@
       font-weight: bold;
     }
     
+    .plan-selector {
+      display: flex;
+      align-items: center;
+    }
+    
     /* Navigation */
     nav {
       background: #1a1a2e;
@@ -480,13 +485,21 @@
 <header>
   <div class="logo">🎙️ VoxLibrary</div>
   <div class="account-info">
-    <div class="stat">
-      <div class="stat-value">248 <span style="font-size: 12px; color: #888;">/ 8,000</span></div>
-      <div class="stat-label">Characters</div>
-      <div class="chars-bar"><div class="chars-fill"></div></div>
+    <div class="plan-selector">
+      <select id="plan-select" onchange="changePlan(this.value)" style="background: #2d2d44; color: white; border: 1px solid #444; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
+        <option value="starter">Starter — 8K</option>
+        <option value="creator">Creator — 25K</option>
+        <option value="studio">Studio — 80K</option>
+        <option value="pro">Pro — 200K</option>
+      </select>
     </div>
     <div class="stat">
-      <div class="stat-value days-left">347</div>
+      <div class="stat-value"><span id="chars-remaining">8,000</span> <span style="font-size: 12px; color: #888;">/ <span id="chars-total">8,000</span></span></div>
+      <div class="stat-label">Characters <span id="plan-name" style="color: #888; font-size: 10px;">(Starter)</span></div>
+      <div class="chars-bar"><div class="chars-fill" id="chars-fill"></div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-value days-left" id="days-left">347</div>
       <div class="stat-label">Days Left</div>
     </div>
   </div>
@@ -536,7 +549,7 @@
     <div class="text-area-wrap">
       <textarea class="text-area" placeholder="Paste or type your text here..." id="text-input">Welcome to VoxLibrary! This is a test of the AI voice generation system. Pretty cool, right?</textarea>
       <div class="char-count">
-        <span id="char-count">142</span> / 10,000 characters
+        <span id="char-count">142</span> / <span id="char-total">8,000</span> characters
         <span id="char-warning" style="color: #ff6b6b; margin-left: 10px; display: none;">⚠️ Approaching limit!</span>
       </div>
       <div class="chars-bar" style="margin-top: 8px; width: 100%;"><div class="chars-fill" id="char-bar" style="width: 1.4%;"></div></div>
@@ -638,6 +651,42 @@ const voices = [
   { id: 14, key: 'wViXPUHCLPcH3NAnJ9Or', name: "Everyday Joe", desc: "Neutral Voice", category: "everyman", icon: "👨" },
   { id: 15, key: 'LfaY2DwTOlVuN7KArIpG', name: "Friendly", desc: "Helpful Voice", category: "everyman", icon: "🙂" },
 ];
+
+// Plan tiers - tied to actual quotas
+const PLANS = {
+  starter: { name: 'Starter', chars: 8000, color: '#888' },
+  creator: { name: 'Creator', chars: 25000, color: '#667eea' },
+  studio: { name: 'Studio', chars: 80000, color: '#764ba2' },
+  pro: { name: 'Pro', chars: 200000, color: '#4caf50' }
+};
+
+// User state - in production this comes from auth/DB
+let userState = {
+  plan: 'starter',
+  charsUsed: 0,
+  daysLeft: 347
+};
+
+function getPlanLimits() {
+  return PLANS[userState.plan] || PLANS.starter;
+}
+
+function updateHeaderDisplay() {
+  const plan = getPlanLimits();
+  const remaining = Math.max(0, plan.chars - userState.charsUsed);
+  const pct = (userState.charsUsed / plan.chars) * 100;
+  
+  document.getElementById('plan-name').textContent = plan.name;
+  document.getElementById('chars-remaining').textContent = remaining.toLocaleString();
+  document.getElementById('chars-total').textContent = plan.chars.toLocaleString();
+  document.getElementById('chars-fill').style.width = Math.min(pct, 100) + '%';
+  
+  // Color based on plan
+  document.getElementById('chars-fill').style.background = `linear-gradient(90deg, ${plan.color}, ${plan.color})`;
+  
+  // Days left
+  document.getElementById('days-left').textContent = userState.daysLeft;
+}
 
 let selectedVoice = null;
 let selectedFormat = 'mp3';
@@ -859,13 +908,22 @@ function downloadFile() {
   }
 }
 
+function changePlan(plan) {
+  userState.plan = plan;
+  updateHeaderDisplay();
+  updateCharCount(); // Refresh warning based on new limit
+}
+
 function updateCharCount() {
   const text = document.getElementById('text-input').value;
   const count = text.length;
-  document.getElementById('char-count').textContent = count.toLocaleString();
+  const plan = getPlanLimits();
   
-  // Update progress bar (10,000 max)
-  const pct = Math.min((count / 10000) * 100, 100);
+  document.getElementById('char-count').textContent = count.toLocaleString();
+  document.getElementById('char-total').textContent = plan.chars.toLocaleString();
+  
+  // Update progress bar
+  const pct = Math.min((count / plan.chars) * 100, 100);
   document.getElementById('char-bar').style.width = pct + '%';
   
   // Color shift at 80%
@@ -873,12 +931,12 @@ function updateCharCount() {
   if (pct >= 80) {
     bar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff4757)';
   } else {
-    bar.style.background = 'linear-gradient(90deg, #667eea, #764ba2)';
+    bar.style.background = `linear-gradient(90deg, ${plan.color}, ${plan.color})`;
   }
   
   // Show warning at 80%
   const warning = document.getElementById('char-warning');
-  if (count >= 8000) {
+  if (count >= plan.chars * 0.8) {
     warning.style.display = 'inline';
   } else {
     warning.style.display = 'none';
@@ -887,8 +945,11 @@ function updateCharCount() {
 
 document.getElementById('text-input').addEventListener('input', updateCharCount);
 
-// Initialize
-renderVoices();
+// Initialize on load
+document.addEventListener('DOMContentLoaded', () => {
+  updateHeaderDisplay();
+  updateCharCount();
+});
 </script>
 
 </body>
