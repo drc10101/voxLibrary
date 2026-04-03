@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>VoxLibrary — Voice Generation</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     
@@ -32,10 +33,11 @@
       -webkit-text-fill-color: transparent;
     }
     
-    .account-info {
+    /* Header auth section */
+    #header-auth {
       display: flex;
-      gap: 30px;
       align-items: center;
+      gap: 15px;
     }
     
     .stat {
@@ -87,6 +89,139 @@
       display: flex;
       gap: 30px;
       border-bottom: 1px solid #333;
+    }
+    
+    /* Auth styles */
+    .auth-section {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .auth-btn {
+      background: #667eea;
+      border: none;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    
+    .auth-btn:hover {
+      background: #7a8cf0;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #aaa;
+      font-size: 13px;
+    }
+    
+    .logout-btn {
+      background: #333;
+      border: none;
+      color: #aaa;
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    
+    .logout-btn:hover {
+      background: #444;
+      color: #fff;
+    }
+    
+    /* Auth Modal */
+    .auth-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .auth-modal.active {
+      display: flex;
+    }
+    
+    .auth-box {
+      background: #1a1a2e;
+      border: 1px solid #333;
+      border-radius: 16px;
+      padding: 40px;
+      width: 380px;
+    }
+    
+    .auth-title {
+      font-size: 22px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    
+    .auth-input {
+      width: 100%;
+      padding: 12px;
+      background: #0f0f1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    
+    .auth-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    
+    .auth-error {
+      color: #ff6b6b;
+      font-size: 13px;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+    
+    .auth-btn-full {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 10px;
+    }
+    
+    .auth-btn-primary {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: white;
+    }
+    
+    .auth-btn-secondary {
+      background: #333;
+      color: #aaa;
+    }
+    
+    .auth-switch {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 13px;
+      color: #888;
+    }
+    
+    .auth-switch a {
+      color: #667eea;
+      cursor: pointer;
     }
     
     .nav-btn {
@@ -464,26 +599,23 @@
 
 <header>
   <div class="logo">🎙️ VoxLibrary</div>
-  <div class="account-info">
-    <div class="plan-selector">
-      <select id="plan-select" onchange="changePlan(this.value)" style="background: #2d2d44; color: white; border: 1px solid #444; padding: 8px 12px; border-radius: 6px; cursor: pointer;">
-        <option value="starter">Starter — 8K</option>
-        <option value="creator">Creator — 25K</option>
-        <option value="studio">Studio — 80K</option>
-        <option value="pro">Pro — 200K</option>
-      </select>
-    </div>
-    <div class="stat">
-      <div class="stat-value"><span id="chars-remaining">8,000</span> <span style="font-size: 12px; color: #888;">/ <span id="chars-total">8,000</span></span></div>
-      <div class="stat-label">Characters <span id="plan-name" style="color: #888; font-size: 10px;">(Starter)</span></div>
-      <div class="chars-bar"><div class="chars-fill" id="chars-fill"></div></div>
-    </div>
-    <div class="stat">
-      <div class="stat-value days-left" id="days-left">347</div>
-      <div class="stat-label">Days Left</div>
+  <div id="header-auth"></div>
+</header>
+
+<!-- Auth Modal -->
+<div class="auth-modal" id="auth-modal">
+  <div class="auth-box">
+    <div class="auth-title" id="auth-title">Sign Up</div>
+    <div class="auth-error" id="auth-error"></div>
+    <input type="email" class="auth-input" id="auth-email" placeholder="Email">
+    <input type="password" class="auth-input" id="auth-password" placeholder="Password">
+    <button class="auth-btn-full auth-btn-primary" id="auth-submit-btn" onclick="handleAuth()">Sign Up</button>
+    <button class="auth-btn-full auth-btn-secondary" onclick="handleGoogleLogin()">Continue with Google</button>
+    <div class="auth-switch">
+      <span id="auth-switch-text">Already have an account? <a onclick="toggleAuthMode()">Sign In</a></span>
     </div>
   </div>
-</header>
+</div>
 
 <nav>
   <button class="nav-btn active" onclick="showScreen('browse')">🔊 Browse Voices</button>
@@ -610,6 +742,71 @@
 </main>
 
 <script>
+// Supabase Auth
+const SUPABASE_URL = 'https://kxnqwpavjhiphgvkevvj.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bnF3cGF2amhpcGhndmtldnZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMjQxNzQsImV4cCI6MjA5MDgwMDE3NH0.BnZOeI9x5AzirRwT617ccMhjPCO4howf8ROL8fVc5u0';
+
+let supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let authMode = 'signup';
+
+function updateAuthUI(user) {
+  const headerAuth = document.getElementById('header-auth');
+  if (user) {
+    headerAuth.innerHTML = '<span style="color:#aaa;font-size:13px;">' + user.email + '</span> <button class="logout-btn" onclick="logout()">Logout</button>';
+  } else {
+    headerAuth.innerHTML = '<button class="auth-btn" onclick="openAuthModal()">Sign In</button>';
+  }
+}
+
+function openAuthModal() {
+  document.getElementById('auth-modal').classList.add('active');
+  document.getElementById('auth-email').value = '';
+  document.getElementById('auth-password').value = '';
+  document.getElementById('auth-error').style.display = 'none';
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('active');
+}
+
+function toggleAuthMode() {
+  authMode = authMode === 'signup' ? 'login' : 'signup';
+  document.getElementById('auth-title').textContent = authMode === 'signup' ? 'Sign Up' : 'Sign In';
+  document.getElementById('auth-submit-btn').textContent = authMode === 'signup' ? 'Sign Up' : 'Sign In';
+  document.getElementById('auth-switch-text').innerHTML = authMode === 'signup' ? 'Already have an account? <a onclick="toggleAuthMode()">Sign In</a>' : 'Need an account? <a onclick="toggleAuthMode()">Sign Up</a>';
+}
+
+async function handleAuth() {
+  const email = document.getElementById('auth-email').value;
+  const password = document.getElementById('auth-password').value;
+  const errorEl = document.getElementById('auth-error');
+  if (!email || !password) { errorEl.textContent = 'Please enter email and password'; errorEl.style.display = 'block'; return; }
+  errorEl.style.display = 'none';
+  try {
+    if (authMode === 'signup') {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) throw error;
+      if (data.session) { updateAuthUI(data.user); closeAuthModal(); } else { errorEl.textContent = 'Check your email to confirm'; errorEl.style.display = 'block'; }
+    } else {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      updateAuthUI(data.user);
+      closeAuthModal();
+    }
+  } catch (error) { errorEl.textContent = error.message; errorEl.style.display = 'block'; }
+}
+
+async function handleGoogleLogin() {
+  const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
+  if (error) { document.getElementById('auth-error').textContent = error.message; document.getElementById('auth-error').style.display = 'block'; }
+}
+
+async function logout() { await supabase.auth.signOut(); updateAuthUI(null); }
+
+// Init auth on page load
+supabase.auth.getSession().then(({ data: { session } }) => updateAuthUI(session ? session.user : null));
+supabase.auth.onAuthStateChange((event, session) => { if (event === 'SIGNED_IN' && session) updateAuthUI(session.user); else if (event === 'SIGNED_OUT') updateAuthUI(null); });
+
 // ElevenLabs API key - for direct browser calls
 const ELEVENLABS_API_KEY = 'sk_84ebebc8813d25d47e2a643ca556b6739ef7badfe396fb52';
 
@@ -761,6 +958,10 @@ async function generateWithElevenLabs(voiceId, text, speed, stability, similarit
 }
 
 async function generateAudio() {
+  // Check if logged in
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) { openAuthModal(); return; }
+
   if (!selectedVoice) {
     alert('Please select a voice first!');
     return;
