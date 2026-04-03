@@ -991,7 +991,7 @@ async function generateAudio() {
     const style = parseInt(document.getElementById('style-slider').value);
     
     // Call ElevenLabs directly from browser!
-    const audioBlob = await generateWithElevenLabs(
+    console.log("Generating with voice:", selectedVoice?.key, "text length:", text.length); const audioBlob = await generateWithElevenLabs(
       selectedVoice.key,  // Now this IS the ElevenLabs voice ID
       text,
       speed,
