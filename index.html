@@ -340,9 +340,39 @@
       transition: all 0.3s;
     }
     
+    .preview-section {
+      background: #252540;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+    
+    .preview-btn {
+      flex: 1;
+      background: #333;
+      border: 2px solid #667eea;
+      color: white;
+      padding: 18px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .preview-btn:hover {
+      background: #444;
+    }
+    
     .generate-btn:hover {
       transform: scale(1.02);
       box-shadow: 0 5px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    .generate-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
     }
     
     /* Download Screen */
@@ -542,7 +572,17 @@
         </div>
       </div>
       
-      <button class="generate-btn" onclick="generateAudio()">🎵 Generate Audio</button>
+      <div class="preview-section" id="preview-section" style="display: none; margin-bottom: 15px;">
+        <div style="font-size: 12px; color: #888; margin-bottom: 8px;">Preview:</div>
+        <audio controls id="preview-audio" style="width: 100%; height: 40px;">
+          <source src="" type="audio/mpeg">
+        </audio>
+      </div>
+      
+      <div style="display: flex; gap: 10px;">
+        <button class="preview-btn" onclick="previewAudio()">👁️ Preview</button>
+        <button class="generate-btn" onclick="generateAudio()">🎵 Generate</button>
+      </div>
     </div>
   </div>
 </div>
@@ -648,6 +688,65 @@ function selectFormat(format) {
   selectedFormat = format;
   document.querySelectorAll('.format-btn').forEach(btn => btn.classList.remove('active'));
   event.target.classList.add('active');
+}
+
+async function previewAudio() {
+  if (!selectedVoice) {
+    alert('Please select a voice first!');
+    return;
+  }
+  
+  const text = document.getElementById('text-input').value;
+  if (!text.trim()) {
+    alert('Please enter some text!');
+    return;
+  }
+  
+  // Use first 150 chars for preview
+  const previewText = text.substring(0, 150) + (text.length > 150 ? '...' : '');
+  
+  const btn = document.querySelector('.preview-btn');
+  btn.textContent = '⏳ Loading...';
+  btn.disabled = true;
+  
+  try {
+    const speed = parseFloat(document.getElementById('speed-slider').value);
+    const pitch = parseInt(document.getElementById('pitch-slider').value);
+    const timber = parseInt(document.getElementById('timber-slider').value);
+    
+    const response = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        voiceKey: selectedVoice.key,
+        text: previewText,
+        speed: speed,
+        pitch: pitch,
+        timber: timber,
+        format: 'mp3'
+      })
+    });
+    
+    if (!response.ok) {
+      throw new Error('Preview failed');
+    }
+    
+    const audioBlob = await response.blob();
+    const audioUrl = URL.createObjectURL(audioBlob);
+    
+    // Show preview section and load audio
+    document.getElementById('preview-section').style.display = 'block';
+    const previewAudio = document.getElementById('preview-audio');
+    previewAudio.src = audioUrl;
+    previewAudio.load();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Preview failed. Please try again.');
+  } finally {
+    btn.textContent = '👁️ Preview';
+    btn.disabled = false;
+  }
 }
 
 async function generateAudio() {
