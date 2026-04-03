@@ -535,7 +535,11 @@
   <div class="generator-layout">
     <div class="text-area-wrap">
       <textarea class="text-area" placeholder="Paste or type your text here..." id="text-input">Welcome to VoxLibrary! This is a test of the AI voice generation system. Pretty cool, right?</textarea>
-      <div class="char-count"><span id="char-count">142</span> characters</div>
+      <div class="char-count">
+        <span id="char-count">142</span> / 10,000 characters
+        <span id="char-warning" style="color: #ff6b6b; margin-left: 10px; display: none;">⚠️ Approaching limit!</span>
+      </div>
+      <div class="chars-bar" style="margin-top: 8px; width: 100%;"><div class="chars-fill" id="char-bar" style="width: 1.4%;"></div></div>
     </div>
     
     <div class="controls-panel">
@@ -843,7 +847,28 @@ function downloadFile() {
 
 function updateCharCount() {
   const text = document.getElementById('text-input').value;
-  document.getElementById('char-count').textContent = text.length;
+  const count = text.length;
+  document.getElementById('char-count').textContent = count.toLocaleString();
+  
+  // Update progress bar (10,000 max)
+  const pct = Math.min((count / 10000) * 100, 100);
+  document.getElementById('char-bar').style.width = pct + '%';
+  
+  // Color shift at 80%
+  const bar = document.getElementById('char-bar');
+  if (pct >= 80) {
+    bar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff4757)';
+  } else {
+    bar.style.background = 'linear-gradient(90deg, #667eea, #764ba2)';
+  }
+  
+  // Show warning at 80%
+  const warning = document.getElementById('char-warning');
+  if (count >= 8000) {
+    warning.style.display = 'inline';
+  } else {
+    warning.style.display = 'none';
+  }
 }
 
 document.getElementById('text-input').addEventListener('input', updateCharCount);
