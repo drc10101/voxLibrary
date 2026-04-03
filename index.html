@@ -735,6 +735,13 @@ async function previewAudio() {
     previewAudioEl.src = audioUrl;
     previewAudioEl.load();
     
+    // Auto-play after loading
+    try {
+      await previewAudioEl.play();
+    } catch (e) {
+      console.log('Autoplay blocked, user can press play manually');
+    }
+    
   } catch (error) {
     console.error('Preview error:', error);
     alert('Preview failed: ' + error.message);
