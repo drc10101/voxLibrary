@@ -1055,11 +1055,11 @@ function updateAuthUI(user) {
   if (user) {
     headerAuth.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">' + user.email + '</span> <button class="btn btn-ghost btn-small" onclick="logout()">Logout</button>';
     planBar.classList.add('visible');
-    billingBtn.style.display = 'block';
+    if (billingBtn) billingBtn.style.display = 'block';
   } else {
     headerAuth.innerHTML = '<button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>';
     planBar.classList.remove('visible');
-    billingBtn.style.display = 'none';
+    if (billingBtn) billingBtn.style.display = 'none';
   }
 }
 
