@@ -1,28 +1,35 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const { Readable } = require('stream');
+const Stripe = require('stripe');
 
 const PORT = process.env.PORT || 8080;
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY || 'sk_84ebebc8813d25d47e2a643ca556b6739ef7badfe396fb52';
+const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const stripe = Stripe(STRIPE_SECRET_KEY);
 
-// Voice mapping - maps our voice IDs to ElevenLabs voice IDs
+// Voice mapping
 const VOICES = {
   'eric': { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric', desc: 'Smooth & Trustworthy' },
-  'sarah': { id: 'EXAVITQ4vVDHCKv3BZtt', name: 'Sarah', desc: 'Professional Executive' },
-  'marcus': { id: 'ErXwobaYiN019ONkyW1e', name: 'Marcus', desc: 'Deep Authority' },
-  'oldcowboy': { id: 'VR6AewLTigWG4xSOukaG', name: 'Old Cowboy', desc: 'Wild West Tales' },
-  'trailguide': { id: 'pFZP5JQG7iQjIQuX4u60', name: 'Trail Guide', desc: 'Frontier Spirit' },
-  'grandma': { id: 'oWAxZDx7w5FHjMwjkFCO', name: 'Grandma', desc: 'Warm Stories' },
-  'storyteller': { id: 'ZXCh6zQMdCFgMC7kWV9z', name: 'Storyteller', desc: 'Narrative Voice' },
-  'genz': { id: 'JGFNMYy濮FiWv9ZBarq', name: 'Gen Z', desc: 'Young & Hype' },
-  'trendsetter': { id: 'TSJHLlqOl1BtHMWKkIBk', name: 'Trendsetter', desc: 'Cool Vibes' },
-  'southern': { id: '5Z3EWraVMiV8wzsfuTDo', name: 'Southern Charm', desc: 'Southern USA' },
-  'british': { id: 'SAZ9YlAv7ehk5AwG9rDL', name: 'British RP', desc: 'British Accent' },
-  'hero': { id: 'TxGEqnHWrfWFTfGW9UPj', name: 'Hero', desc: 'Animation Hero' },
-  'villain': { id: 'ZA4mP7eCOo55ldLYoG1C', name: 'Villain', desc: 'Dark Character' },
-  'everydayjoe': { id: 'wViXPUHCLPcH3NAnJ9Or', name: 'Everyday Joe', desc: 'Neutral Voice' },
-  'friendly': { id: 'LfaY2DwTOlVuN7KArIpG', name: 'Friendly', desc: 'Helpful Voice' },
+  'sarah': { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', desc: 'Mature & Confident' },
+  'charlie': { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', desc: 'Deep & Energetic' },
+  'george': { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George', desc: 'Warm Storyteller' },
+  'laura': { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura', desc: 'Enthusiastic & Quirky' },
+  'liam': { id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', desc: 'Social Media Creator' },
+  'alice': { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice', desc: 'Clear Educator' },
+  'matilda': { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', desc: 'Knowledgeable Pro' },
+  'will': { id: 'bIHbv24MWmeRgasZH58o', name: 'Will', desc: 'Relaxed Optimist' },
+  'jessica': { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', desc: 'Playful & Warm' },
+  'chris': { id: 'iP95p4xoKVk53GoZ742B', name: 'Chris', desc: 'Down-to-Earth' },
+  'brian': { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian', desc: 'Deep & Comforting' },
+  'daniel': { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', desc: 'Steady Broadcaster' },
+  'harry': { id: 'SOYHLrjzK2X1ezoPC6cr', name: 'Harry', desc: 'Fierce Warrior' },
+  'adam': { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', desc: 'Dominant & Firm' },
+  'roger': { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger', desc: 'Laid-Back Casual' },
+  'callum': { id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', desc: 'Husky Trickster' },
+  'river': { id: 'SAz9YHcvj6GT2YYXdXww', name: 'River', desc: 'Relaxed Neutral' },
+  'lily': { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', desc: 'Velvety Actress' },
+  'bella': { id: 'hpp4J3VqNfWAUOO0d1Us', name: 'Bella', desc: 'Professional Bright' },
 };
 
 const mimeTypes = {
@@ -36,49 +43,54 @@ const mimeTypes = {
   '.wav': 'audio/wav',
 };
 
-console.log(`Starting server on port ${PORT}...`);
-
 const server = http.createServer((req, res) => {
   console.log(`${req.method} ${req.url}`);
-  
-  // CORS headers
+
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  
+
   if (req.method === 'OPTIONS') {
     res.writeHead(200);
     res.end();
     return;
   }
-  
-  // API endpoint for generating audio
+
+  // API: Generate audio
   if (req.method === 'POST' && req.url === '/api/generate') {
     let body = '';
     req.on('data', chunk => body += chunk);
     req.on('end', async () => {
       try {
         const data = JSON.parse(body);
-        const { voiceKey, text, speed, pitch, timber, format } = data;
-        
+        const { voiceKey, text, speed, stability, similarity, style, format } = data;
         const voice = VOICES[voiceKey] || VOICES['eric'];
-        
-        console.log(`Generating audio for voice: ${voice.name}, text length: ${text.length}`);
-        
-        // Call ElevenLabs API
-        const audioData = await generateElevenLabsAudio(
-          voice.id,
-          text,
-          speed || 1,
-          pitch || 0,
-          timber || 50,
-          format || 'mp3'
-        );
-        
-        const contentType = format === 'wav' ? 'audio/wav' : 'audio/mpeg';
-        res.writeHead(200, { 'Content-Type': contentType });
-        res.end(audioData);
-        
+
+        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice.id}`, {
+          method: 'POST',
+          headers: {
+            'Accept': format === 'wav_44100_16bit' ? 'audio/wav' : 'audio/mpeg',
+            'Content-Type': 'application/json',
+            'xi-api-key': ELEVENLABS_API_KEY
+          },
+          body: JSON.stringify({
+            text,
+            model_id: 'eleven_multilingual_v2',
+            voice_settings: {
+              stability: stability !== undefined ? stability : 0.5,
+              similarity_boost: similarity !== undefined ? similarity : 0.75,
+              style: style !== undefined ? style : 0,
+              use_speaker_boost: true
+            }
+          })
+        });
+
+        if (!response.ok) throw new Error(`ElevenLabs error: ${response.status}`);
+
+        const audioBuffer = await response.arrayBuffer();
+        res.writeHead(200, { 'Content-Type': format === 'wav_44100_16bit' ? 'audio/wav' : 'audio/mpeg' });
+        res.end(Buffer.from(audioBuffer));
+
       } catch (error) {
         console.error('Generation error:', error);
         res.writeHead(500, { 'Content-Type': 'application/json' });
@@ -87,30 +99,53 @@ const server = http.createServer((req, res) => {
     });
     return;
   }
-  
-  // Voices list endpoint
-  if (req.method === 'GET' && req.url === '/api/voices') {
-    const voicesList = Object.entries(VOICES).map(([key, v]) => ({
-      key,
-      id: v.id,
-      name: v.name,
-      desc: v.desc
-    }));
-    res.writeHead(200, { 'Content-Type': 'application/json' });
-    res.end(JSON.stringify(voicesList));
+
+  // API: Stripe billing portal
+  if (req.method === 'POST' && req.url === '/api/billing-portal') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const { email, returnUrl } = JSON.parse(body);
+
+        if (!STRIPE_SECRET_KEY) throw new Error('Stripe not configured');
+
+        // Find or create customer
+        let customer;
+        const existing = await stripe.customers.list({ email, limit: 1 });
+        if (existing.data.length > 0) {
+          customer = existing.data[0];
+        } else {
+          customer = await stripe.customers.create({ email });
+        }
+
+        // Create portal session
+        const session = await stripe.billingPortal.sessions.create({
+          customer: customer.id,
+          return_url: returnUrl || 'https://voxlibrary-production.up.railway.app/'
+        });
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ url: session.url }));
+
+      } catch (error) {
+        console.error('Billing portal error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+    });
     return;
   }
-  
+
   // Serve static files
   let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
-  
   const ext = path.extname(filePath);
   const contentType = mimeTypes[ext] || 'application/octet-stream';
-  
+
   fs.readFile(filePath, (err, content) => {
     if (err) {
       res.writeHead(404);
-      res.end('File not found');
+      res.end('Not found');
     } else {
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(content);
@@ -118,38 +153,6 @@ const server = http.createServer((req, res) => {
   });
 });
 
-async function generateElevenLabsAudio(voiceId, text, speed, pitch, timber, format) {
-  const stability = timber / 100; // 0-1
-  const similarityBoost = timber / 100; // 0-1
-  
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-    method: 'POST',
-    headers: {
-      'Accept': format === 'wav' ? 'audio/wav' : 'audio/mpeg',
-      'Content-Type': 'application/json',
-      'xi-api-key': ELEVENLABS_API_KEY
-    },
-    body: JSON.stringify({
-      text: text,
-      model_id: 'eleven_multilingual_v2',
-      voice_settings: {
-        stability: stability,
-        similarity_boost: similarityBoost,
-        style: 0.5,
-        use_speaker_boost: true
-      }
-    })
-  });
-  
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`ElevenLabs API error: ${response.status} - ${error}`);
-  }
-  
-  return await response.arrayBuffer();
-}
-
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running at http://0.0.0.0:${PORT}/`);
-  console.log(`API endpoint: POST /api/generate`);
+  console.log(`Server running on port ${PORT}`);
 });
