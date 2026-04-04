@@ -3,7 +3,7 @@
 
 -- Create profiles table if not exists
 CREATE TABLE IF NOT EXISTS profiles (
-  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
+  id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   trial_end TIMESTAMPTZ,
   plan TEXT DEFAULT 'trial',
   chars_used INTEGER DEFAULT 0,

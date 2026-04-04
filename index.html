@@ -1116,16 +1116,10 @@ async function handleAuth() {
       const { data, error } = await sb.auth.signUp({ email, password });
       if (error) throw error;
       if (data.session) {
-        // Set trial end date in Supabase
+        // Profile created automatically by Supabase trigger
+        userState.isTrial = true;
         const trialEnd = new Date();
         trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
-        await sb.from('profiles').upsert({
-          id: data.user.id,
-          trial_end: trialEnd.toISOString(),
-          plan: 'trial',
-          chars_used: 0
-        });
-        userState.isTrial = true;
         userState.trialEnd = trialEnd.toISOString();
         userState.plan = 'trial';
         userState.charsUsed = 0;
