@@ -1033,7 +1033,22 @@ const PRICE_IDS = {
   studio: 'price_1TIGw0GfRLc2oae0hveGx70E',
   pro: 'price_1TIGw0GfRLc2oae0lsHC0bfO'
 };
-let stripe = Stripe(STRIPE_PK);
+const stripe = Stripe(STRIPE_PK);
+
+async function upgradePlan(plan) {
+  console.log('upgradePlan called:', plan);
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { openAuthModal(); return; }
+  const priceId = PRICE_IDS[plan];
+  console.log('Price ID:', priceId);
+  const { error } = await stripe.redirectToCheckout({
+    lineItems: [{ price: priceId, quantity: 1 }],
+    mode: 'subscription',
+    successUrl: window.location.origin + '?upgrade=success',
+    cancelUrl: window.location.origin + '?upgrade=cancelled'
+  });
+  if (error) { console.error('Stripe error:', error); alert('Checkout error: ' + error.message); }
+}
 
 // ElevenLabs
 const ELEVENLABS_API_KEY = 'sk_84ebebc8813d25d47e2a643ca556b6739ef7badfe396fb52';
