@@ -6,5 +6,7 @@
   "scripts": {
     "start": "node serve.js"
   },
-  "dependencies": {}
+  "dependencies": {
+    "stripe": "^14.0.0"
+  }
 }
