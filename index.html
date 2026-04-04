@@ -133,6 +133,17 @@
 
     .plan-bar.visible { display: flex; }
 
+    .current-plan-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+    }
+    .plan-label { color: var(--text-muted); }
+    .plan-name { font-weight: 600; color: white; }
+    .plan-sep { color: var(--text-muted); }
+    .plan-chars { color: var(--accent); font-weight: 500; }
+
     .plan-selector select {
       background: rgba(255,255,255,0.05);
       border: 1px solid var(--border);
@@ -164,6 +175,13 @@
       background: var(--bg-card-hover);
       border-color: var(--accent);
       color: white;
+    }
+
+    .upgrade-btn.current-plan {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      color: white;
+      cursor: default;
     }
 
     .upgrade-btn.pro {
@@ -788,27 +806,29 @@
 
 <!-- Plan bar -->
 <div class="plan-bar" id="plan-bar">
-  <div class="plan-selector">
-    <select id="plan-select" onchange="changePlan(this.value)">
-      <option value="starter">Starter - 8K chars</option>
-      <option value="creator">Creator - 25K chars</option>
-      <option value="studio">Studio - 80K chars</option>
-      <option value="pro">Pro - 200K chars</option>
-    </select>
+  <div class="current-plan-info">
+    <span class="plan-label">Plan:</span>
+    <span class="plan-name" id="plan-bar-name">Starter</span>
+    <span class="plan-sep">—</span>
+    <span class="plan-chars" id="plan-bar-chars">8,000 chars</span>
   </div>
   <div class="upgrade-btns">
-    <button class="upgrade-btn" onclick="upgradePlan('starter')">$9.99/mo</button>
-    <button class="upgrade-btn" onclick="upgradePlan('creator')">$24.99/mo</button>
-    <button class="upgrade-btn" onclick="upgradePlan('studio')">$59.99/mo</button>
-    <button class="upgrade-btn pro" onclick="upgradePlan('pro')">$129.99/mo</button>
+    <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $9.99</button>
+    <button class="upgrade-btn" id="upgrade-btn-creator" onclick="upgradePlan('creator')">Creator $24.99</button>
+    <button class="upgrade-btn" id="upgrade-btn-studio" onclick="upgradePlan('studio')">Studio $59.99</button>
+    <button class="upgrade-btn pro" id="upgrade-btn-pro" onclick="upgradePlan('pro')">Pro $129.99</button>
   </div>
   <div class="stats">
     <div class="stat">
       <div class="stat-value"><span id="chars-remaining">8,000</span></div>
-      <div class="stat-label">Characters Left</div>
+      <div class="stat-label">Chars Left</div>
     </div>
     <div class="stat">
       <div class="stat-value" id="days-left">347</div>
+      <div class="stat-label">Days Left</div>
+    </div>
+  </div>
+</div>
       <div class="stat-label">Days Left</div>
     </div>
   </div>
@@ -1158,18 +1178,30 @@ async function upgradePlan(plan) {
   if (error) alert('Checkout error: ' + error.message);
 }
 
-function changePlan(plan) {
-  userState.plan = plan;
-  updateStats();
-}
-
 // Stats
 function updateStats() {
   const plan = PLANS[userState.plan];
   const remaining = Math.max(0, plan.chars - userState.charsUsed);
   document.getElementById('chars-remaining').textContent = remaining.toLocaleString();
   document.getElementById('days-left').textContent = userState.daysLeft;
-  document.getElementById('plan-select').value = userState.plan;
+
+  // Update plan bar
+  document.getElementById('plan-bar-name').textContent = plan.name;
+  document.getElementById('plan-bar-chars').textContent = plan.chars.toLocaleString() + ' chars';
+
+  // Highlight current plan button
+  ['starter', 'creator', 'studio', 'pro'].forEach(p => {
+    const btn = document.getElementById('upgrade-btn-' + p);
+    if (btn) {
+      btn.classList.remove('current-plan');
+      // Pro button has its own gradient style
+      if (p !== 'pro') btn.style.background = '';
+    }
+  });
+  const currentBtn = document.getElementById('upgrade-btn-' + userState.plan);
+  if (currentBtn) {
+    currentBtn.classList.add('current-plan');
+  }
 }
 
 // Voices
