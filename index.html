@@ -1058,6 +1058,7 @@ const voices = [
 
 const TRIAL_PLAN = { name: 'Trial', chars: 1000 };
 const TRIAL_DAYS = 3;
+const TRIAL_CHARS = 1000;
 
 const PLANS = {
   starter: { name: 'Starter', chars: 8000 },
@@ -1209,8 +1210,9 @@ function updateStats() {
   document.getElementById('chars-remaining').textContent = remaining.toLocaleString();
 
   // Update plan bar
-  document.getElementById('plan-bar-name').textContent = plan.name;
-  document.getElementById('plan-bar-chars').textContent = plan.chars.toLocaleString() + ' chars';
+  const displayPlan = userState.isTrial ? { name: 'Trial', chars: TRIAL_CHARS } : plan;
+  document.getElementById('plan-bar-name').textContent = displayPlan.name;
+  document.getElementById('plan-bar-chars').textContent = displayPlan.chars.toLocaleString() + ' chars';
 
   // Handle trial display
   const trialInfo = document.getElementById('trial-info');
@@ -1313,14 +1315,15 @@ async function generateAudio() {
     const trialEnd = new Date(userState.trialEnd);
     const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
     const plan = PLANS['starter']; // Trial uses same chars as starter
-    const remaining = Math.max(0, plan.chars - userState.charsUsed);
+    const trialChars = TRIAL_CHARS; // Trial character limit
+    const remaining = Math.max(0, trialChars - userState.charsUsed);
 
     if (daysLeft <= 0) {
       alert('Your free trial has expired. Upgrade to continue!');
       showBilling();
       return;
     }
-    if (userState.charsUsed >= plan.chars) {
+    if (userState.charsUsed >= trialChars) {
       alert('You\'ve used all your free trial characters. Upgrade to continue!');
       showBilling();
       return;
