@@ -799,9 +799,11 @@
 
 <header>
   <div class="logo" onclick="showBrowse()">🎙️ VoxLibrary</div>
-  <div class="header-right" id="header-auth">
+  <div class="header-right">
     <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">💳 Billing</button>
-    <button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>
+    <div id="header-auth">
+      <button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>
+    </div>
   </div>
 </header>
 
