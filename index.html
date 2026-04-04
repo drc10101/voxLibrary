@@ -1392,8 +1392,15 @@ async function loadUserProfile(user) {
     userState.charsUsed = profile.chars_used || 0;
     userState.isTrial = profile.plan === 'trial';
     userState.trialEnd = profile.trial_end;
-    updateStats();
+  } else {
+    userState.plan = 'trial';
+    userState.charsUsed = 0;
+    userState.isTrial = true;
+    const trialEnd = new Date();
+    trialEnd.setDate(trialEnd.getDate() + 5);
+    userState.trialEnd = trialEnd.toISOString();
   }
+  updateStats();
 }
 
 sb.auth.getSession().then(({ data: { session } }) => {
