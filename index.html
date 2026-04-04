@@ -143,6 +143,7 @@
     .plan-name { font-weight: 600; color: white; }
     .plan-sep { color: var(--text-muted); }
     .plan-chars { color: var(--accent); font-weight: 500; }
+    .trial-info { color: #f59e0b; font-weight: 600; }
 
     .plan-selector select {
       background: rgba(255,255,255,0.05);
@@ -811,9 +812,10 @@
 <div class="plan-bar" id="plan-bar">
   <div class="current-plan-info">
     <span class="plan-label">Plan:</span>
-    <span class="plan-name" id="plan-bar-name">Starter</span>
+    <span class="plan-name" id="plan-bar-name">Trial</span>
     <span class="plan-sep">—</span>
-    <span class="plan-chars" id="plan-bar-chars">8,000 chars</span>
+    <span class="plan-chars" id="plan-bar-chars">1,000 chars</span>
+    <span class="trial-info" id="trial-info" style="display:none;"> — <span id="trial-days-left">5</span> days left</span>
   </div>
   <div class="upgrade-btns">
     <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $9.99</button>
@@ -823,11 +825,11 @@
   </div>
   <div class="stats">
     <div class="stat">
-      <div class="stat-value"><span id="chars-remaining">8,000</span></div>
+      <div class="stat-value"><span id="chars-remaining">1,000</span></div>
       <div class="stat-label">Chars Left</div>
     </div>
-    <div class="stat">
-      <div class="stat-value" id="days-left">347</div>
+    <div class="stat" id="trial-days-stat" style="display:none;">
+      <div class="stat-value" id="trial-days-val">5</div>
       <div class="stat-label">Days Left</div>
     </div>
   </div>
@@ -1054,6 +1056,9 @@ const voices = [
   { id: 20, key: 'hpp4J3VqNfWAUOO0d1Us', name: "Bella", desc: "Professional Bright", category: "professional", img: "images/bella.png" }
 ];
 
+const TRIAL_PLAN = { name: 'Trial', chars: 1000 };
+const TRIAL_DAYS = 5;
+
 const PLANS = {
   starter: { name: 'Starter', chars: 8000 },
   creator: { name: 'Creator', chars: 25000 },
@@ -1061,7 +1066,7 @@ const PLANS = {
   pro: { name: 'Pro', chars: 200000 }
 };
 
-let userState = { plan: 'starter', charsUsed: 0, daysLeft: 347 };
+let userState = { plan: 'trial', charsUsed: 0, trialEnd: null, isTrial: true };
 let selectedVoice = null;
 let selectedFormat = 'mp3_44100_128';
 let authMode = 'signup';
@@ -1110,11 +1115,37 @@ async function handleAuth() {
     if (authMode === 'signup') {
       const { data, error } = await sb.auth.signUp({ email, password });
       if (error) throw error;
-      if (data.session) { updateAuthUI(data.user); closeAuthModal(); } else { errorEl.textContent = 'Check your email to confirm'; errorEl.style.display = 'block'; }
+      if (data.session) {
+        // Set trial end date in Supabase
+        const trialEnd = new Date();
+        trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
+        await sb.from('profiles').upsert({
+          id: data.user.id,
+          trial_end: trialEnd.toISOString(),
+          plan: 'trial',
+          chars_used: 0
+        });
+        userState.isTrial = true;
+        userState.trialEnd = trialEnd.toISOString();
+        userState.plan = 'trial';
+        userState.charsUsed = 0;
+        updateAuthUI(data.user);
+        updateStats();
+        closeAuthModal();
+      } else { errorEl.textContent = 'Check your email to confirm'; errorEl.style.display = 'block'; }
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      // Load user profile for trial/subscription info
+      const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+      if (profile) {
+        userState.plan = profile.plan || 'trial';
+        userState.charsUsed = profile.chars_used || 0;
+        userState.isTrial = profile.plan === 'trial';
+        userState.trialEnd = profile.trial_end;
+      }
       updateAuthUI(data.user);
+      updateStats();
       closeAuthModal();
     }
   } catch (error) { errorEl.textContent = error.message; errorEl.style.display = 'block'; }
@@ -1179,21 +1210,40 @@ async function upgradePlan(plan) {
 
 // Stats
 function updateStats() {
-  const plan = PLANS[userState.plan];
+  const plan = PLANS[userState.plan] || TRIAL_PLAN;
   const remaining = Math.max(0, plan.chars - userState.charsUsed);
   document.getElementById('chars-remaining').textContent = remaining.toLocaleString();
-  document.getElementById('days-left').textContent = userState.daysLeft;
 
   // Update plan bar
   document.getElementById('plan-bar-name').textContent = plan.name;
   document.getElementById('plan-bar-chars').textContent = plan.chars.toLocaleString() + ' chars';
+
+  // Handle trial display
+  const trialInfo = document.getElementById('trial-info');
+  const trialDaysStat = document.getElementById('trial-days-stat');
+  if (userState.isTrial && userState.trialEnd) {
+    const now = new Date();
+    const trialEnd = new Date(userState.trialEnd);
+    const daysLeft = Math.max(0, Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24)));
+    if (daysLeft > 0) {
+      trialInfo.style.display = 'inline';
+      trialDaysStat.style.display = 'block';
+      document.getElementById('trial-days-left').textContent = daysLeft;
+      document.getElementById('trial-days-val').textContent = daysLeft;
+    } else {
+      trialInfo.style.display = 'none';
+      trialDaysStat.style.display = 'none';
+    }
+  } else {
+    trialInfo.style.display = 'none';
+    trialDaysStat.style.display = 'none';
+  }
 
   // Highlight current plan button
   ['starter', 'creator', 'studio', 'pro'].forEach(p => {
     const btn = document.getElementById('upgrade-btn-' + p);
     if (btn) {
       btn.classList.remove('current-plan');
-      // Pro button has its own gradient style
       if (p !== 'pro') btn.style.background = '';
     }
   });
@@ -1263,6 +1313,26 @@ async function generateAudio() {
   const text = document.getElementById('text-input').value;
   if (!text.trim()) { alert('Please enter some text!'); return; }
 
+  // Check trial status
+  if (userState.isTrial) {
+    const now = new Date();
+    const trialEnd = new Date(userState.trialEnd);
+    const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+    const plan = PLANS['starter']; // Trial uses same chars as starter
+    const remaining = Math.max(0, plan.chars - userState.charsUsed);
+
+    if (daysLeft <= 0) {
+      alert('Your free trial has expired. Upgrade to continue!');
+      showBilling();
+      return;
+    }
+    if (userState.charsUsed >= plan.chars) {
+      alert('You\'ve used all your free trial characters. Upgrade to continue!');
+      showBilling();
+      return;
+    }
+  }
+
   const btn = document.getElementById('generate-btn');
   btn.textContent = '⏳ Generating...';
   btn.disabled = true;
@@ -1320,8 +1390,26 @@ function downloadFile() {
 }
 
 // Init
-sb.auth.getSession().then(({ data: { session } }) => updateAuthUI(session ? session.user : null));
-sb.auth.onAuthStateChange((event, session) => { if (event === 'SIGNED_IN' && session) updateAuthUI(session.user); else if (event === 'SIGNED_OUT') updateAuthUI(null); });
+async function loadUserProfile(user) {
+  if (!user) return;
+  const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+  if (profile) {
+    userState.plan = profile.plan || 'trial';
+    userState.charsUsed = profile.chars_used || 0;
+    userState.isTrial = profile.plan === 'trial';
+    userState.trialEnd = profile.trial_end;
+    updateStats();
+  }
+}
+
+sb.auth.getSession().then(({ data: { session } }) => {
+  updateAuthUI(session ? session.user : null);
+  if (session) loadUserProfile(session.user);
+});
+sb.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session) { updateAuthUI(session.user); loadUserProfile(session.user); }
+  else if (event === 'SIGNED_OUT') { updateAuthUI(null); }
+});
 renderVoices();
 updateStats();
 </script>
