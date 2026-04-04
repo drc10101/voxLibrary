@@ -187,6 +187,12 @@
     }
 
     .upgrade-btn.pro {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+    }
+
+    .upgrade-btn.pro.current-plan {
       background: linear-gradient(135deg, var(--accent), var(--accent2));
       border: none;
       color: white;
@@ -1240,7 +1246,7 @@ function updateStats() {
     const btn = document.getElementById('upgrade-btn-' + p);
     if (btn) {
       btn.classList.remove('current-plan');
-      if (p !== 'pro') btn.style.background = '';
+      btn.style.background = '';
     }
   });
   const currentBtn = document.getElementById('upgrade-btn-' + userState.plan);
