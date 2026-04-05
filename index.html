@@ -1426,7 +1426,7 @@ async function generateAudio() {
     const audioUrl = URL.createObjectURL(audioBlob);
 
     document.getElementById('audio-player').src = audioUrl;
-    document.getElementById('download-voice-name').textContent = 'VOICE: ' + selectedVoice.name + ' - ' + selectedVoice.desc;
+    document.getElementById('download-voice-name').textContent = 'VOICE: ' + selectedVoice.name;
     document.getElementById('download-text-preview').textContent = '"' + text.substring(0, 80) + '..."';
     document.getElementById('download-info').textContent = 'Format: WAV | Size: ' + (audioBlob.size / 1024).toFixed(1) + ' KB';
     window.generatedAudioUrl = audioUrl;
