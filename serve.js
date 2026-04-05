@@ -143,60 +143,52 @@ const server = http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/api/webhook') {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-
+    
     let rawBody = '';
     req.on('data', chunk => rawBody += chunk);
     req.on('end', async () => {
       // Respond immediately with 200 to acknowledge receipt
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end('{"received":true}');
-
+      
+      console.log('=== WEBHOOK RECEIVED ===');
+      console.log('Has signature:', !!sig);
+      console.log('Has webhook secret:', !!webhookSecret);
+      
       try {
         let event;
         if (webhookSecret && sig) {
           try {
             event = stripe.webhooks.constructEvent(rawBody, sig, webhookSecret);
+            console.log('Signature verified OK');
           } catch (verifyError) {
-            console.log('Webhook signature verification failed:', verifyError.message);
-            // Try to parse anyway for debugging
+            console.log('Signature verification failed:', verifyError.message);
             event = JSON.parse(rawBody);
           }
         } else {
           event = JSON.parse(rawBody);
         }
-
-        console.log('Webhook received:', event.type);
-
+        
+        console.log('Event type:', event.type);
+        
         if (event.type === 'invoice.paid' || event.type === 'checkout.session.completed') {
-          // For invoice.paid, get details from the invoice
-          // For checkout.session.completed, get details from the session
           let customerEmail;
-          let subscriptionId;
           let priceId;
           
           if (event.type === 'invoice.paid') {
             const invoice = event.data.object;
             customerEmail = invoice.customer_email;
-            subscriptionId = invoice.subscription_details?.subscription;
-            // Get price from invoice lines
             const lineItem = invoice.lines?.data[0];
             priceId = lineItem?.pricing?.price_details?.price;
-            console.log(`Invoice paid - Email: ${customerEmail}, Subscription: ${subscriptionId}, Price: ${priceId}`);
+            console.log('Invoice - email:', customerEmail, 'price:', priceId);
           } else {
             const session = event.data.object;
             customerEmail = session.customer_details?.email;
-            subscriptionId = session.subscription;
-            // Need to fetch subscription to get price
-            if (subscriptionId) {
-              const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            if (session.subscription) {
+              const subscription = await stripe.subscriptions.retrieve(session.subscription);
               priceId = subscription.items.data[0]?.price.id;
             }
-            console.log(`Checkout - Email: ${customerEmail}, Subscription: ${subscriptionId}, Price: ${priceId}`);
-          }
-          
-          if (!priceId) {
-            console.log('No price ID found');
-            return;
+            console.log('Checkout - email:', customerEmail, 'price:', priceId);
           }
           
           const PRICE_TO_PLAN = {
@@ -207,45 +199,62 @@ const server = http.createServer((req, res) => {
           };
           
           const plan = PRICE_TO_PLAN[priceId] || 'starter';
-          console.log(`Plan: ${plan}`);
+          console.log('Mapped plan:', plan);
           
-          if (customerEmail && SUPABASE_SERVICE_KEY) {
-            const response = await fetch(
-              `${SUPABASE_URL}/rest/v1/auth.users?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
-              {
-                headers: {
-                  'apikey': SUPABASE_SERVICE_KEY,
-                  'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
-                }
-              }
-            );
-            const users = await response.json();
-            console.log(`Users found: ${users?.length}`);
-            
-            if (users && users.length > 0) {
-              const userId = users[0].id;
-              await fetch(
-                `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
-                {
-                  method: 'PATCH',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'apikey': SUPABASE_SERVICE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-                    'Prefer': 'return=minimal'
-                  },
-                  body: JSON.stringify({ plan: plan, chars_used: 0 })
-                }
-              );
-              console.log(`SUCCESS: Updated user ${customerEmail} to ${plan}`);
-            } else {
-              console.log(`No user found for ${customerEmail}`);
-            }
+          if (!customerEmail) {
+            console.log('ERROR: No customer email!');
+            return;
           }
+          
+          if (!SUPABASE_SERVICE_KEY) {
+            console.log('ERROR: No SUPABASE_SERVICE_KEY!');
+            return;
+          }
+          
+          console.log('Looking up user by email:', customerEmail);
+          const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/auth.users?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
+            {
+              headers: {
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+              }
+            }
+          );
+          console.log('Auth lookup status:', response.status);
+          const users = await response.json();
+          console.log('Users found:', JSON.stringify(users));
+          
+          if (!users || users.length === 0) {
+            console.log('ERROR: No user found for email!');
+            return;
+          }
+          
+          const userId = users[0].id;
+          console.log('Found user ID:', userId);
+          
+          console.log('Updating profile to plan:', plan);
+          const updateResponse = await fetch(
+            `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                'Prefer': 'return=minimal'
+              },
+              body: JSON.stringify({ plan: plan, chars_used: 0 })
+            }
+          );
+          console.log('Update status:', updateResponse.status);
+          console.log('SUCCESS for', customerEmail, '->', plan);
         }
       } catch (error) {
-        console.error('Webhook processing error:', error.message);
+        console.error('Webhook error:', error.message);
       }
+      
+      console.log('=== WEBHOOK DONE ===');
     });
     return;
   }
