@@ -833,10 +833,11 @@
     <span class="trial-info" id="trial-info" style="display:none;"> — <span id="trial-days-left">5</span> days left</span>
   </div>
   <div class="upgrade-btns">
-    <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $9.99 — 8K chars</button>
-    <button class="upgrade-btn" id="upgrade-btn-creator" onclick="upgradePlan('creator')">Creator $24.99 — 25K chars</button>
+    <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $3.99 — 10K chars</button>
+    <button class="upgrade-btn" id="upgrade-btn-creator" onclick="upgradePlan('creator')">Creator $9.99 — 25K chars</button>
     <button class="upgrade-btn" id="upgrade-btn-studio" onclick="upgradePlan('studio')">Studio $59.99 — 80K chars</button>
-    <button class="upgrade-btn pro" id="upgrade-btn-pro" onclick="upgradePlan('pro')">Pro $129.99 — 200K chars</button>
+    <button class="upgrade-btn pro" id="upgrade-btn-pro" onclick="upgradePlan('pro')">Pro $79.99 — 250K chars</button>
+    <button class="upgrade-btn pro" id="upgrade-btn-business" onclick="upgradePlan('business')">Business $129.99 — 500K chars</button>
   </div>
   <div class="stats">
     <div class="stat">
@@ -988,12 +989,12 @@
     <div class="plans-grid">
       <div class="plan-option" onclick="upgradePlan('starter')">
         <div class="plan-option-name">Starter</div>
-        <div class="plan-option-price">$9.99<span>/mo</span></div>
-        <div class="plan-option-chars">8,000 chars</div>
+        <div class="plan-option-price">$3.99<span>/mo</span></div>
+        <div class="plan-option-chars">10,000 chars</div>
       </div>
       <div class="plan-option" onclick="upgradePlan('creator')">
         <div class="plan-option-name">Creator</div>
-        <div class="plan-option-price">$24.99<span>/mo</span></div>
+        <div class="plan-option-price">$9.99<span>/mo</span></div>
         <div class="plan-option-chars">25,000 chars</div>
       </div>
       <div class="plan-option" onclick="upgradePlan('studio')">
@@ -1003,8 +1004,13 @@
       </div>
       <div class="plan-option" onclick="upgradePlan('pro')">
         <div class="plan-option-name">Pro</div>
+        <div class="plan-option-price">$79.99<span>/mo</span></div>
+        <div class="plan-option-chars">250,000 chars</div>
+      </div>
+      <div class="plan-option" onclick="upgradePlan('business')">
+        <div class="plan-option-name">Business</div>
         <div class="plan-option-price">$129.99<span>/mo</span></div>
-        <div class="plan-option-chars">200,000 chars</div>
+        <div class="plan-option-chars">500,000 chars</div>
       </div>
     </div>
   </div>
@@ -1096,10 +1102,19 @@ const TRIAL_DAYS = 3;
 const TRIAL_CHARS = 1000;
 
 const PLANS = {
-  starter: { name: 'Starter', chars: 8000 },
+  starter: { name: 'Starter', chars: 10000 },
   creator: { name: 'Creator', chars: 25000 },
   studio: { name: 'Studio', chars: 80000 },
-  pro: { name: 'Pro', chars: 200000 }
+  pro: { name: 'Pro', chars: 250000 },
+  business: { name: 'Business', chars: 500000 }
+};
+
+const PLAN_PRICES = {
+  starter: '3.99',
+  creator: '9.99',
+  studio: '59.99',
+  pro: '79.99',
+  business: '129.99'
 };
 
 let userState = { plan: 'trial', charsUsed: 0, trialEnd: null, isTrial: true };
