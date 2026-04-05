@@ -143,14 +143,14 @@ const server = http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/api/webhook') {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    
+
     let rawBody = '';
     req.on('data', chunk => rawBody += chunk);
     req.on('end', async () => {
       // Respond immediately with 200 to acknowledge receipt
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end('{"received":true}');
-      
+
       try {
         let event;
         if (webhookSecret && sig) {
@@ -164,61 +164,82 @@ const server = http.createServer((req, res) => {
         } else {
           event = JSON.parse(rawBody);
         }
-        
+
         console.log('Webhook received:', event.type);
-        
-        if (event.type === 'checkout.session.completed') {
-          const session = event.data.object;
-          const customerId = session.customer;
-          const customerEmail = session.customer_details?.email;
-          const subscriptionId = session.subscription;
+
+        if (event.type === 'invoice.paid' || event.type === 'checkout.session.completed') {
+          // For invoice.paid, get details from the invoice
+          // For checkout.session.completed, get details from the session
+          let customerEmail;
+          let subscriptionId;
+          let priceId;
           
-          console.log(`Checkout - Email: ${customerEmail}, Customer: ${customerId}`);
+          if (event.type === 'invoice.paid') {
+            const invoice = event.data.object;
+            customerEmail = invoice.customer_email;
+            subscriptionId = invoice.subscription_details?.subscription;
+            // Get price from invoice lines
+            const lineItem = invoice.lines?.data[0];
+            priceId = lineItem?.pricing?.price_details?.price;
+            console.log(`Invoice paid - Email: ${customerEmail}, Subscription: ${subscriptionId}, Price: ${priceId}`);
+          } else {
+            const session = event.data.object;
+            customerEmail = session.customer_details?.email;
+            subscriptionId = session.subscription;
+            // Need to fetch subscription to get price
+            if (subscriptionId) {
+              const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+              priceId = subscription.items.data[0]?.price.id;
+            }
+            console.log(`Checkout - Email: ${customerEmail}, Subscription: ${subscriptionId}, Price: ${priceId}`);
+          }
           
-          if (subscriptionId) {
-            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
-            const priceId = subscription.items.data[0]?.price.id;
+          if (!priceId) {
+            console.log('No price ID found');
+            return;
+          }
+          
+          const PRICE_TO_PLAN = {
+            'price_1TIGvyGfRLc2oae0fw5dEEYU': 'starter',
+            'price_1TIGvzGfRLc2oae0ljAG06ij': 'creator',
+            'price_1TIGw0GfRLc2oae0hveGx70E': 'studio',
+            'price_1TIGw0GfRLc2oae0lsHC0bfO': 'pro',
+          };
+          
+          const plan = PRICE_TO_PLAN[priceId] || 'starter';
+          console.log(`Plan: ${plan}`);
+          
+          if (customerEmail && SUPABASE_SERVICE_KEY) {
+            const response = await fetch(
+              `${SUPABASE_URL}/rest/v1/auth.users?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
+              {
+                headers: {
+                  'apikey': SUPABASE_SERVICE_KEY,
+                  'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+                }
+              }
+            );
+            const users = await response.json();
+            console.log(`Users found: ${users?.length}`);
             
-            const PRICE_TO_PLAN = {
-              'price_1TIGvyGfRLc2oae0fw5dEEYU': 'starter',
-              'price_1TIGvzGfRLc2oae0ljAG06ij': 'creator',
-              'price_1TIGw0GfRLc2oae0hveGx70E': 'studio',
-              'price_1TIGw0GfRLc2oae0lsHC0bfO': 'pro',
-            };
-            
-            const plan = PRICE_TO_PLAN[priceId] || 'starter';
-            console.log(`Plan: ${plan}`);
-            
-            if (customerEmail && SUPABASE_SERVICE_KEY) {
-              const response = await fetch(
-                `${SUPABASE_URL}/rest/v1/auth.users?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
+            if (users && users.length > 0) {
+              const userId = users[0].id;
+              await fetch(
+                `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
                 {
+                  method: 'PATCH',
                   headers: {
+                    'Content-Type': 'application/json',
                     'apikey': SUPABASE_SERVICE_KEY,
-                    'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
-                  }
+                    'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                    'Prefer': 'return=minimal'
+                  },
+                  body: JSON.stringify({ plan: plan, chars_used: 0 })
                 }
               );
-              const users = await response.json();
-              console.log(`Users found: ${users?.length}`);
-              
-              if (users && users.length > 0) {
-                const userId = users[0].id;
-                await fetch(
-                  `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
-                  {
-                    method: 'PATCH',
-                    headers: {
-                      'Content-Type': 'application/json',
-                      'apikey': SUPABASE_SERVICE_KEY,
-                      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-                      'Prefer': 'return=minimal'
-                    },
-                    body: JSON.stringify({ plan: plan, chars_used: 0 })
-                  }
-                );
-                console.log(`SUCCESS: Updated user ${customerEmail} to ${plan}`);
-              }
+              console.log(`SUCCESS: Updated user ${customerEmail} to ${plan}`);
+            } else {
+              console.log(`No user found for ${customerEmail}`);
             }
           }
         }
@@ -235,7 +256,7 @@ async function updateUserProfile(supabaseUserId, updates) {
     console.log('SUPABASE_SERVICE_KEY not configured, skipping profile update');
     return false;
   }
-  
+
   try {
     const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${supabaseUserId}`, {
       method: 'PATCH',
@@ -247,7 +268,7 @@ async function updateUserProfile(supabaseUserId, updates) {
       },
       body: JSON.stringify(updates)
     });
-    
+
     if (response.ok) {
       console.log(`Profile updated for user ${supabaseUserId}:`, updates);
       return true;
