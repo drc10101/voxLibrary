@@ -14,7 +14,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role k
 const VOICES = {
   'eric': { id: 'eric', name: 'Eric', desc: 'Smooth & Trustworthy' },
   'brian': { id: 'brian', name: 'Brian', desc: 'Deep & Professional' },
-  'archer': { id: 'archer', name: 'Archer', desc: 'Sharp & Clear' },
+  'archer': { id: 'archer', name: 'Archer', desc: 'Sharp & Clear' }, // uses callum image
   'madison': { id: 'madison', name: 'Alice', desc: 'Bright & Energetic' },
   'walter': { id: 'walter', name: 'Sarah', desc: 'Mature & Authoritative' },
   'gordon': { id: 'gordon', name: 'George', desc: 'British & Distinguished' },
