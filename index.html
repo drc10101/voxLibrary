@@ -1047,14 +1047,21 @@ const stripe = Stripe(STRIPE_PK);
 async function upgradePlan(plan) {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { openAuthModal(); return; }
-  const priceId = PRICE_IDS[plan];
-  const { error } = await stripe.redirectToCheckout({
-    lineItems: [{ price: priceId, quantity: 1 }],
-    mode: 'subscription',
-    successUrl: window.location.origin + '?upgrade=success',
-    cancelUrl: window.location.origin + '?upgrade=cancelled'
-  });
-  if (error) alert('Checkout error: ' + error.message);
+  
+  // Payment Links - replace with your actual Stripe Payment Links
+  const PAYMENT_LINKS = {
+    starter: 'https://buy.stripe.com/test starter payment link',
+    creator: 'https://buy.stripe.com/test creator payment link',
+    studio: 'https://buy.stripe.com/test studio payment link',
+    pro: 'https://buy.stripe.com/test pro payment link'
+  };
+  
+  const link = PAYMENT_LINKS[plan];
+  if (link) {
+    window.open(link, '_blank');
+  } else {
+    alert('Payment link not configured for ' + plan);
+  }
 }
 
 // ElevenLabs
