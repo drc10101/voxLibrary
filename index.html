@@ -1176,9 +1176,12 @@ async function logout() { await sb.auth.signOut(); updateAuthUI(null); }
 
 // Billing
 function showBilling() {
+  console.log('showBilling called');
+  alert('showBilling called');
   hideAll();
   updateBillingDisplay();
   document.getElementById('billing-section').classList.add('active');
+  console.log('billing-section classes:', document.getElementById('billing-section').className);
 }
 
 function hideAll() {
