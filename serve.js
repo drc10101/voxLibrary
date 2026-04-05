@@ -168,9 +168,12 @@ const server = http.createServer((req, res) => {
             const subscriptionId = session.subscription;
             const customerEmail = session.customer_details?.email;
             
+            console.log(`Checkout completed for: ${customerEmail}, customer: ${customerId}`);
+            
             // Get subscription details to find the price
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
             const priceId = subscription.items.data[0]?.price.id;
+            console.log(`Price ID: ${priceId}`);
             
             // Map price ID to plan name
             const PRICE_TO_PLAN = {
@@ -181,11 +184,13 @@ const server = http.createServer((req, res) => {
             };
             
             const plan = PRICE_TO_PLAN[priceId] || 'starter';
-            console.log(`Checkout completed: ${customerEmail} -> ${plan}`);
+            console.log(`Plan to set: ${plan}`);
             
             // Find user by email in auth.users and update their profile
             if (customerEmail && SUPABASE_SERVICE_KEY) {
               try {
+                console.log(`Searching for user with email: ${customerEmail}`);
+                
                 // Search auth.users for matching email
                 const response = await fetch(
                   `${SUPABASE_URL}/rest/v1/auth.users?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
@@ -196,11 +201,16 @@ const server = http.createServer((req, res) => {
                     }
                   }
                 );
+                console.log(`Auth users response status: ${response.status}`);
                 const users = await response.json();
+                console.log(`Auth users found: ${JSON.stringify(users)}`);
+                
                 if (users && users.length > 0) {
                   const userId = users[0].id;
+                  console.log(`Found user ID: ${userId}`);
+                  
                   // Update the profile with the new plan
-                  await fetch(
+                  const updateResponse = await fetch(
                     `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
                     {
                       method: 'PATCH',
@@ -213,6 +223,7 @@ const server = http.createServer((req, res) => {
                       body: JSON.stringify({ plan: plan, chars_used: 0, is_trial: false })
                     }
                   );
+                  console.log(`Profile update status: ${updateResponse.status}`);
                   console.log(`Updated profile for ${customerEmail} to plan ${plan}`);
                 } else {
                   console.log(`No user found for ${customerEmail}`);
@@ -220,6 +231,8 @@ const server = http.createServer((req, res) => {
               } catch (error) {
                 console.error('Error updating profile:', error);
               }
+            } else {
+              console.log('Missing email or SUPABASE_SERVICE_KEY');
             }
             break;
           }
