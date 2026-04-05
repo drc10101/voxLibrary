@@ -816,7 +816,7 @@
 <header>
   <div class="logo" onclick="showBrowse()">🎙️ VoxLibrary</div>
   <div class="header-right">
-    <button class="btn btn-ghost" id="billing-btn" onclick="console.log('billing btn clicked'); showBilling()" style="display:none;">💳 Billing</button>
+    <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">💳 Billing</button>
     <div id="header-auth">
       <button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>
     </div>
@@ -1183,12 +1183,31 @@ async function logout() { await sb.auth.signOut(); updateAuthUI(null); }
 
 // Billing
 function showBilling() {
+  console.log('=== showBilling called ===');
   const bs = document.getElementById('billing-section');
-  if (!bs) { alert('Billing section not found!'); return; }
+  console.log('billing-section element:', bs);
+  if (!bs) {
+    alert('Billing section NOT FOUND!');
+    return;
+  }
+  console.log('current display:', bs.style.display);
+  console.log('current classList:', bs.className);
+  
   hideAll();
   updateBillingDisplay();
+  
   bs.style.display = 'block';
   bs.classList.add('active');
+  
+  console.log('after show - display:', bs.style.display);
+  console.log('after show - classList:', bs.className);
+  
+  // Check if content exists
+  const billingHeader = document.querySelector('.billing-header');
+  console.log('billing header exists:', !!billingHeader);
+  if (billingHeader) {
+    console.log('billing header text:', billingHeader.textContent);
+  }
 }
 
 function hideAll() {
