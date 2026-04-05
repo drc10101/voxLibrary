@@ -1054,12 +1054,13 @@ async function upgradePlan(plan) {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { openAuthModal(); return; }
   
-  // Payment Links - replace with your actual Stripe Payment Links
+  // Payment Links
   const PAYMENT_LINKS = {
-    starter: 'https://buy.stripe.com/test starter payment link',
-    creator: 'https://buy.stripe.com/test creator payment link',
-    studio: 'https://buy.stripe.com/test studio payment link',
-    pro: 'https://buy.stripe.com/test pro payment link'
+    starter: 'https://buy.stripe.com/cNi6oH85a9WIbjY90Hbsc00',
+    creator: 'https://buy.stripe.com/00w9ATgBG9WIbjY1yfbsc01',
+    studio: 'https://buy.stripe.com/3cIcN599ed8U1Joel1bsc03',
+    pro: 'https://buy.stripe.com/7sYeVd85a9WIafU6Szbsc02',
+    business: 'https://buy.stripe.com/fZu4gz3OU8SE5ZE2Cjbsc04'
   };
   
   const link = PAYMENT_LINKS[plan];
