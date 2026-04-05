@@ -1242,9 +1242,24 @@ function updateBillingDisplay() {
 async function openBillingPortal() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { openAuthModal(); return; }
-  // Create a billing session via your backend or use Stripe Customer Portal
-  // For now, redirect to a placeholder - you'd need a serverless function for this
-  alert('Billing portal coming soon! For now, email support@voxlibrary.com to manage your subscription.');
+  
+  const userEmail = session.user.email;
+  const returnUrl = window.location.origin + '?billing=done';
+  
+  try {
+    const response = await fetch('/api/billing-portal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: userEmail, returnUrl })
+    });
+    
+    if (!response.ok) throw new Error('Failed to create portal session');
+    
+    const { url } = await response.json();
+    window.open(url, '_blank');
+  } catch (error) {
+    alert('Could not open billing portal: ' + error.message);
+  }
 }
 
 // Stripe
