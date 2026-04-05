@@ -183,8 +183,44 @@ const server = http.createServer((req, res) => {
             const plan = PRICE_TO_PLAN[priceId] || 'starter';
             console.log(`Checkout completed: ${customerEmail} -> ${plan}`);
             
-            // TODO: Find user by email and update their profile
-            // Need SUPABASE_SERVICE_KEY with admin permissions to query auth.users
+            // Find user by email and update their profile
+            if (customerEmail && SUPABASE_SERVICE_KEY) {
+              try {
+                // Search for user with matching email
+                const response = await fetch(
+                  `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
+                  {
+                    headers: {
+                      'apikey': SUPABASE_SERVICE_KEY,
+                      'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+                    }
+                  }
+                );
+                const profiles = await response.json();
+                if (profiles && profiles.length > 0) {
+                  const userId = profiles[0].id;
+                  // Update the profile with the new plan
+                  await fetch(
+                    `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
+                    {
+                      method: 'PATCH',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_SERVICE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+                        'Prefer': 'return=minimal'
+                      },
+                      body: JSON.stringify({ plan: plan, chars_used: 0, is_trial: false })
+                    }
+                  );
+                  console.log(`Updated profile for ${customerEmail} to plan ${plan}`);
+                } else {
+                  console.log(`No profile found for ${customerEmail}`);
+                }
+              } catch (error) {
+                console.error('Error updating profile:', error);
+              }
+            }
             break;
           }
           
@@ -203,12 +239,6 @@ const server = http.createServer((req, res) => {
           
           case 'customer.subscription.deleted': {
             const subscription = event.data.object;
-            console.log(`Subscription cancelled: ${subscription.id}`);
-            
-            // User cancelled - reset to trial
-            // For now we just log it - would need customer email to find user
-            break;
-          }
             console.log(`Subscription cancelled: ${subscription.id}`);
             break;
           }
