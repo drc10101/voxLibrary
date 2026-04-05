@@ -165,12 +165,17 @@ const server = http.createServer((req, res) => {
           case 'checkout.session.completed': {
             const session = event.data.object;
             const customerId = session.customer;
-            const subscriptionId = session.subscription;
             const customerEmail = session.customer_details?.email;
             
-            console.log(`Checkout completed for: ${customerEmail}, customer: ${customerId}`);
+            console.log(`Checkout completed - Stripe Customer ID: ${customerId}, Email: ${customerEmail}`);
             
             // Get subscription details to find the price
+            const subscriptionId = session.subscription;
+            if (!subscriptionId) {
+              console.log('No subscription ID in session');
+              break;
+            }
+            
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
             const priceId = subscription.items.data[0]?.price.id;
             console.log(`Price ID: ${priceId}`);
@@ -186,14 +191,14 @@ const server = http.createServer((req, res) => {
             const plan = PRICE_TO_PLAN[priceId] || 'starter';
             console.log(`Plan to set: ${plan}`);
             
-            // Find user by email in auth.users and update their profile
-            if (customerEmail && SUPABASE_SERVICE_KEY) {
+            // Find user by Stripe customer ID in profiles table
+            if (customerId && SUPABASE_SERVICE_KEY) {
               try {
-                console.log(`Searching for user with email: ${customerEmail}`);
+                console.log(`Searching for profile with stripe_customer_id: ${customerId}`);
                 
-                // Search auth.users for matching email
+                // Search profiles table for stripe_customer_id
                 const response = await fetch(
-                  `${SUPABASE_URL}/rest/v1/auth.users?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
+                  `${SUPABASE_URL}/rest/v1/profiles?stripe_customer_id=eq.${customerId}&select=id,email`,
                   {
                     headers: {
                       'apikey': SUPABASE_SERVICE_KEY,
@@ -201,13 +206,13 @@ const server = http.createServer((req, res) => {
                     }
                   }
                 );
-                console.log(`Auth users response status: ${response.status}`);
-                const users = await response.json();
-                console.log(`Auth users found: ${JSON.stringify(users)}`);
+                console.log(`Profile search status: ${response.status}`);
+                const profiles = await response.json();
+                console.log(`Profiles found: ${JSON.stringify(profiles)}`);
                 
-                if (users && users.length > 0) {
-                  const userId = users[0].id;
-                  console.log(`Found user ID: ${userId}`);
+                if (profiles && profiles.length > 0) {
+                  const userId = profiles[0].id;
+                  console.log(`Found profile ID: ${userId}`);
                   
                   // Update the profile with the new plan
                   const updateResponse = await fetch(
@@ -224,15 +229,19 @@ const server = http.createServer((req, res) => {
                     }
                   );
                   console.log(`Profile update status: ${updateResponse.status}`);
-                  console.log(`Updated profile for ${customerEmail} to plan ${plan}`);
+                  console.log(`SUCCESS: Updated profile for customer ${customerId} to plan ${plan}`);
                 } else {
-                  console.log(`No user found for ${customerEmail}`);
+                  console.log(`No profile found with stripe_customer_id: ${customerId}`);
+                  // Try email as fallback
+                  if (customerEmail) {
+                    console.log(`Trying email search as fallback: ${customerEmail}`);
+                  }
                 }
               } catch (error) {
                 console.error('Error updating profile:', error);
               }
             } else {
-              console.log('Missing email or SUPABASE_SERVICE_KEY');
+              console.log('Missing customerId or SUPABASE_SERVICE_KEY');
             }
             break;
           }
