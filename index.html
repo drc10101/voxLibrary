@@ -1414,26 +1414,23 @@ async function generateAudio() {
       })
     });
 
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      throw new Error('API error ' + response.status + ': ' + (err.error || ''));
+    const result = await response;
+
+    if (!result.ok) {
+      const err = await result.json().catch(() => ({}));
+      throw new Error('API error ' + result.status + ': ' + (err.error || ''));
     }
 
-    const result = await response.json();
-
-    // Download audio from the returned URL
-    const audioResponse = await fetch(result.audio_url);
-    if (!audioResponse.ok) throw new Error('Failed to download audio');
-
-    const audioBlob = await audioResponse.blob();
+    // Backend returns raw WAV audio binary (CORS handled server-side)
+    const audioBlob = await result.blob();
     const audioUrl = URL.createObjectURL(audioBlob);
 
     document.getElementById('audio-player').src = audioUrl;
     document.getElementById('download-voice-name').textContent = 'VOICE: ' + selectedVoice.name + ' - ' + selectedVoice.desc;
     document.getElementById('download-text-preview').textContent = '"' + text.substring(0, 80) + '..."';
-    document.getElementById('download-info').textContent = 'Format: ' + (selectedFormat.includes('flac') ? 'FLAC' : 'WAV') + ' | Size: ' + (audioBlob.size / 1024).toFixed(1) + ' KB | Cost: $' + (result.cost || 0).toFixed(4);
+    document.getElementById('download-info').textContent = 'Format: WAV | Size: ' + (audioBlob.size / 1024).toFixed(1) + ' KB';
     window.generatedAudioUrl = audioUrl;
-    window.generatedAudioFilename = selectedVoice.name.replace(/\s+/g, '_') + '_' + Date.now() + '.' + (selectedFormat.includes('flac') ? 'flac' : 'wav');
+    window.generatedAudioFilename = selectedVoice.name.replace(/\s+/g, '_') + '_' + Date.now() + '.wav';
 
     document.getElementById('generator-section').classList.remove('active');
     document.getElementById('download-section').classList.add('active');

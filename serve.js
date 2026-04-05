@@ -103,14 +103,13 @@ const server = http.createServer((req, res) => {
           throw new Error('Generation failed: ' + (result.error || 'Unknown error'));
         }
 
-        // Return the audio URL and cost info
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({
-          audio_url: result.output.audio_url,
-          cost: result.output.cost || 0,
-          delay: result.delayTime || 0,
-          execution: result.executionTime || 0
-        }));
+        // Download audio from RunPod and stream back to browser (avoids CORS issues)
+        const audioResponse = await fetch(result.output.audio_url);
+        if (!audioResponse.ok) throw new Error('Failed to fetch audio from RunPod');
+        const audioBuffer = await audioResponse.arrayBuffer();
+
+        res.writeHead(200, { 'Content-Type': 'audio/wav' });
+        res.end(Buffer.from(audioBuffer));
 
       } catch (error) {
         console.error('TTS error:', error);
