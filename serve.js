@@ -137,6 +137,89 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // API: Stripe webhook
+  if (req.method === 'POST' && req.url === '/api/webhook') {
+    const sig = req.headers['stripe-signature'];
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        let event;
+        
+        if (webhookSecret) {
+          // Verify webhook signature
+          event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+        } else {
+          // No secret configured, just parse
+          event = JSON.parse(body);
+        }
+        
+        console.log('Webhook event type:', event.type);
+        
+        // Handle subscription events
+        switch (event.type) {
+          case 'checkout.session.completed': {
+            const session = event.data.object;
+            const customerId = session.customer;
+            const subscriptionId = session.subscription;
+            
+            // Get subscription details to find the price
+            const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+            const priceId = subscription.items.data[0]?.price.id;
+            
+            // Map price ID to plan name
+            const PRICE_TO_PLAN = {
+              'price_1TIGvyGfRLc2oae0fw5dEEYU': 'starter',  // $3.99
+              'price_1TIGvzGfRLc2oae0ljAG06ij': 'creator',  // $9.99
+              'price_1TIGw0GfRLc2oae0hveGx70E': 'studio',    // $59.99
+              'price_1TIGw0GfRLc2oae0lsHC0bfO': 'pro',       // $79.99
+            };
+            
+            const plan = PRICE_TO_PLAN[priceId] || 'starter';
+            console.log(`User ${customerId} upgraded to ${plan}`);
+            
+            // Update Supabase profile via HTTP request
+            // Note: In production, you'd use Supabase admin key or service role
+            break;
+          }
+          
+          case 'invoice.paid': {
+            const invoice = event.data.object;
+            const customerId = invoice.customer;
+            console.log(`Invoice paid for customer ${customerId}`);
+            break;
+          }
+          
+          case 'customer.subscription.updated': {
+            const subscription = event.data.object;
+            console.log(`Subscription updated: ${subscription.id}`);
+            break;
+          }
+          
+          case 'customer.subscription.deleted': {
+            const subscription = event.data.object;
+            console.log(`Subscription cancelled: ${subscription.id}`);
+            break;
+          }
+          
+          default:
+            console.log(`Unhandled event type: ${event.type}`);
+        }
+        
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ received: true }));
+        
+      } catch (error) {
+        console.error('Webhook error:', error.message);
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+    });
+    return;
+  }
+
   // Serve static files
   let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
   const ext = path.extname(filePath);
