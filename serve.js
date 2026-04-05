@@ -67,7 +67,7 @@ const server = http.createServer((req, res) => {
       try {
         const data = JSON.parse(body);
         const { voiceKey, text, speed, format } = data;
-        const voice = VOICES[voiceKey] || VOICES['lucy'];
+        const voice = VOICES[voiceKey] || VOICES['brian'];
 
         if (!RUNPOD_API_KEY) {
           throw new Error('RunPod API key not configured');
@@ -128,7 +128,7 @@ const server = http.createServer((req, res) => {
       try {
         const data = JSON.parse(body);
         const { voiceKey, text, speed, stability, similarity, style, format } = data;
-        const voice = VOICES[voiceKey] || VOICES['lucy'];
+        const voice = VOICES[voiceKey] || VOICES['brian'];
 
         if (!RUNPOD_API_KEY) {
           throw new Error('RunPod API key not configured');
