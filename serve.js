@@ -183,12 +183,12 @@ const server = http.createServer((req, res) => {
             const plan = PRICE_TO_PLAN[priceId] || 'starter';
             console.log(`Checkout completed: ${customerEmail} -> ${plan}`);
             
-            // Find user by email and update their profile
+            // Find user by email in auth.users and update their profile
             if (customerEmail && SUPABASE_SERVICE_KEY) {
               try {
-                // Search for user with matching email
+                // Search auth.users for matching email
                 const response = await fetch(
-                  `${SUPABASE_URL}/rest/v1/profiles?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
+                  `${SUPABASE_URL}/rest/v1/auth.users?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
                   {
                     headers: {
                       'apikey': SUPABASE_SERVICE_KEY,
@@ -196,9 +196,9 @@ const server = http.createServer((req, res) => {
                     }
                   }
                 );
-                const profiles = await response.json();
-                if (profiles && profiles.length > 0) {
-                  const userId = profiles[0].id;
+                const users = await response.json();
+                if (users && users.length > 0) {
+                  const userId = users[0].id;
                   // Update the profile with the new plan
                   await fetch(
                     `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
@@ -215,7 +215,7 @@ const server = http.createServer((req, res) => {
                   );
                   console.log(`Updated profile for ${customerEmail} to plan ${plan}`);
                 } else {
-                  console.log(`No profile found for ${customerEmail}`);
+                  console.log(`No user found for ${customerEmail}`);
                 }
               } catch (error) {
                 console.error('Error updating profile:', error);
