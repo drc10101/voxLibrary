@@ -4,34 +4,34 @@ const path = require('path');
 const Stripe = require('stripe');
 
 const PORT = process.env.PORT || 8080;
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const stripe = Stripe(STRIPE_SECRET_KEY);
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxnqwpavjhiphgvkevvj.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role key for admin
 
-// Voice mapping
+// Voice mapping (Chatterbox Turbo preset voices)
 const VOICES = {
-  'eric': { id: 'cjVigY5qzO86Huf0OWal', name: 'Eric', desc: 'Smooth & Trustworthy' },
-  'sarah': { id: 'EXAVITQu4vr4xnSDxMaL', name: 'Sarah', desc: 'Mature & Confident' },
-  'charlie': { id: 'IKne3meq5aSn9XLyUdCD', name: 'Charlie', desc: 'Deep & Energetic' },
-  'george': { id: 'JBFqnCBsd6RMkjVDRZzb', name: 'George', desc: 'Warm Storyteller' },
-  'laura': { id: 'FGY2WhTYpPnrIDTdsKH5', name: 'Laura', desc: 'Enthusiastic & Quirky' },
-  'liam': { id: 'TX3LPaxmHKxFdv7VOQHJ', name: 'Liam', desc: 'Social Media Creator' },
-  'alice': { id: 'Xb7hH8MSUJpSbSDYk0k2', name: 'Alice', desc: 'Clear Educator' },
-  'matilda': { id: 'XrExE9yKIg1WjnnlVkGX', name: 'Matilda', desc: 'Knowledgeable Pro' },
-  'will': { id: 'bIHbv24MWmeRgasZH58o', name: 'Will', desc: 'Relaxed Optimist' },
-  'jessica': { id: 'cgSgspJ2msm6clMCkdW9', name: 'Jessica', desc: 'Playful & Warm' },
-  'chris': { id: 'iP95p4xoKVk53GoZ742B', name: 'Chris', desc: 'Down-to-Earth' },
-  'brian': { id: 'nPczCjzI2devNBz1zQrb', name: 'Brian', desc: 'Deep & Comforting' },
-  'daniel': { id: 'onwK4e9ZLuTAKqWW03F9', name: 'Daniel', desc: 'Steady Broadcaster' },
-  'harry': { id: 'SOYHLrjzK2X1ezoPC6cr', name: 'Harry', desc: 'Fierce Warrior' },
-  'adam': { id: 'pNInz6obpgDQGcFmaJgB', name: 'Adam', desc: 'Dominant & Firm' },
-  'roger': { id: 'CwhRBWXzGAHq8TQ4Fs17', name: 'Roger', desc: 'Laid-Back Casual' },
-  'callum': { id: 'N2lVS1w4EtoT3dr4eOWO', name: 'Callum', desc: 'Husky Trickster' },
-  'river': { id: 'SAz9YHcvj6GT2YYXdXww', name: 'River', desc: 'Relaxed Neutral' },
-  'lily': { id: 'pFZP5JQG7iQjIQuC4Bku', name: 'Lily', desc: 'Velvety Actress' },
-  'bella': { id: 'hpp4J3VqNfWAUOO0d1Us', name: 'Bella', desc: 'Professional Bright' },
+  'lucy': { id: 'lucy', name: 'Lucy', desc: 'Warm & Friendly' },
+  'brian': { id: 'brian', name: 'Brian', desc: 'Deep & Professional' },
+  'archer': { id: 'archer', name: 'Archer', desc: 'Sharp & Clear' },
+  'madison': { id: 'madison', name: 'Madison', desc: 'Bright & Energetic' },
+  'walter': { id: 'walter', name: 'Walter', desc: 'Mature & Authoritative' },
+  'gordon': { id: 'gordon', name: 'Gordon', desc: 'British & Distinguished' },
+  'andy': { id: 'andy', name: 'Andy', desc: 'Casual & Approachable' },
+  'aaron': { id: 'aaron', name: 'Aaron', desc: 'Deep & Steady' },
+  'abigail': { id: 'abigail', name: 'Abigail', desc: 'Clear & Confident' },
+  'anaya': { id: 'anaya', name: 'Anaya', desc: 'Modern & Dynamic' },
+  'chloe': { id: 'chloe', name: 'Chloe', desc: 'Youthful & Enthusiastic' },
+  'dylan': { id: 'dylan', name: 'Dylan', desc: 'Relaxed & Cool' },
+  'emmanuel': { id: 'emmanuel', name: 'Emmanuel', desc: 'Deep & Trustworthy' },
+  'ethan': { id: 'ethan', name: 'Ethan', desc: 'Young & Fresh' },
+  'evelyn': { id: 'evelyn', name: 'Evelyn', desc: 'Calm & Nurturing' },
+  'gavin': { id: 'gavin', name: 'Gavin', desc: 'Professional & Smooth' },
+  'ivan': { id: 'ivan', name: 'Ivan', desc: 'Deep & Reliable' },
+  'laura': { id: 'laura', name: 'Laura', desc: 'Friendly & Warm' },
+  'marisol': { id: 'marisol', name: 'Marisol', desc: 'Expressive & Dynamic' },
+  'meera': { id: 'meera', name: 'Meera', desc: 'Confident & Clear' },
 };
 
 const mimeTypes = {
@@ -43,6 +43,7 @@ const mimeTypes = {
   '.jpg': 'image/jpeg',
   '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
+  '.flac': 'audio/flac',
 };
 
 const server = http.createServer((req, res) => {
@@ -58,7 +59,70 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // API: Generate audio
+  // API: TTS via RunPod Chatterbox Turbo (proxy to keep API key secure)
+  if (req.method === 'POST' && req.url === '/api/tts') {
+    let body = '';
+    req.on('data', chunk => body += chunk);
+    req.on('end', async () => {
+      try {
+        const data = JSON.parse(body);
+        const { voiceKey, text, speed, format } = data;
+        const voice = VOICES[voiceKey] || VOICES['lucy'];
+
+        if (!RUNPOD_API_KEY) {
+          throw new Error('RunPod API key not configured');
+        }
+
+        // Map speed: frontend slider is 0.5-2.0, RunPod wants 0.5-2.0
+        const runpodSpeed = speed ? Math.max(0.5, Math.min(2.0, speed)) : 1.0;
+        const runpodFormat = format === 'flac_44100_16bit' ? 'flac' : 'wav';
+
+        const response = await fetch('https://api.runpod.ai/v2/chatterbox-turbo/runsync', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${RUNPOD_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            input: {
+              prompt: text,
+              voice: voice.id,
+              format: runpodFormat,
+              speed: runpodSpeed
+            }
+          })
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          throw new Error(`RunPod error ${response.status}: ${err.error || 'Unknown'}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status === 'FAILED') {
+          throw new Error('Generation failed: ' + (result.error || 'Unknown error'));
+        }
+
+        // Return the audio URL and cost info
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          audio_url: result.output.audio_url,
+          cost: result.output.cost || 0,
+          delay: result.delayTime || 0,
+          execution: result.executionTime || 0
+        }));
+
+      } catch (error) {
+        console.error('TTS error:', error);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: error.message }));
+      }
+    });
+    return;
+  }
+
+  // API: Generate audio (legacy - kept for backward compatibility)
   if (req.method === 'POST' && req.url === '/api/generate') {
     let body = '';
     req.on('data', chunk => body += chunk);
@@ -66,31 +130,38 @@ const server = http.createServer((req, res) => {
       try {
         const data = JSON.parse(body);
         const { voiceKey, text, speed, stability, similarity, style, format } = data;
-        const voice = VOICES[voiceKey] || VOICES['eric'];
+        const voice = VOICES[voiceKey] || VOICES['lucy'];
 
-        const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voice.id}`, {
+        if (!RUNPOD_API_KEY) {
+          throw new Error('RunPod API key not configured');
+        }
+
+        const runpodSpeed = speed ? Math.max(0.5, Math.min(2.0, speed)) : 1.0;
+        const runpodFormat = format === 'flac_44100_16bit' ? 'flac' : 'wav';
+
+        const response = await fetch('https://api.runpod.ai/v2/chatterbox-turbo/runsync', {
           method: 'POST',
           headers: {
-            'Accept': format === 'wav_44100_16bit' ? 'audio/wav' : 'audio/mpeg',
-            'Content-Type': 'application/json',
-            'xi-api-key': ELEVENLABS_API_KEY
+            'Authorization': `Bearer ${RUNPOD_API_KEY}`,
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            text,
-            model_id: 'eleven_multilingual_v2',
-            voice_settings: {
-              stability: stability !== undefined ? stability : 0.5,
-              similarity_boost: similarity !== undefined ? similarity : 0.75,
-              style: style !== undefined ? style : 0,
-              use_speaker_boost: true
+            input: {
+              prompt: text,
+              voice: voice.id,
+              format: runpodFormat,
+              speed: runpodSpeed
             }
           })
         });
 
-        if (!response.ok) throw new Error(`ElevenLabs error: ${response.status}`);
+        if (!response.ok) throw new Error(`RunPod error: ${response.status}`);
 
-        const audioBuffer = await response.arrayBuffer();
-        res.writeHead(200, { 'Content-Type': format === 'wav_44100_16bit' ? 'audio/wav' : 'audio/mpeg' });
+        const result = await response.json();
+        const audioResponse = await fetch(result.output.audio_url);
+        const audioBuffer = await audioResponse.arrayBuffer();
+
+        res.writeHead(200, { 'Content-Type': runpodFormat === 'flac' ? 'audio/flac' : 'audio/wav' });
         res.end(Buffer.from(audioBuffer));
 
       } catch (error) {
@@ -124,7 +195,7 @@ const server = http.createServer((req, res) => {
         // Create portal session
         const session = await stripe.billingPortal.sessions.create({
           customer: customer.id,
-          return_url: returnUrl || 'https://voxlibrary-production.up.railway.app/'
+          return_url: returnUrl || 'https://web-production-5f469.up.railway.app/'
         });
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -143,18 +214,18 @@ const server = http.createServer((req, res) => {
   if (req.method === 'POST' && req.url === '/api/webhook') {
     const sig = req.headers['stripe-signature'];
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-    
+
     let rawBody = '';
     req.on('data', chunk => rawBody += chunk);
     req.on('end', async () => {
       // Respond immediately with 200 to acknowledge receipt
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end('{"received":true}');
-      
+
       console.log('=== WEBHOOK RECEIVED ===');
       console.log('Has signature:', !!sig);
       console.log('Has webhook secret:', !!webhookSecret);
-      
+
       try {
         let event;
         if (webhookSecret && sig) {
@@ -168,13 +239,13 @@ const server = http.createServer((req, res) => {
         } else {
           event = JSON.parse(rawBody);
         }
-        
+
         console.log('Event type:', event.type);
-        
+
         if (event.type === 'invoice.paid' || event.type === 'checkout.session.completed') {
           let customerEmail;
           let priceId;
-          
+
           if (event.type === 'invoice.paid') {
             const invoice = event.data.object;
             customerEmail = invoice.customer_email;
@@ -190,27 +261,27 @@ const server = http.createServer((req, res) => {
             }
             console.log('Checkout - email:', customerEmail, 'price:', priceId);
           }
-          
+
           const PRICE_TO_PLAN = {
             'price_1TIGvyGfRLc2oae0fw5dEEYU': 'starter',
             'price_1TIGvzGfRLc2oae0ljAG06ij': 'creator',
             'price_1TIGw0GfRLc2oae0hveGx70E': 'studio',
             'price_1TIGw0GfRLc2oae0lsHC0bfO': 'pro',
           };
-          
+
           const plan = PRICE_TO_PLAN[priceId] || 'starter';
           console.log('Mapped plan:', plan);
-          
+
           if (!customerEmail) {
             console.log('ERROR: No customer email!');
             return;
           }
-          
+
           if (!SUPABASE_SERVICE_KEY) {
             console.log('ERROR: No SUPABASE_SERVICE_KEY!');
             return;
           }
-          
+
           console.log('Looking up user by email:', customerEmail);
           const response = await fetch(
             `${SUPABASE_URL}/rest/v1/auth.users?email=eq.${encodeURIComponent(customerEmail)}&select=id`,
@@ -224,15 +295,15 @@ const server = http.createServer((req, res) => {
           console.log('Auth lookup status:', response.status);
           const users = await response.json();
           console.log('Users found:', JSON.stringify(users));
-          
+
           if (!users || users.length === 0) {
             console.log('ERROR: No user found for email!');
             return;
           }
-          
+
           const userId = users[0].id;
           console.log('Found user ID:', userId);
-          
+
           console.log('Updating profile to plan:', plan);
           const updateResponse = await fetch(
             `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
@@ -253,54 +324,54 @@ const server = http.createServer((req, res) => {
       } catch (error) {
         console.error('Webhook error:', error.message);
       }
-      
+
       console.log('=== WEBHOOK DONE ===');
     });
     return;
   }
 
   // Helper: Update user profile in Supabase
-async function updateUserProfile(supabaseUserId, updates) {
-  if (!SUPABASE_SERVICE_KEY) {
-    console.log('SUPABASE_SERVICE_KEY not configured, skipping profile update');
-    return false;
-  }
-
-  try {
-    const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${supabaseUserId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': SUPABASE_SERVICE_KEY,
-        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-        'Prefer': 'return=minimal'
-      },
-      body: JSON.stringify(updates)
-    });
-
-    if (response.ok) {
-      console.log(`Profile updated for user ${supabaseUserId}:`, updates);
-      return true;
-    } else {
-      console.error('Failed to update profile:', response.status);
+  async function updateUserProfile(supabaseUserId, updates) {
+    if (!SUPABASE_SERVICE_KEY) {
+      console.log('SUPABASE_SERVICE_KEY not configured, skipping profile update');
       return false;
     }
-  } catch (error) {
-    console.error('Profile update error:', error);
-    return false;
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${supabaseUserId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(updates)
+      });
+
+      if (response.ok) {
+        console.log(`Profile updated for user ${supabaseUserId}:`, updates);
+        return true;
+      } else {
+        console.error('Failed to update profile:', response.status);
+        return false;
+      }
+    } catch (error) {
+      console.error('Profile update error:', error);
+      return false;
+    }
   }
-}
 
-// Serve static files
-let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
-const ext = path.extname(filePath);
-const contentType = mimeTypes[ext] || 'application/octet-stream';
+  // Serve static files
+  let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
+  const ext = path.extname(filePath);
+  const contentType = mimeTypes[ext] || 'application/octet-stream';
 
-fs.readFile(filePath, (err, content) => {
-  if (err) {
-    res.writeHead(404);
-    res.end('Not found');
-  } else {
+  fs.readFile(filePath, (err, content) => {
+    if (err) {
+      res.writeHead(404);
+      res.end('Not found');
+    } else {
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(content);
     }
