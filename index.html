@@ -1183,31 +1183,12 @@ async function logout() { await sb.auth.signOut(); updateAuthUI(null); }
 
 // Billing
 function showBilling() {
-  console.log('=== showBilling called ===');
   const bs = document.getElementById('billing-section');
-  console.log('billing-section element:', bs);
-  if (!bs) {
-    alert('Billing section NOT FOUND!');
-    return;
-  }
-  console.log('current display:', bs.style.display);
-  console.log('current classList:', bs.className);
-  
+  if (!bs) { alert('Billing section not found!'); return; }
   hideAll();
   updateBillingDisplay();
-  
   bs.style.display = 'block';
   bs.classList.add('active');
-  
-  console.log('after show - display:', bs.style.display);
-  console.log('after show - classList:', bs.className);
-  
-  // Check if content exists
-  const billingHeader = document.querySelector('.billing-header');
-  console.log('billing header exists:', !!billingHeader);
-  if (billingHeader) {
-    console.log('billing header text:', billingHeader.textContent);
-  }
 }
 
 function hideAll() {
@@ -1219,17 +1200,21 @@ function hideAll() {
 }
 
 function updateBillingDisplay() {
-  const plan = PLANS[userState.plan];
+  // Handle trial or unknown plan
+  const plan = PLANS[userState.plan] || { name: 'Trial', chars: 1000, price: '$0' };
   document.getElementById('billing-plan-name').textContent = plan.name;
-  document.getElementById('billing-plan-price').textContent = '$' + (userState.plan === 'starter' ? '9.99' : userState.plan === 'creator' ? '24.99' : userState.plan === 'studio' ? '59.99' : '129.99');
+  document.getElementById('billing-plan-price').textContent = userState.plan === 'trial' ? 'Free Trial' : '$' + (userState.plan === 'starter' ? '9.99' : userState.plan === 'creator' ? '24.99' : userState.plan === 'studio' ? '59.99' : '129.99') + '/mo';
   document.getElementById('billing-plan-chars').textContent = plan.chars.toLocaleString();
   document.getElementById('billing-chars-used').textContent = userState.charsUsed.toLocaleString();
   document.getElementById('billing-chars-remaining').textContent = Math.max(0, plan.chars - userState.charsUsed).toLocaleString();
-  document.getElementById('billing-next-date').textContent = 'May 4, 2026';
+  document.getElementById('billing-next-date').textContent = userState.plan === 'trial' ? 'N/A (Trial)' : 'May 4, 2026';
 
   // Highlight current plan in grid
   document.querySelectorAll('.plan-option').forEach(el => el.classList.remove('current'));
-  document.querySelectorAll('.plan-option')[Object.values(PLANS).findIndex(p => p.name.toLowerCase() === userState.plan)]?.classList.add('current');
+  const planIndex = { starter: 0, creator: 1, studio: 2, pro: 3 }[userState.plan];
+  if (planIndex !== undefined) {
+    document.querySelectorAll('.plan-option')[planIndex]?.classList.add('current');
+  }
 }
 
 async function openBillingPortal() {
