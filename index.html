@@ -816,7 +816,7 @@
 <header>
   <div class="logo" onclick="showBrowse()">🎙️ VoxLibrary</div>
   <div class="header-right">
-    <button class="btn btn-ghost" id="billing-btn" onclick="alert('billing clicked')" style="display:none;">💳 Billing</button>
+    <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">💳 Billing</button>
     <div id="header-auth">
       <button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>
     </div>
@@ -1183,7 +1183,6 @@ async function logout() { await sb.auth.signOut(); updateAuthUI(null); }
 
 // Billing
 function showBilling() {
-  alert('billing clicked');
   hideAll();
   updateBillingDisplay();
   document.getElementById('billing-section').style.display = 'block';
