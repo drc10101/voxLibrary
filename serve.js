@@ -7,6 +7,8 @@ const PORT = process.env.PORT || 8080;
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const stripe = Stripe(STRIPE_SECRET_KEY);
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxnqwpavjhiphgvkevvj.supabase.co';
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role key for admin
 
 // Voice mapping
 const VOICES = {
@@ -164,6 +166,7 @@ const server = http.createServer((req, res) => {
             const session = event.data.object;
             const customerId = session.customer;
             const subscriptionId = session.subscription;
+            const customerEmail = session.customer_details?.email;
             
             // Get subscription details to find the price
             const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -178,10 +181,10 @@ const server = http.createServer((req, res) => {
             };
             
             const plan = PRICE_TO_PLAN[priceId] || 'starter';
-            console.log(`User ${customerId} upgraded to ${plan}`);
+            console.log(`Checkout completed: ${customerEmail} -> ${plan}`);
             
-            // Update Supabase profile via HTTP request
-            // Note: In production, you'd use Supabase admin key or service role
+            // TODO: Find user by email and update their profile
+            // Need SUPABASE_SERVICE_KEY with admin permissions to query auth.users
             break;
           }
           
@@ -200,6 +203,12 @@ const server = http.createServer((req, res) => {
           
           case 'customer.subscription.deleted': {
             const subscription = event.data.object;
+            console.log(`Subscription cancelled: ${subscription.id}`);
+            
+            // User cancelled - reset to trial
+            // For now we just log it - would need customer email to find user
+            break;
+          }
             console.log(`Subscription cancelled: ${subscription.id}`);
             break;
           }
@@ -220,16 +229,48 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Serve static files
-  let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
-  const ext = path.extname(filePath);
-  const contentType = mimeTypes[ext] || 'application/octet-stream';
-
-  fs.readFile(filePath, (err, content) => {
-    if (err) {
-      res.writeHead(404);
-      res.end('Not found');
+  // Helper: Update user profile in Supabase
+async function updateUserProfile(supabaseUserId, updates) {
+  if (!SUPABASE_SERVICE_KEY) {
+    console.log('SUPABASE_SERVICE_KEY not configured, skipping profile update');
+    return false;
+  }
+  
+  try {
+    const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${supabaseUserId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_SERVICE_KEY,
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(updates)
+    });
+    
+    if (response.ok) {
+      console.log(`Profile updated for user ${supabaseUserId}:`, updates);
+      return true;
     } else {
+      console.error('Failed to update profile:', response.status);
+      return false;
+    }
+  } catch (error) {
+    console.error('Profile update error:', error);
+    return false;
+  }
+}
+
+// Serve static files
+let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url);
+const ext = path.extname(filePath);
+const contentType = mimeTypes[ext] || 'application/octet-stream';
+
+fs.readFile(filePath, (err, content) => {
+  if (err) {
+    res.writeHead(404);
+    res.end('Not found');
+  } else {
       res.writeHead(200, { 'Content-Type': contentType });
       res.end(content);
     }
