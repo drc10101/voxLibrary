@@ -10,28 +10,28 @@ const stripe = Stripe(STRIPE_SECRET_KEY);
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxnqwpavjhiphgvkevvj.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role key for admin
 
-// Voice mapping (Chatterbox Turbo preset voices)
+// Voice mapping (Chatterbox Turbo preset voices + matching existing images)
 const VOICES = {
-  'lucy': { id: 'lucy', name: 'Lucy', desc: 'Warm & Friendly' },
+  'eric': { id: 'eric', name: 'Eric', desc: 'Smooth & Trustworthy' },
   'brian': { id: 'brian', name: 'Brian', desc: 'Deep & Professional' },
   'archer': { id: 'archer', name: 'Archer', desc: 'Sharp & Clear' },
-  'madison': { id: 'madison', name: 'Madison', desc: 'Bright & Energetic' },
-  'walter': { id: 'walter', name: 'Walter', desc: 'Mature & Authoritative' },
-  'gordon': { id: 'gordon', name: 'Gordon', desc: 'British & Distinguished' },
-  'andy': { id: 'andy', name: 'Andy', desc: 'Casual & Approachable' },
-  'aaron': { id: 'aaron', name: 'Aaron', desc: 'Deep & Steady' },
-  'abigail': { id: 'abigail', name: 'Abigail', desc: 'Clear & Confident' },
-  'anaya': { id: 'anaya', name: 'Anaya', desc: 'Modern & Dynamic' },
-  'chloe': { id: 'chloe', name: 'Chloe', desc: 'Youthful & Enthusiastic' },
-  'dylan': { id: 'dylan', name: 'Dylan', desc: 'Relaxed & Cool' },
-  'emmanuel': { id: 'emmanuel', name: 'Emmanuel', desc: 'Deep & Trustworthy' },
-  'ethan': { id: 'ethan', name: 'Ethan', desc: 'Young & Fresh' },
-  'evelyn': { id: 'evelyn', name: 'Evelyn', desc: 'Calm & Nurturing' },
-  'gavin': { id: 'gavin', name: 'Gavin', desc: 'Professional & Smooth' },
-  'ivan': { id: 'ivan', name: 'Ivan', desc: 'Deep & Reliable' },
+  'madison': { id: 'madison', name: 'Alice', desc: 'Bright & Energetic' },
+  'walter': { id: 'walter', name: 'Sarah', desc: 'Mature & Authoritative' },
+  'gordon': { id: 'gordon', name: 'George', desc: 'British & Distinguished' },
+  'andy': { id: 'andy', name: 'Chris', desc: 'Casual & Approachable' },
+  'aaron': { id: 'aaron', name: 'Daniel', desc: 'Deep & Steady' },
+  'abigail': { id: 'abigail', name: 'Jessica', desc: 'Clear & Confident' },
+  'anaya': { id: 'anaya', name: 'Will', desc: 'Modern & Dynamic' },
+  'chloe': { id: 'chloe', name: 'Matilda', desc: 'Youthful & Enthusiastic' },
+  'dylan': { id: 'dylan', name: 'Roger', desc: 'Relaxed & Cool' },
+  'emmanuel': { id: 'emmanuel', name: 'Harry', desc: 'Deep & Trustworthy' },
+  'ethan': { id: 'ethan', name: 'River', desc: 'Young & Fresh' },
+  'evelyn': { id: 'evelyn', name: 'Lily', desc: 'Calm & Nurturing' },
+  'gavin': { id: 'gavin', name: 'Charlie', desc: 'Professional & Smooth' },
+  'ivan': { id: 'ivan', name: 'Adam', desc: 'Deep & Reliable' },
   'laura': { id: 'laura', name: 'Laura', desc: 'Friendly & Warm' },
-  'marisol': { id: 'marisol', name: 'Marisol', desc: 'Expressive & Dynamic' },
-  'meera': { id: 'meera', name: 'Meera', desc: 'Confident & Clear' },
+  'marisol': { id: 'marisol', name: 'Bella', desc: 'Expressive & Dynamic' },
+  'meera': { id: 'meera', name: 'Liam', desc: 'Confident & Clear' },
 };
 
 const mimeTypes = {
