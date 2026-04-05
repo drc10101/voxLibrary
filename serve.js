@@ -87,8 +87,7 @@ const server = http.createServer((req, res) => {
             input: {
               prompt: text,
               voice: voice.id,
-              format: runpodFormat,
-              speed: runpodSpeed
+              format: runpodFormat
             }
           })
         });
@@ -149,8 +148,7 @@ const server = http.createServer((req, res) => {
             input: {
               prompt: text,
               voice: voice.id,
-              format: runpodFormat,
-              speed: runpodSpeed
+              format: runpodFormat
             }
           })
         });
