@@ -20,7 +20,7 @@ const VOICES = {
   'gavin': { id: 'gavin', name: 'George', desc: 'British & Distinguished' },
   'andy': { id: 'andy', name: 'Chris', desc: 'Casual & Approachable' },
   'aaron': { id: 'aaron', name: 'Daniel', desc: 'Deep & Steady' },
-  'gordon': { id: 'gordon', name: 'Jessica', desc: 'Clear & Confident' },
+  'abigail': { id: 'abigail', name: 'Jessica', desc: 'Clear & Confident' },
   'anaya': { id: 'anaya', name: 'Sarah', desc: 'Modern & Dynamic' },
   'chloe': { id: 'chloe', name: 'Matilda', desc: 'Australian & Fun' },
   'dylan': { id: 'dylan', name: 'Roger', desc: 'Relaxed & Cool' },
