@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VoxLibrary 🎙️ - Professional AI Voices</title>
+  <title>VoxLibrary ≡ƒÄÖ∩╕Å - Professional AI Voices</title>
   <meta name="description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
   <meta name="keywords" content="AI voice generator, text to speech, TTS, voiceover, AI voice, ElevenLabs alternative, free voice generator, professional voice AI, audio generation, AI voice cloning">
   <meta name="robots" content="index, follow">
@@ -13,7 +13,7 @@
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://jedsvoxlibrary.com/">
-  <meta property="og:title" content="VoxLibrary 🎙️ - Professional AI Voices">
+  <meta property="og:title" content="VoxLibrary ≡ƒÄÖ∩╕Å - Professional AI Voices">
   <meta property="og:description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
   <meta property="og:image" content="og-image.png">
   <meta property="og:site_name" content="VoxLibrary">
@@ -21,7 +21,7 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:url" content="https://jedsvoxlibrary.com/">
-  <meta name="twitter:title" content="VoxLibrary 🎙️ - Professional AI Voices">
+  <meta name="twitter:title" content="VoxLibrary ≡ƒÄÖ∩╕Å - Professional AI Voices">
   <meta name="twitter:description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
   <meta name="twitter:image" content="og-image.png">
 
@@ -354,8 +354,15 @@
     }
 
     .voice-desc {
-      font-size: 13px;
+      font-size: 12px;
       color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .voice-qualities {
+      font-size: 11px;
+      color: var(--accent);
+      margin-top: 2px;
+      font-weight: 500;
     }
 
     .selected-badge {
@@ -823,7 +830,7 @@
       margin-top: 5px;
     }
     .plan-option.current .plan-option-name::after {
-      content: ' ✓';
+      content: ' Γ£ô';
     }
 
     @media (max-width: 900px) {
@@ -839,9 +846,9 @@
 <body>
 
 <header>
-  <div class="logo" onclick="showBrowse()">🎙️ VoxLibrary</div>
+  <div class="logo" onclick="showBrowse()">≡ƒÄÖ∩╕Å VoxLibrary</div>
   <div class="header-right">
-    <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">💳 Billing</button>
+    <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">≡ƒÆ│ Billing</button>
     <div id="header-auth">
       <button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>
     </div>
@@ -853,16 +860,16 @@
   <div class="current-plan-info">
     <span class="plan-label">Your Plan:</span>
     <span class="plan-name" id="plan-bar-name">Trial</span>
-    <span class="plan-sep">—</span>
+    <span class="plan-sep">ΓÇö</span>
     <span class="plan-chars" id="plan-bar-chars">2,000 chars</span>
-    <span class="trial-info" id="trial-info" style="display:none;"> — <span id="trial-days-left">5</span> days left</span>
+    <span class="trial-info" id="trial-info" style="display:none;"> ΓÇö <span id="trial-days-left">5</span> days left</span>
   </div>
   <div class="upgrade-btns">
-    <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $3.99 — 10K chars</button>
-    <button class="upgrade-btn" id="upgrade-btn-creator" onclick="upgradePlan('creator')">Creator $9.99 — 25K chars</button>
-    <button class="upgrade-btn" id="upgrade-btn-studio" onclick="upgradePlan('studio')">Studio $59.99 — 80K chars</button>
-    <button class="upgrade-btn pro" id="upgrade-btn-pro" onclick="upgradePlan('pro')">Pro $79.99 — 250K chars</button>
-    <button class="upgrade-btn pro" id="upgrade-btn-business" onclick="upgradePlan('business')">Business $129.99 — 500K chars</button>
+    <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $3.99 ΓÇö 10K chars</button>
+    <button class="upgrade-btn" id="upgrade-btn-creator" onclick="upgradePlan('creator')">Creator $9.99 ΓÇö 25K chars</button>
+    <button class="upgrade-btn" id="upgrade-btn-studio" onclick="upgradePlan('studio')">Studio $59.99 ΓÇö 80K chars</button>
+    <button class="upgrade-btn pro" id="upgrade-btn-pro" onclick="upgradePlan('pro')">Pro $79.99 ΓÇö 250K chars</button>
+    <button class="upgrade-btn pro" id="upgrade-btn-business" onclick="upgradePlan('business')">Business $129.99 ΓÇö 500K chars</button>
   </div>
   <div class="stats">
     <div class="stat">
@@ -900,7 +907,7 @@
 <div class="section generator" id="generator-section">
   <div class="generator-main">
     <div class="generator-header">
-      <button class="back-btn" onclick="showBrowse()">←</button>
+      <button class="back-btn" onclick="showBrowse()">ΓåÉ</button>
       <div class="selected-voice-info">
         <h3 id="selected-voice-name">Select a voice</h3>
         <p id="selected-voice-desc">Ready to generate</p>
@@ -945,13 +952,13 @@
         <button class="format-btn" onclick="selectFormat('flac_44100_16bit', this)">FLAC</button>
       </div>
     </div>
-    <button class="generate-btn" id="generate-btn" onclick="generateAudio()">🎵 Generate Audio</button>
+    <button class="generate-btn" id="generate-btn" onclick="generateAudio()">≡ƒÄ╡ Generate Audio</button>
   </div>
 </div>
 
 <!-- Download Screen -->
 <div class="download-screen" id="download-section">
-  <div class="success-icon">✓</div>
+  <div class="success-icon">Γ£ô</div>
   <h2>Generation Complete!</h2>
   <p style="color: var(--text-muted); margin-bottom: 30px;">Your audio is ready to download</p>
   <div class="download-card">
@@ -961,15 +968,15 @@
     <div style="font-size: 12px; color: var(--text-muted);" id="download-info"></div>
   </div>
   <div class="download-btns">
-    <button class="btn btn-primary" onclick="downloadFile()">📥 Download</button>
-    <button class="btn btn-ghost" onclick="showBrowse()">← Generate Another</button>
+    <button class="btn btn-primary" onclick="downloadFile()">≡ƒôÑ Download</button>
+    <button class="btn btn-ghost" onclick="showBrowse()">ΓåÉ Generate Another</button>
   </div>
 </div>
 
 <!-- Billing Screen -->
 <div class="billing-screen" id="billing-section">
   <div class="billing-header">
-    <h2>💳 Billing</h2>
+    <h2>≡ƒÆ│ Billing</h2>
     <p>Manage your subscription and payment details</p>
   </div>
 
@@ -1040,7 +1047,7 @@
   </div>
 
   <div style="text-align: center; margin-top: 30px;">
-    <button class="btn btn-ghost" onclick="showBrowse()">← Back to Voices</button>
+    <button class="btn btn-ghost" onclick="showBrowse()">ΓåÉ Back to Voices</button>
   </div>
 </div>
 
@@ -1102,27 +1109,28 @@ const RUNPOD_API_KEY = ''; // No longer used - backend proxy handles this
 const API_BASE = ''; // Will use relative path to call our own backend
 
 // Voices (mapped to Chatterbox Turbo preset voices + matching existing images)
+// Voices (mapped to Chatterbox Turbo preset voices + matching existing images)
 const voices = [
-  { id: 1, key: 'andy', name: "Andy", desc: "Smooth & Trustworthy", category: "everyman", img: "images/andy.png" },
-  { id: 2, key: 'brian', name: "Brian", desc: "Deep & Professional", category: "professional", img: "images/brian.png" },
-  { id: 3, key: 'archer', name: "Archer", desc: "Sharp & Clear", category: "professional", img: "images/archer.png" },
-  { id: 4, key: 'madison', name: "Madison", desc: "Bright & Energetic", category: "social", img: "images/madison.png" },
-  { id: 5, key: 'walter', name: "Walter", desc: "Mature & Authoritative", category: "professional", img: "images/walter.png" },
-  { id: 6, key: 'gavin', name: "Gavin", desc: "British & Distinguished", category: "professional", img: "images/gavin.png" },
-  { id: 7, key: 'aaron', name: "Aaron", desc: "Casual & Approachable", category: "everyman", img: "images/aaron.png" },
-  { id: 8, key: 'emmanuel', name: "Emmanuel", desc: "Deep & Steady", category: "professional", img: "images/emmanuel.png" },
-  { id: 9, key: 'abigail', name: "Abigail", desc: "Clear & Confident", category: "professional", img: "images/abigail.png" },
-  { id: 10, key: 'anaya', name: "Anaya", desc: "Modern & Dynamic", category: "social", img: "images/anaya.png" },
-  { id: 11, key: 'marisol', name: "Chloe", desc: "Australian & Fun", category: "social", img: "images/chloe.png" },
-  { id: 12, key: 'dylan', name: "Dylan", desc: "Relaxed & Cool", category: "everyman", img: "images/dylan.png" },
-  { id: 13, key: 'ethan', name: "Ethan", desc: "Deep & Trustworthy", category: "professional", img: "images/ethan.png" },
-  { id: 14, key: 'marisol', name: "Marisol", desc: "Young & Fresh", category: "everyman", img: "images/marisol.png" },
-  { id: 15, key: 'evelyn', name: "Evelyn", desc: "Calm & Nurturing", category: "story", img: "images/evelyn.png" },
-  { id: 16, key: 'ivan', name: "Ivan", desc: "Deep & Reliable", category: "professional", img: "images/ivan.png" },
-  { id: 17, key: 'laura', name: "Laura", desc: "Friendly & Warm", category: "everyman", img: "images/laura.png" },
-  { id: 18, key: 'meera', name: "Matilda", desc: "Australian & Fun", category: "social", img: "images/matilda.png" },
-  { id: 20, key: 'roger', name: "Roger", desc: "Confident & Clear", category: "professional", img: "images/roger.png" },
-  { id: 21, key: 'brian', name: "Eric", desc: "Deep & Professional", category: "professional", img: "images/eric.png" }
+  { id: 1, key: 'andy', name: "Andy", accent: "American", pitch: "Low", qualities: "Warm & Clear", category: "everyman", img: "images/andy.png" },
+  { id: 2, key: 'brian', name: "Brian", accent: "American", pitch: "High", qualities: "Clear & Energetic", category: "professional", img: "images/brian.png" },
+  { id: 3, key: 'archer', name: "Archer", accent: "American", pitch: "Mid", qualities: "Slow & Relaxed", category: "professional", img: "images/archer.png" },
+  { id: 4, key: 'madison', name: "Madison", accent: "American", pitch: "Mid", qualities: "Warm & Sultry", category: "social", img: "images/madison.png" },
+  { id: 5, key: 'walter', name: "Walter", accent: "Southern", pitch: "Low", qualities: "Mature & Paced", category: "professional", img: "images/walter.png" },
+  { id: 6, key: 'gavin', name: "Gavin", accent: "British", pitch: "Mid", qualities: "Upbeat & Clear", category: "professional", img: "images/gavin.png" },
+  { id: 7, key: 'aaron', name: "Aaron", accent: "American", pitch: "Mid", qualities: "Settled & Informative", category: "everyman", img: "images/aaron.png" },
+  { id: 8, key: 'emmanuel', name: "Emmanuel", accent: "American", pitch: "High", qualities: "Young & Eager", category: "professional", img: "images/emmanuel.png" },
+  { id: 9, key: 'abigail', name: "Abigail", accent: "British", pitch: "Mid", qualities: "Relaxed & Educated", category: "professional", img: "images/abigail.png" },
+  { id: 10, key: 'anaya', name: "Anaya", accent: "Indian", pitch: "High", qualities: "Fast & Tidy", category: "social", img: "images/anaya.png" },
+  { id: 11, key: 'chloe', name: "Chloe", accent: "American", pitch: "Low", qualities: "Mature & Serious", category: "social", img: "images/chloe.png" },
+  { id: 12, key: 'dylan', name: "Dylan", accent: "American", pitch: "Low", qualities: "Relaxed & Cool", category: "everyman", img: "images/dylan.png" },
+  { id: 13, key: 'ethan', name: "Ethan", accent: "American", pitch: "Mid", qualities: "Learned & Trustworthy", category: "professional", img: "images/ethan.png" },
+  { id: 14, key: 'marisol', name: "Marisol", accent: "American", pitch: "Low", qualities: "Tough & Well-Spoken", category: "everyman", img: "images/marisol.png" },
+  { id: 15, key: 'evelyn', name: "Evelyn", accent: "American", pitch: "High", qualities: "Plain & Youthful", category: "story", img: "images/evelyn.png" },
+  { id: 16, key: 'ivan', name: "Ivan", accent: "American", pitch: "Mid", qualities: "Deep & Reliable", category: "professional", img: "images/ivan.png" },
+  { id: 17, key: 'laura', name: "Laura", accent: "American", pitch: "Low", qualities: "Flat & Direct", category: "everyman", img: "images/laura.png" },
+  { id: 18, key: 'meera', name: "Matilda", accent: "Indian", pitch: "Mid", qualities: "Mature & Confident", category: "social", img: "images/matilda.png" },
+  { id: 20, key: 'roger', name: "Roger", accent: "American", pitch: "Mid", qualities: "Calm & Refined", category: "professional", img: "images/roger.png" },
+  { id: 21, key: 'brian', name: "Eric", accent: "American", pitch: "Mid", qualities: "Calm & Refined", category: "professional", img: "images/eric.png" }
 ];
 
 const TRIAL_PLAN = { name: 'Trial', chars: 1000 };
@@ -1351,9 +1359,11 @@ function renderVoices(filter = 'all') {
   const filtered = filter === 'all' ? voices : voices.filter(v => v.category === filter);
   grid.innerHTML = filtered.map(voice => `
     <div class="voice-card ${selectedVoice?.id === voice.id ? 'selected' : ''}" onclick="selectVoice(${voice.id})">
-      ${selectedVoice?.id === voice.id ? '<span class="selected-badge">✓ Selected</span>' : ''}
+      ${selectedVoice?.id === voice.id ? '<span class="selected-badge">Γ£ô Selected</span>' : ''}
       <img class="voice-icon" src="${voice.img}" alt="${voice.name}">
       <div class="voice-name">${voice.name}</div>
+      <div class="voice-desc">${voice.accent}${voice.pitch ? ' | ' + voice.pitch : ''}</div>
+      <div class="voice-qualities">${voice.qualities}</div>
     </div>
   `).join('');
 }
@@ -1367,7 +1377,7 @@ function filterVoices(category) {
 function selectVoice(id) {
   selectedVoice = voices.find(v => v.id === id);
   document.getElementById('selected-voice-name').textContent = selectedVoice.name;
-  document.getElementById('selected-voice-desc').textContent = selectedVoice.desc;
+  document.getElementById('selected-voice-desc').textContent = selectedVoice.accent + (selectedVoice.pitch ? ' | ' + selectedVoice.pitch : '') + ' - ' + selectedVoice.qualities;
   renderVoices();
   document.getElementById('browse-section').style.display = 'none';
   document.getElementById('hero-section').style.display = 'none';
@@ -1426,7 +1436,7 @@ async function generateAudio() {
   }
 
   const btn = document.getElementById('generate-btn');
-  btn.textContent = '⏳ Generating... (may take 5-10 sec)';
+  btn.textContent = 'ΓÅ│ Generating... (may take 5-10 sec)';
   btn.disabled = true;
 
   try {
@@ -1481,7 +1491,7 @@ async function generateAudio() {
   } catch (error) {
     alert('Generation failed: ' + error.message);
   } finally {
-    btn.textContent = '🎵 Generate Audio';
+    btn.textContent = '≡ƒÄ╡ Generate Audio';
     btn.disabled = false;
   }
 }
