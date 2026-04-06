@@ -30,7 +30,7 @@ const VOICES = {
   'ivan': { id: 'ivan', name: 'Ivan', desc: 'Deep & Reliable' },
   'laura': { id: 'laura', name: 'Laura', desc: 'Friendly & Warm' },
   'meera': { id: 'meera', name: 'Meera', desc: 'Expressive & Dynamic' },
-  'roger': { id: 'roger', name: 'Roger', desc: 'Confident & Clear' },
+  'roger': { id: 'brian', name: 'Roger', desc: 'Confident & Clear' },
 };
 
 const mimeTypes = {
