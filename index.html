@@ -1224,6 +1224,15 @@ async function handleAuth() {
   } catch (error) { errorEl.textContent = error.message; errorEl.style.display = 'block'; }
 }
 
+async function saveCharsUsed() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  await sb.from('profiles').upsert({
+    id: session.user.id,
+    chars_used: userState.charsUsed
+  }, { onConflict: 'id' });
+}
+
 async function logout() { await sb.auth.signOut(); updateAuthUI(null); }
 
 // Billing
@@ -1468,6 +1477,7 @@ async function generateAudio() {
     document.getElementById('char-count').textContent = text.length;
     userState.charsUsed += text.length;
     updateStats();
+    saveCharsUsed();
   } catch (error) {
     alert('Generation failed: ' + error.message);
   } finally {
