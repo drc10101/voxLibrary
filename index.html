@@ -1321,7 +1321,6 @@ function renderVoices(filter = 'all') {
       ${selectedVoice?.id === voice.id ? '<span class="selected-badge">✓ Selected</span>' : ''}
       <img class="voice-icon" src="${voice.img}" alt="${voice.name}">
       <div class="voice-name">${voice.name}</div>
-      <div class="voice-desc">${voice.desc}</div>
     </div>
   `).join('');
 }
