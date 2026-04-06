@@ -1430,7 +1430,7 @@ async function generateAudio() {
     document.getElementById('download-text-preview').textContent = '"' + text.substring(0, 80) + '..."';
     document.getElementById('download-info').textContent = 'Format: WAV | Size: ' + (audioBlob.size / 1024).toFixed(1) + ' KB';
     window.generatedAudioUrl = audioUrl;
-    window.generatedAudioFilename = selectedVoice.name.replace(/\s+/g, '_') + '_' + Date.now() + '.wav';
+    window.generatedAudioFilename = selectedVoice.name + '_' + selectedVoice.key + '_' + Date.now() + '.wav';
 
     document.getElementById('generator-section').classList.remove('active');
     document.getElementById('download-section').classList.add('active');
