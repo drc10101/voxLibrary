@@ -25,7 +25,7 @@ const VOICES = {
   'chloe': { id: 'chloe', name: 'Matilda', desc: 'Youthful & Enthusiastic' },
   'dylan': { id: 'dylan', name: 'Roger', desc: 'Relaxed & Cool' },
   'emmanuel': { id: 'emmanuel', name: 'Harry', desc: 'Deep & Trustworthy' },
-  'meera': { id: 'meera', name: 'River', desc: 'Young & Fresh' },
+  'marisol': { id: 'marisol', name: 'River', desc: 'Young & Fresh' },
   'evelyn': { id: 'evelyn', name: 'Lily', desc: 'Calm & Nurturing' },
   'gavin': { id: 'gavin', name: 'Charlie', desc: 'Professional & Smooth' },
   'ivan': { id: 'ivan', name: 'Adam', desc: 'Deep & Reliable' },
