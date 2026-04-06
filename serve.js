@@ -43,6 +43,8 @@ const mimeTypes = {
   '.mp3': 'audio/mpeg',
   '.wav': 'audio/wav',
   '.flac': 'audio/flac',
+  '.xml': 'application/xml',
+  '.txt': 'text/plain',
 };
 
 const server = http.createServer((req, res) => {
