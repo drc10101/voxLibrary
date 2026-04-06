@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://jedsvoxlibrary.com/sitemap.xml
