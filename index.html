@@ -977,8 +977,8 @@
       <h3>Quick Actions</h3>
       <div class="billing-actions">
         <button class="billing-btn primary" onclick="upgradePlan(userState.plan)">Upgrade Plan</button>
-        <button class="billing-btn secondary" onclick="openBillingPortal()">Manage Billing / Invoices</button>
-        <button class="billing-btn secondary" onclick="openBillingPortal()">Update Payment Method</button>
+        <button class="billing-btn secondary" onclick="openBillingPortal()">Manage Billing & Invoices</button>
+        <button class="billing-btn secondary" onclick="updatePaymentMethod()">Update Payment Method</button>
       </div>
     </div>
   </div>
@@ -1103,7 +1103,7 @@ const voices = [
 
 const TRIAL_PLAN = { name: 'Trial', chars: 1000 };
 const TRIAL_DAYS = 3;
-const TRIAL_CHARS = 2000;
+const TRIAL_CHARS = 10000;
 
 const PLANS = {
   starter: { name: 'Starter', chars: 10000 },
@@ -1246,24 +1246,29 @@ function updateBillingDisplay() {
 async function openBillingPortal() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { openAuthModal(); return; }
-  
+
   const userEmail = session.user.email;
   const returnUrl = window.location.origin + '?billing=done';
-  
+
   try {
     const response = await fetch('/api/billing-portal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: userEmail, returnUrl })
     });
-    
+
     if (!response.ok) throw new Error('Failed to create portal session');
-    
+
     const { url } = await response.json();
     window.open(url, '_blank');
   } catch (error) {
     alert('Could not open billing portal: ' + error.message);
   }
+}
+
+async function updatePaymentMethod() {
+  // Opens Stripe portal directly to payment method update
+  await openBillingPortal();
 }
 
 // Stats
@@ -1401,6 +1406,10 @@ async function generateAudio() {
     // Chatterbox Turbo: speed 0.5-2.0 (default 1.0)
     const runpodSpeed = Math.max(0.5, Math.min(2.0, 1.0 / speed));
 
+    const stability = parseInt(document.getElementById('stability-slider').value);
+    const similarity = parseInt(document.getElementById('similarity-slider').value);
+    const style = parseInt(document.getElementById('style-slider').value);
+
     // Call backend proxy -> RunPod (keeps API key secure)
     const response = await fetch('/api/tts', {
       method: 'POST',
@@ -1409,6 +1418,9 @@ async function generateAudio() {
         voiceKey: selectedVoice.key,
         text: text,
         speed: runpodSpeed,
+        stability: stability,
+        similarity: similarity,
+        style: style,
         format: selectedFormat
       })
     });
