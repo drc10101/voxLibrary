@@ -12,26 +12,25 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role k
 
 // Voice mapping (Chatterbox Turbo preset voices + matching existing images)
 const VOICES = {
-  'andy': { id: 'andy', name: 'Eric', desc: 'Smooth & Trustworthy' }, // uses eric image
+  'andy': { id: 'andy', name: 'Andy', desc: 'Smooth & Trustworthy' },
   'brian': { id: 'brian', name: 'Brian', desc: 'Deep & Professional' },
-  'archer': { id: 'archer', name: 'Archer', desc: 'Sharp & Clear' }, // uses callum image
-  'madison': { id: 'madison', name: 'Alice', desc: 'Bright & Energetic' },
-  'walter': { id: 'walter', name: 'Will', desc: 'Mature & Authoritative' },
-  'gavin': { id: 'gavin', name: 'George', desc: 'British & Distinguished' },
-  'andy': { id: 'andy', name: 'Chris', desc: 'Casual & Approachable' },
-  'aaron': { id: 'aaron', name: 'Daniel', desc: 'Deep & Steady' },
-  'abigail': { id: 'abigail', name: 'Jessica', desc: 'Clear & Confident' },
-  'anaya': { id: 'anaya', name: 'Sarah', desc: 'Modern & Dynamic' },
-  'chloe': { id: 'chloe', name: 'Matilda', desc: 'Australian & Fun' },
-  'dylan': { id: 'dylan', name: 'Roger', desc: 'Relaxed & Cool' },
-  'aaron': { id: 'aaron', name: 'Harry', desc: 'Deep & Steady' },
-  'marisol': { id: 'marisol', name: 'River', desc: 'Young & Fresh' },
-  'evelyn': { id: 'evelyn', name: 'Lily', desc: 'Calm & Nurturing' },
-  'gavin': { id: 'gavin', name: 'Charlie', desc: 'Professional & Smooth' },
-  'ivan': { id: 'ivan', name: 'Adam', desc: 'Deep & Reliable' },
+  'archer': { id: 'archer', name: 'Archer', desc: 'Sharp & Clear' },
+  'madison': { id: 'madison', name: 'Madison', desc: 'Bright & Energetic' },
+  'walter': { id: 'walter', name: 'Walter', desc: 'Mature & Authoritative' },
+  'gavin': { id: 'gavin', name: 'Gavin', desc: 'British & Distinguished' },
+  'aaron': { id: 'aaron', name: 'Aaron', desc: 'Casual & Approachable' },
+  'emmanuel': { id: 'emmanuel', name: 'Emmanuel', desc: 'Deep & Steady' },
+  'abigail': { id: 'abigail', name: 'Abigail', desc: 'Clear & Confident' },
+  'anaya': { id: 'anaya', name: 'Anaya', desc: 'Modern & Dynamic' },
+  'chloe': { id: 'chloe', name: 'Chloe', desc: 'Australian & Fun' },
+  'dylan': { id: 'dylan', name: 'Dylan', desc: 'Relaxed & Cool' },
+  'ethan': { id: 'ethan', name: 'Ethan', desc: 'Deep & Trustworthy' },
+  'marisol': { id: 'marisol', name: 'Marisol', desc: 'Young & Fresh' },
+  'evelyn': { id: 'evelyn', name: 'Evelyn', desc: 'Calm & Nurturing' },
+  'ivan': { id: 'ivan', name: 'Ivan', desc: 'Deep & Reliable' },
   'laura': { id: 'laura', name: 'Laura', desc: 'Friendly & Warm' },
-  'abigail': { id: 'abigail', name: 'Bella', desc: 'Expressive & Dynamic' },
-  'dylan': { id: 'dylan', name: 'Adam', desc: 'Deep & Professional' },
+  'meera': { id: 'meera', name: 'Meera', desc: 'Expressive & Dynamic' },
+  'roger': { id: 'roger', name: 'Roger', desc: 'Confident & Clear' },
 };
 
 const mimeTypes = {
@@ -73,8 +72,6 @@ const server = http.createServer((req, res) => {
           throw new Error('RunPod API key not configured');
         }
 
-        // Map speed: frontend slider is 0.5-2.0, RunPod wants 0.5-2.0
-        const runpodSpeed = speed ? Math.max(0.5, Math.min(2.0, speed)) : 1.0;
         const runpodFormat = format === 'flac_44100_16bit' ? 'flac' : 'wav';
 
         const response = await fetch('https://api.runpod.ai/v2/chatterbox-turbo/runsync', {
@@ -134,7 +131,6 @@ const server = http.createServer((req, res) => {
           throw new Error('RunPod API key not configured');
         }
 
-        const runpodSpeed = speed ? Math.max(0.5, Math.min(2.0, speed)) : 1.0;
         const runpodFormat = format === 'flac_44100_16bit' ? 'flac' : 'wav';
 
         const response = await fetch('https://api.runpod.ai/v2/chatterbox-turbo/runsync', {
@@ -325,38 +321,6 @@ const server = http.createServer((req, res) => {
       console.log('=== WEBHOOK DONE ===');
     });
     return;
-  }
-
-  // Helper: Update user profile in Supabase
-  async function updateUserProfile(supabaseUserId, updates) {
-    if (!SUPABASE_SERVICE_KEY) {
-      console.log('SUPABASE_SERVICE_KEY not configured, skipping profile update');
-      return false;
-    }
-
-    try {
-      const response = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${supabaseUserId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_SERVICE_KEY,
-          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify(updates)
-      });
-
-      if (response.ok) {
-        console.log(`Profile updated for user ${supabaseUserId}:`, updates);
-        return true;
-      } else {
-        console.error('Failed to update profile:', response.status);
-        return false;
-      }
-    } catch (error) {
-      console.error('Profile update error:', error);
-      return false;
-    }
   }
 
   // Serve static files
