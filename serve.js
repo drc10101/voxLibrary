@@ -17,10 +17,10 @@ const VOICES = {
   'archer': { id: 'archer', name: 'Archer', desc: 'Sharp & Clear' }, // uses callum image
   'madison': { id: 'madison', name: 'Alice', desc: 'Bright & Energetic' },
   'walter': { id: 'walter', name: 'Will', desc: 'Mature & Authoritative' },
-  'gordon': { id: 'gordon', name: 'George', desc: 'British & Distinguished' },
+  'gavin': { id: 'gavin', name: 'George', desc: 'British & Distinguished' },
   'andy': { id: 'andy', name: 'Chris', desc: 'Casual & Approachable' },
   'aaron': { id: 'aaron', name: 'Daniel', desc: 'Deep & Steady' },
-  'abigail': { id: 'abigail', name: 'Jessica', desc: 'Clear & Confident' },
+  'gordon': { id: 'gordon', name: 'Jessica', desc: 'Clear & Confident' },
   'anaya': { id: 'anaya', name: 'Sarah', desc: 'Modern & Dynamic' },
   'chloe': { id: 'chloe', name: 'Matilda', desc: 'Youthful & Enthusiastic' },
   'dylan': { id: 'dylan', name: 'Roger', desc: 'Relaxed & Cool' },
@@ -30,8 +30,8 @@ const VOICES = {
   'gavin': { id: 'gavin', name: 'Charlie', desc: 'Professional & Smooth' },
   'ivan': { id: 'ivan', name: 'Adam', desc: 'Deep & Reliable' },
   'laura': { id: 'laura', name: 'Laura', desc: 'Friendly & Warm' },
-  'marisol': { id: 'marisol', name: 'Bella', desc: 'Expressive & Dynamic' },
-  'meera': { id: 'meera', name: 'Liam', desc: 'Confident & Clear' },
+  'abigail': { id: 'abigail', name: 'Bella', desc: 'Expressive & Dynamic' },
+  'meera': { id: 'meera', name: 'Adam', desc: 'Confident & Clear' },
 };
 
 const mimeTypes = {
