@@ -22,7 +22,7 @@ const VOICES = {
   'aaron': { id: 'aaron', name: 'Daniel', desc: 'Deep & Steady' },
   'gordon': { id: 'gordon', name: 'Jessica', desc: 'Clear & Confident' },
   'anaya': { id: 'anaya', name: 'Sarah', desc: 'Modern & Dynamic' },
-  'chloe': { id: 'chloe', name: 'Matilda', desc: 'Youthful & Enthusiastic' },
+  'chloe': { id: 'chloe', name: 'Matilda', desc: 'Australian & Fun' },
   'dylan': { id: 'dylan', name: 'Roger', desc: 'Relaxed & Cool' },
   'emmanuel': { id: 'emmanuel', name: 'Harry', desc: 'Deep & Trustworthy' },
   'marisol': { id: 'marisol', name: 'River', desc: 'Young & Fresh' },
