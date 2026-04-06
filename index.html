@@ -1050,7 +1050,6 @@
     <input type="email" class="input" id="auth-email" placeholder="Email address">
     <input type="password" class="input" id="auth-password" placeholder="Password">
     <button class="modal-btn primary" id="auth-submit" onclick="handleAuth()">Sign Up</button>
-    <button class="modal-btn secondary" onclick="handleGoogleLogin()">Continue with Google</button>
     <div class="modal-switch" id="auth-switch">Already have an account? <a onclick="toggleAuthMode()">Sign In</a></div>
   </div>
 </div>
@@ -1220,11 +1219,6 @@ async function handleAuth() {
       closeAuthModal();
     }
   } catch (error) { errorEl.textContent = error.message; errorEl.style.display = 'block'; }
-}
-
-async function handleGoogleLogin() {
-  const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin } });
-  if (error) { document.getElementById('auth-error').textContent = error.message; document.getElementById('auth-error').style.display = 'block'; }
 }
 
 async function logout() { await sb.auth.signOut(); updateAuthUI(null); }
