@@ -12,7 +12,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role k
 
 // Voice mapping (Chatterbox Turbo preset voices + matching existing images)
 const VOICES = {
-  'eric': { id: 'eric', name: 'Eric', desc: 'Smooth & Trustworthy' },
+  'andy': { id: 'andy', name: 'Eric', desc: 'Smooth & Trustworthy' }, // uses eric image
   'brian': { id: 'brian', name: 'Brian', desc: 'Deep & Professional' },
   'archer': { id: 'archer', name: 'Archer', desc: 'Sharp & Clear' }, // uses callum image
   'madison': { id: 'madison', name: 'Alice', desc: 'Bright & Energetic' },
