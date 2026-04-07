@@ -196,26 +196,64 @@ const server = http.createServer((req, res) => {
         const audioPath = `/tmp/${voiceId}.webm`;
         fs.writeFileSync(audioPath, audioData);
 
-        // TODO: Queue job for XTTS v2 processing on RunPod
-        // For now, store placeholder data in Supabase
+        // Upload reference audio to Supabase Storage for persistence
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from('voice-samples')
+          .upload(`${customerId}/${voiceId}/reference.webm`, audioData, {
+            contentType: 'audio/webm'
+          });
 
-        const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${customer.metadata.userId}`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': SUPABASE_SERVICE_KEY,
-            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
-            'Prefer': 'return=representation'
-          },
-          body: JSON.stringify({
-            [isPublic ? 'public_voices' : 'private_voices']: {
-              voiceId,
-              name,
-              status: 'processing',
-              createdAt: new Date().toISOString()
+        if (uploadError) {
+          throw new Error('Failed to upload voice sample: ' + uploadError.message);
+        }
+
+        const { data: urlData } = supabase.storage
+          .from('voice-samples')
+          .getPublicUrl(`${customerId}/${voiceId}/reference.webm`);
+
+        const audioSampleUrl = urlData.publicUrl;
+
+        // Store voice data in Supabase profiles table
+        const voiceData = {
+          voiceId,
+          name,
+          audioSampleUrl,
+          status: 'ready',
+          createdAt: new Date().toISOString()
+        };
+
+        // Get current profile
+        const profileRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${customerId}`,
+          {
+            headers: {
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
             }
-          })
-        });
+          }
+        );
+        const profile = await profileRes.json();
+        const existingVoices = profile[0]?.[isPublic ? 'public_voices' : 'private_voices'] || {};
+
+        const updatedVoices = { ...existingVoices, [voiceId]: voiceData };
+
+        const updateRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${customerId}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({
+              [isPublic ? 'public_voices' : 'private_voices']: updatedVoices
+            })
+          }
+        );
+
+        console.log('Voice saved:', voiceId, 'isPublic:', isPublic);
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
