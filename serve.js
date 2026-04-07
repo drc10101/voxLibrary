@@ -77,6 +77,42 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+
+  // API: Daily stats (user count)
+  if (req.method === 'GET' && req.url === '/api/stats') {
+    const https = require('https');
+    const opts = {
+      hostname: 'kxnqwpavjhiphgvkevvj.supabase.co',
+      path: '/auth/v1/admin/users?page=1&per_page=1',
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+        'apikey': SUPABASE_SERVICE_KEY
+      }
+    };
+    const sreq = https.request(opts, (sres) => {
+      let data = '';
+      sres.on('data', chunk => data += chunk);
+      sres.on('end', () => {
+        try {
+          const json = JSON.parse(data);
+          const count = json.total || json.users?.length || 0;
+          res.writeHead(200, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ userCount: count }));
+        } catch (e) {
+          res.writeHead(500);
+          res.end('{}');
+        }
+      });
+    });
+    sreq.on('error', () => {
+      res.writeHead(500);
+      res.end('{}');
+    });
+    sreq.end();
+    return;
+  }
+
 // API: TTS via RunPod Chatterbox Turbo (proxy to keep API key secure)
   if (req.method === 'POST' && req.url === '/api/tts') {
     let body = '';
