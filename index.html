@@ -1446,10 +1446,12 @@ function updateAuthUI(user) {
   const planBar = document.getElementById('plan-bar');
   const billingBtn = document.getElementById('billing-btn');
   if (user) {
+    userState.email = user.email;
     headerAuth.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">' + user.email + '</span> <button class="btn btn-ghost btn-small" onclick="logout()">Logout</button>';
     planBar.classList.add('visible');
     if (billingBtn) billingBtn.style.display = 'block';
   } else {
+    userState.email = null;
     headerAuth.innerHTML = '<button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>';
     planBar.classList.remove('visible');
     if (billingBtn) billingBtn.style.display = 'none';
