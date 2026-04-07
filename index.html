@@ -1197,23 +1197,17 @@
       </div>
     </div>
     <div class="form-group">
-      <div class="checkbox-group">
-        <input type="checkbox" id="cv-public-toggle">
-        <label for="cv-public-toggle">
-          <strong>Make this voice public (GNU)</strong> &mdash; Contribute to the community and get <strong>6 months FREE generation</strong>
-        </label>
-      </div>
+      <p style="font-size:13px;color:var(--text-muted);margin:0;">
+        Your voice will be publicly available under the
+        <strong>Creative Commons Attribution (CC BY)</strong> license.
+      </p>
     </div>
-    <div class="cv-price-note">
-      <span class="price-badge">$59.99 one-time</span> to unlock private cloning
-      <span class="price-note-sub"> (Public voices are FREE + bonus credit)</span>
-    </div>
+    
     <div class="form-group" style="display:none;" id="cv-error-msg">
       <div class="error-msg" id="cv-error-text"></div>
     </div>
     <div style="display:flex;gap:10px;margin-top:16px;">
-      <button class="btn btn-ghost" onclick="closeCreateVoiceSection()">Cancel</button>
-      <button class="btn btn-primary" id="cv-submit-btn" onclick="submitCustomVoice()">Clone My Voice &mdash; $59.99</button>
+      <button class="btn btn-primary" id="cv-submit-btn" onclick="submitCustomVoice()">Submit Voice Sample</button>
     </div>
   </div>
 </div>
@@ -1243,6 +1237,9 @@
     </div>
     <textarea class="text-area" id="text-input" placeholder="Type or paste your text here..."></textarea>
     <div class="char-count"><span id="char-count">0</span> characters</div>
+    <p style="font-size:12px;color:var(--text-muted);margin:8px 0 0 0;text-align:center;">
+      Voice generation requires an active subscription.
+    </p>
   </div>
   <div class="generator-sidebar">
     <div class="control-group">
@@ -1880,7 +1877,6 @@ function openCreateVoiceModal() {
   }
   document.getElementById('create-voice-section').style.display = 'block';
   document.getElementById('cv-name').value = '';
-  document.getElementById('cv-public-toggle').checked = false;
   document.getElementById('cv-rec-status').textContent = 'Ready to record';
   document.getElementById('cv-rec-status').className = 'recorder-status';
   document.getElementById('cv-audio-preview').style.display = 'none';
@@ -1933,7 +1929,7 @@ async function toggleRecording() {
 
 async function submitCustomVoice() {
   const name = document.getElementById('cv-name').value.trim();
-  const isPublic = document.getElementById('cv-public-toggle').checked;
+  const isPublic = true; // All voice samples go to community library
   const submitBtn = document.getElementById('cv-submit-btn');
   const errorDiv = document.getElementById('cv-error-msg');
   const errorText = document.getElementById('cv-error-text');
@@ -1966,11 +1962,7 @@ async function submitCustomVoice() {
 
     // Success - reload voices or update UI
     closeCreateVoiceModal();
-    if (isPublic) {
-      alert('Your voice is live! Check your email for 6 months of free generation credits.');
-    } else {
-      alert('Voice saved! Select it from My Voices to generate.');
-    }
+    alert('Your voice sample has been submitted to the community library!');
     location.reload();
 
   } catch (err) {
