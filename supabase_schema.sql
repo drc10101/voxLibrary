@@ -15,9 +15,19 @@ CREATE TABLE IF NOT EXISTS community_voices (
   name TEXT NOT NULL,
   contributor_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   audio_sample_url TEXT NOT NULL,
+  accent TEXT,
+  pitch TEXT,
+  describe1 TEXT,
+  describe2 TEXT,
   uses INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Add new columns if they don't exist (for existing tables)
+ALTER TABLE community_voices ADD COLUMN IF NOT EXISTS accent TEXT;
+ALTER TABLE community_voices ADD COLUMN IF NOT EXISTS pitch TEXT;
+ALTER TABLE community_voices ADD COLUMN IF NOT EXISTS describe1 TEXT;
+ALTER TABLE community_voices ADD COLUMN IF NOT EXISTS describe2 TEXT;
 
 -- 3. Create storage bucket for voice samples
 INSERT INTO storage.buckets (id, name, public)

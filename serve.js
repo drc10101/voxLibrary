@@ -147,7 +147,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/api/community-voices') {
     try {
       const resp = await fetch(
-        `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,uses,created_at&order=created_at.desc`,
+        `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,accent,pitch,describe1,describe2,uses,created_at&order=created_at.desc`,
         {
           headers: {
             'apikey': SUPABASE_SERVICE_KEY,
@@ -197,6 +197,10 @@ const server = http.createServer((req, res) => {
       const parts = parseMultipart(body, boundary);
       const name = parts.name || '';
       const isPublic = parts.public === 'true';
+      const accent = parts.accent || '';
+      const pitch = parts.pitch || '';
+      const desc1 = parts.desc1 || '';
+      const desc2 = parts.desc2 || '';
       const audioData = parts.audio;
 
       if (!name || !audioData) {
@@ -287,6 +291,10 @@ const server = http.createServer((req, res) => {
               name: name,
               contributor_id: userId,
               audio_sample_url: audioSampleUrl,
+              accent: accent,
+              pitch: pitch,
+              describe1: desc1,
+              describe2: desc2,
               uses: 0
             })
           }

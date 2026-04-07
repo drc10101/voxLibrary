@@ -1181,6 +1181,27 @@
         <label>Voice Name</label>
         <input type="text" id="cv-name" placeholder="e.g., Dave's Voice" maxlength="30">
       </div>
+      <div class="form-group" style="flex:0 0 120px;">
+        <label>Accent</label>
+        <input type="text" id="cv-accent" placeholder="e.g., Southern" maxlength="30">
+      </div>
+      <div class="form-group" style="flex:0 0 120px;">
+        <label>Pitch</label>
+        <select id="cv-pitch" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:14px;">
+          <option value="">Select...</option>
+          <option value="Low">Low</option>
+          <option value="Mid">Mid</option>
+          <option value="High">High</option>
+        </select>
+      </div>
+      <div class="form-group" style="flex:0 0 140px;">
+        <label>Describe 1</label>
+        <input type="text" id="cv-desc1" placeholder="e.g., Warm" maxlength="30">
+      </div>
+      <div class="form-group" style="flex:0 0 140px;">
+        <label>Describe 2</label>
+        <input type="text" id="cv-desc2" placeholder="e.g., Friendly" maxlength="30">
+      </div>
       <div class="form-group" style="flex:1;min-width:280px;">
         <label>Read This Script While Recording</label>
         <p style="font-style:italic;font-size:13px;color:var(--text-muted);margin:0;line-height:1.5;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">"Hey there, how's it going today? I'm heading out to the car right now because the weather's turning pretty wild out here in the Midwest. The rain started pouring hard, and those dark clouds are really moving fast across the sky. Have you ever thought about what makes a good road trip so much fun? It's all about the open highway, good music blasting from the radio, and stopping at little diners for burgers and fries. Yesterday I drove through the mountains, where the trees were turning bright red and orange in the fall air. But watch out for those sharp curves -- better take it easy or you might end up in trouble. My friend always says, 'Don't forget the map, or you'll get totally lost!' Anyway, I'm grabbing some coffee and a snack before I hit the road again. What about you? Got any big plans this weekend? Life's too short not to enjoy the ride, right? See you later!"</p>
@@ -1877,6 +1898,10 @@ function openCreateVoiceModal() {
   }
   document.getElementById('create-voice-section').style.display = 'block';
   document.getElementById('cv-name').value = '';
+  document.getElementById('cv-accent').value = '';
+  document.getElementById('cv-pitch').value = '';
+  document.getElementById('cv-desc1').value = '';
+  document.getElementById('cv-desc2').value = '';
   document.getElementById('cv-rec-status').textContent = 'Ready to record';
   document.getElementById('cv-rec-status').className = 'recorder-status';
   document.getElementById('cv-audio-preview').style.display = 'none';
@@ -1929,6 +1954,10 @@ async function toggleRecording() {
 
 async function submitCustomVoice() {
   const name = document.getElementById('cv-name').value.trim();
+  const accent = document.getElementById('cv-accent').value.trim();
+  const pitch = document.getElementById('cv-pitch').value;
+  const desc1 = document.getElementById('cv-desc1').value.trim();
+  const desc2 = document.getElementById('cv-desc2').value.trim();
   const isPublic = true; // All voice samples go to community library
   const submitBtn = document.getElementById('cv-submit-btn');
   const errorDiv = document.getElementById('cv-error-msg');
@@ -1947,6 +1976,10 @@ async function submitCustomVoice() {
     formData.append('name', name);
     formData.append('audio', recordedBlob, 'recording.webm');
     formData.append('public', isPublic);
+    formData.append('accent', accent);
+    formData.append('pitch', pitch);
+    formData.append('desc1', desc1);
+    formData.append('desc2', desc2);
 
     const resp = await fetch('/api/clone-voice', {
       method: 'POST',
@@ -2027,7 +2060,8 @@ function renderCommunityVoices(voices) {
     <div class="voice-card" data-type="community" onclick="selectVoice('${v.voice_id}', 'community')">
       <div style="width:80px;height:80px;background:var(--bg);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:36px;">&#128101;</div>
       <div class="voice-name">${v.name}</div>
-      <div class="voice-desc">Community</div>
+      <div class="voice-desc">${[v.accent, v.pitch].filter(Boolean).join(' | ') || 'Community'}</div>
+      <div class="voice-qualities">${[v.describe1, v.describe2].filter(Boolean).join(', ')}</div>
     </div>
   `).join('');
 }
