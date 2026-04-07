@@ -142,31 +142,42 @@ const server = http.createServer((req, res) => {
     });
     sreq.end();
     return;
-  
-  // API: Get community voices
-  if (req.method === 'GET' && req.url === '/api/community-voices') {
-    try {
-      const resp = await fetch(
-        `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,uses,created_at&order=created_at.desc`,
-        {
-          headers: {
-            'apikey': SUPABASE_SERVICE_KEY,
-            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
-          }
-        }
-      );
-      const voices = await resp.json();
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ voices }));
-    } catch (err) {
-      console.error('Community voices error:', err);
-      res.writeHead(500, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Failed to load community voices' }));
-    }
-    return;
   }
 
-}
+  // API: Get community voices
+  if (req.method === 'GET' && req.url === '/api/community-voices') {
+    const voicesUrl = `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,accent,pitch,describe1,describe2,uses,created_at&order=created_at.desc`;
+    const voicesReq = https.request(
+      voicesUrl.replace('https://', ''),
+      {
+        headers: {
+          'apikey': SUPABASE_SERVICE_KEY,
+          'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+        },
+        method: 'GET'
+      },
+      (voicesRes) => {
+        let data = '';
+        voicesRes.on('data', chunk => data += chunk);
+        voicesRes.on('end', () => {
+          try {
+            const voices = JSON.parse(data);
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ voices }));
+          } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to load community voices' }));
+          }
+        });
+      }
+    );
+    voicesReq.on('error', () => {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Failed to load community voices' }));
+    });
+    voicesReq.end();
+    return;
+  }
 
 
   // API: Clone a voice (custom voice cloning)
@@ -389,7 +400,6 @@ const server = http.createServer((req, res) => {
           }
 
           // Fetch reference audio from Supabase Storage
-          const refAudioResp = await fetch(audioSampleUrl);// Fetch reference audio from Supabase Storage
           const refAudioResp = await fetch(customVoice.audioSampleUrl);
           if (!refAudioResp.ok) throw new Error('Failed to fetch reference audio');
           const refAudioBuffer = await refAudioResp.arrayBuffer();
