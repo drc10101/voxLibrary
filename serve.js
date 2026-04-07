@@ -60,7 +60,24 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // API: TTS via RunPod Chatterbox Turbo (proxy to keep API key secure)
+    // Serve sitemap.xml and robots.txt directly
+  if (req.method === 'GET' && (req.url === '/sitemap.xml' || req.url === '/robots.txt')) {
+    const staticPath = path.join(__dirname, req.url);
+    const ext = path.extname(staticPath);
+    const contentType = mimeTypes[ext] || 'text/plain';
+    fs.readFile(staticPath, (err, content) => {
+      if (err) {
+        res.writeHead(404);
+        res.end('Not found');
+      } else {
+        res.writeHead(200, { 'Content-Type': contentType });
+        res.end(content);
+      }
+    });
+    return;
+  }
+
+// API: TTS via RunPod Chatterbox Turbo (proxy to keep API key secure)
   if (req.method === 'POST' && req.url === '/api/tts') {
     let body = '';
     req.on('data', chunk => body += chunk);
