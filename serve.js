@@ -213,6 +213,7 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ error: 'Failed to parse form data: ' + e.message }));
         return;
       }
+      console.log('clone-voice fields:', Object.keys(parts));
       const name = parts.name || '';
       const isPublic = parts.public === 'true';
       const accent = parts.accent || '';
@@ -221,10 +222,16 @@ const server = http.createServer((req, res) => {
       const desc2 = parts.desc2 || '';
       const audioData = parts.audio;
 
-      if (!name || !audioData) {
+      if (!name) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Name and audio are required' }));
+        res.end(JSON.stringify({ error: 'Voice name is required' }));
         return;
+      }
+      if (!audioData) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'No audio recording found. Please record your voice first.' }));
+        return;
+      }
       }
 
       try {

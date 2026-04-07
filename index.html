@@ -1966,7 +1966,7 @@ async function submitCustomVoice() {
   errorDiv.style.display = 'none';
 
   if (!name) { showCvError('Please enter a name for your voice.'); return; }
-  if (!recordedBlob) { showCvError('Please record a voice sample first.'); return; }
+  if (!recordedBlob || recordedBlob.size === 0) { showCvError('Please record a voice sample first.'); return; }
 
   submitBtn.disabled = true;
   submitBtn.textContent = 'Processing...';
