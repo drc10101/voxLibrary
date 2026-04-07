@@ -365,6 +365,47 @@
       font-weight: 500;
     }
 
+    /* My Voices and Community Voices Sections */
+    #my-voices-section,
+    #community-voices-section {
+      margin-top: 24px;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    #my-voices-grid,
+    #community-voices-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 16px;
+    }
+
+    /* My voice cards have a key icon */
+    .voice-card[data-type="private"]:after {
+      content: '\ud83d\udd11';
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 12px;
+    }
+
+    .voice-card[data-type="community"] {
+      border: 1px solid rgba(108, 92, 231, 0.3);
+    }
+
+    .voice-card[data-type="community"]:after {
+      content: '\ud83c\udfe2';
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 11px;
+    }
+
     /* Create Your Own Voice Card */
     .create-voice-card {
       background: linear-gradient(135deg, var(--accent), #6c5ce7);
@@ -1100,6 +1141,8 @@
     <button class="cat-btn" onclick="filterVoices('social')">Social</button>
     <button class="cat-btn" onclick="filterVoices('everyman')">Everyday</button>
     <button class="cat-btn" onclick="filterVoices('character')">Character</button>
+    <button class="cat-btn" id="cat-my-voices" onclick="filterVoices('my')" style="display:none;">My Voices</button>
+    <button class="cat-btn" id="cat-community" onclick="filterVoices('community')" style="display:none;">Community</button>
   </div>
   <div class="voice-grid" id="voice-grid"></div>
 
@@ -1108,6 +1151,19 @@
     <div class="create-voice-icon">⛙️</div>
     <div class="create-voice-title">Create Your Own Voice</div>
     <div class="create-voice-desc">Clone your voice in 30 seconds</div>
+  </div>
+</div>
+
+  <!-- My Private Voices -->
+  <div class="section" id="my-voices-section" style="display:none;">
+    <div class="section-title">My Voices</div>
+    <div class="voice-grid" id="my-voices-grid"></div>
+  </div>
+
+  <!-- Community Voices -->
+  <div class="section" id="community-voices-section" style="display:none;">
+    <div class="section-title">Community Voices</div>
+    <div class="voice-grid" id="community-voices-grid"></div>
   </div>
 </div>
 
@@ -1862,6 +1918,109 @@ function showCvError(msg) {
   errorText.textContent = msg;
   errorDiv.style.display = 'block';
 }
+
+// Load private and community voices when logged in
+async function loadCustomVoices() {
+  if (!userState.email) return;
+
+  // Show My Voices button and category
+  document.getElementById('cat-my-voices').style.display = '';
+
+  // Load private voices (stored in localStorage for now, synced from Supabase)
+  const privateVoices = JSON.parse(localStorage.getItem('private_voices') || '[]');
+  if (privateVoices.length > 0) {
+    document.getElementById('my-voices-section').style.display = 'block';
+    renderPrivateVoices(privateVoices);
+  }
+
+  // Load community voices from server
+  try {
+    const resp = await fetch('/api/community-voices');
+    if (resp.ok) {
+      const data = await resp.json();
+      if (data.voices && data.voices.length > 0) {
+        document.getElementById('cat-community').style.display = '';
+        document.getElementById('community-voices-section').style.display = 'block';
+        renderCommunityVoices(data.voices);
+      }
+    }
+  } catch (err) {
+    console.log('Could not load community voices');
+  }
+}
+
+function renderPrivateVoices(voices) {
+  const grid = document.getElementById('my-voices-grid');
+  grid.innerHTML = voices.map(v => `
+    <div class="voice-card" data-type="private" onclick="selectVoice(${v.id}, 'private')">
+      <img class="voice-icon" src="${v.img || 'images/default-voice.png'}" alt="${v.name}">
+      <div class="voice-name">${v.name}</div>
+      <div class="voice-desc">Private</div>
+    </div>
+  `).join('');
+}
+
+function renderCommunityVoices(voices) {
+  const grid = document.getElementById('community-voices-grid');
+  grid.innerHTML = voices.map(v => `
+    <div class="voice-card" data-type="community" onclick="selectVoice(${v.id}, 'community')">
+      <img class="voice-icon" src="${v.img || 'images/default-voice.png'}" alt="${v.name}">
+      <div class="voice-name">${v.name}</div>
+      <div class="voice-desc">Community</div>
+    </div>
+  `).join('');
+}
+
+function selectVoice(id, type) {
+  // Find the voice from the appropriate array
+  let voice = null;
+  if (type === 'private') {
+    const privateVoices = JSON.parse(localStorage.getItem('private_voices') || '[]');
+    voice = privateVoices.find(v => v.id === id);
+  } else if (type === 'community') {
+    const communityVoices = JSON.parse(localStorage.getItem('community_voices') || '[]');
+    voice = communityVoices.find(v => v.id === id);
+  } else {
+    voice = voices.find(v => v.id === id);
+  }
+
+  if (!voice) return;
+
+  document.getElementById('selected-voice-name').textContent = voice.name;
+  document.getElementById('selected-voice-desc').textContent = voice.desc || (type === 'private' ? 'My Voice' : 'Community Voice');
+  document.getElementById('browse-section').style.display = 'none';
+  document.getElementById('hero-section').style.display = 'none';
+  document.getElementById('generator-section').classList.add('active');
+}
+
+// Update filterVoices to handle 'my' and 'community'
+const originalFilterVoices = filterVoices;
+filterVoices = function(category) {
+  document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+  event.target.classList.add('active');
+
+  // Hide all special sections first
+  document.getElementById('my-voices-section').style.display = 'none';
+  document.getElementById('community-voices-section').style.display = 'none';
+
+  if (category === 'my') {
+    document.getElementById('browse-section').style.display = 'block';
+    document.getElementById('voice-grid').style.display = 'none';
+    document.getElementById('my-voices-section').style.display = 'block';
+    return;
+  }
+
+  if (category === 'community') {
+    document.getElementById('browse-section').style.display = 'block';
+    document.getElementById('voice-grid').style.display = 'none';
+    document.getElementById('community-voices-section').style.display = 'block';
+    return;
+  }
+
+  // Normal category
+  document.getElementById('voice-grid').style.display = '';
+  renderVoices(category);
+};
 
 </script>
 
