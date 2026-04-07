@@ -2001,6 +2001,7 @@ async function loadCustomVoices() {
       if (data.voices && data.voices.length > 0) {
         document.getElementById('cat-community').style.display = '';
         document.getElementById('community-voices-section').style.display = 'block';
+        localStorage.setItem('community_voices', JSON.stringify(data.voices));
         renderCommunityVoices(data.voices);
       }
     }
@@ -2023,8 +2024,8 @@ function renderPrivateVoices(voices) {
 function renderCommunityVoices(voices) {
   const grid = document.getElementById('community-voices-grid');
   grid.innerHTML = voices.map(v => `
-    <div class="voice-card" data-type="community" onclick="selectVoice(${v.id}, 'community')">
-      <img class="voice-icon" src="${v.img || 'images/default-voice.png'}" alt="${v.name}">
+    <div class="voice-card" data-type="community" onclick="selectVoice('${v.voice_id}', 'community')">
+      <div style="width:80px;height:80px;background:var(--bg);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:36px;">&#128101;</div>
       <div class="voice-name">${v.name}</div>
       <div class="voice-desc">Community</div>
     </div>
@@ -2039,13 +2040,14 @@ function selectVoice(id, type) {
     voice = privateVoices.find(v => v.id === id);
   } else if (type === 'community') {
     const communityVoices = JSON.parse(localStorage.getItem('community_voices') || '[]');
-    voice = communityVoices.find(v => v.id === id);
+    voice = communityVoices.find(v => v.voice_id === id);
   } else {
     voice = voices.find(v => v.id === id);
   }
 
   if (!voice) return;
 
+  selectedVoice = voice;
   document.getElementById('selected-voice-name').textContent = voice.name;
   document.getElementById('selected-voice-desc').textContent = voice.desc || (type === 'private' ? 'My Voice' : 'Community Voice');
   document.getElementById('browse-section').style.display = 'none';

@@ -142,7 +142,31 @@ const server = http.createServer((req, res) => {
     });
     sreq.end();
     return;
+  
+  // API: Get community voices
+  if (req.method === 'GET' && req.url === '/api/community-voices') {
+    try {
+      const resp = await fetch(
+        `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,uses,created_at&order=created_at.desc`,
+        {
+          headers: {
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+          }
+        }
+      );
+      const voices = await resp.json();
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ voices }));
+    } catch (err) {
+      console.error('Community voices error:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Failed to load community voices' }));
+    }
+    return;
   }
+
+}
 
 
   // API: Clone a voice (custom voice cloning)
@@ -246,15 +270,33 @@ const server = http.createServer((req, res) => {
           }
         );
 
-        console.log('Voice saved:', voiceId, 'isPublic:', isPublic);
+        console.log('Voice saved:', voiceId);
+
+        // Also insert into community_voices table
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/community_voices`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+            },
+            body: JSON.stringify({
+              voice_id: voiceId,
+              name: name,
+              contributor_id: userId,
+              audio_sample_url: audioSampleUrl,
+              uses: 0
+            })
+          }
+        );
 
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({
           success: true,
           voiceId,
-          message: isPublic
-            ? 'Voice submitted for review. You will receive 6 months free generation once approved.'
-            : 'Voice saved! Select it from My Voices to generate.'
+          message: 'Your voice sample has been submitted to the community library!'
         }));
 
       } catch (err) {
