@@ -47,6 +47,37 @@ const mimeTypes = {
   '.txt': 'text/plain',
 };
 
+
+// Multipart parser helper
+function parseMultipart(body, boundary) {
+  const parts = {};
+  const boundaryBuffer = Buffer.from('--' + boundary);
+  const sections = body.toString('binary').split(Buffer.from(boundaryBuffer).toString('binary'));
+  for (const section of sections) {
+    if (!section || !section.includes('\r\n\r\n')) continue;
+    const [headers, ...bodyParts] = section.split('\r\n\r\n');
+    const nameMatch = headers.match(/name="([^"]+)"/);
+    const filenameMatch = headers.match(/filename="([^"]+)"/);
+    if (!nameMatch) continue;
+    const name = nameMatch[1];
+    const bodyContent = bodyParts.join('\r\n\r\n').replace(/\r\n$/, '');
+    if (filenameMatch) {
+      parts[name] = Buffer.from(bodyContent, 'binary');
+    } else {
+      parts[name] = bodyContent.trim();
+    }
+  }
+  return parts;
+}
+
+// Simple UUID v4
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
 const server = http.createServer((req, res) => {
   console.log(`${req.method} ${req.url}`);
 
@@ -113,7 +144,98 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-// API: TTS via RunPod Chatterbox Turbo (proxy to keep API key secure)
+
+  // API: Clone a voice (custom voice cloning)
+  if (req.method === 'POST' && req.url === '/api/clone-voice') {
+    // Verify auth
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: 'Unauthorized' }));
+      return;
+    }
+
+    // Parse multipart form data
+    const chunks = [];
+    req.on('data', chunk => chunks.push(chunk));
+    req.on('end', async () => {
+      const body = Buffer.concat(chunks);
+      const boundary = req.headers['content-type'].split('boundary=')[1];
+      if (!boundary) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Invalid form data' }));
+        return;
+      }
+
+      // Simple multipart parser
+      const parts = parseMultipart(body, boundary);
+      const name = parts.name || '';
+      const isPublic = parts.public === 'true';
+      const audioData = parts.audio;
+
+      if (!name || !audioData) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Name and audio are required' }));
+        return;
+      }
+
+      // Verify user has paid for voice cloning OR is making a public contribution
+      try {
+        // Check if user has voice_clone purchased in Stripe
+        const customer = await getStripeCustomer(authHeader.split(' ')[1]);
+        const hasAccess = await checkVoiceCloneAccess(customer, isPublic);
+
+        if (!hasAccess) {
+          res.writeHead(402, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'Voice cloning not purchased. Visit /billing to upgrade.' }));
+          return;
+        }
+
+        // Save audio file and queue for processing
+        const voiceId = uuidv4();
+        const audioPath = `/tmp/${voiceId}.webm`;
+        fs.writeFileSync(audioPath, audioData);
+
+        // TODO: Queue job for XTTS v2 processing on RunPod
+        // For now, store placeholder data in Supabase
+
+        const supabaseRes = await fetch(`${SUPABASE_URL}/rest/v1/profiles?id=eq.${customer.metadata.userId}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_SERVICE_KEY,
+            'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+            'Prefer': 'return=representation'
+          },
+          body: JSON.stringify({
+            [isPublic ? 'public_voices' : 'private_voices']: {
+              voiceId,
+              name,
+              status: 'processing',
+              createdAt: new Date().toISOString()
+            }
+          })
+        });
+
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({
+          success: true,
+          voiceId,
+          message: isPublic
+            ? 'Voice submitted for review. You will receive 6 months free generation once approved.'
+            : 'Voice cloning in progress. Check back in a few minutes.'
+        }));
+
+      } catch (err) {
+        console.error('Clone voice error:', err);
+        res.writeHead(500, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Internal error' }));
+      }
+    });
+    return;
+  }
+
+  // API: TTS via RunPod Chatterbox Turbo (proxy to keep API key secure)
   if (req.method === 'POST' && req.url === '/api/tts') {
     let body = '';
     req.on('data', chunk => body += chunk);

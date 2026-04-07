@@ -365,6 +365,207 @@
       font-weight: 500;
     }
 
+    /* Create Your Own Voice Card */
+    .create-voice-card {
+      background: linear-gradient(135deg, var(--accent), #6c5ce7);
+      border-radius: 16px;
+      padding: 24px 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 2px dashed rgba(255,255,255,0.3);
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .create-voice-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(108, 92, 231, 0.4);
+    }
+
+    .create-voice-icon {
+      font-size: 40px;
+      margin-bottom: 4px;
+    }
+
+    .create-voice-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .create-voice-desc {
+      font-size: 12px;
+      color: rgba(255,255,255,0.8);
+    }
+
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: var(--text-muted);
+      line-height: 1;
+    }
+
+    .modal-close:hover { color: var(--text); }
+
+    .modal-body { padding: 24px; }
+
+    .modal-info {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin: 0 0 20px 0;
+    }
+
+    .form-group { margin-bottom: 20px; }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .recorder-container {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .recorder-status {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .recorder-status.recording {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+
+    .recorder-preview audio {
+      width: 100%;
+      height: 36px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      padding: 14px;
+      background: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      margin-top: 3px;
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+    }
+
+    .checkbox-group label {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .sub-label {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .cv-price-note {
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin: 16px 0;
+    }
+
+    .price-badge {
+      background: var(--accent);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .price-note-sub {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+    }
+
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .error-msg {
+      background: #fde8e8;
+      color: #c0392b;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    #cv-error-msg { display: none; }
+
     .selected-badge {
       position: absolute;
       top: 12px;
@@ -901,6 +1102,13 @@
     <button class="cat-btn" onclick="filterVoices('character')">Character</button>
   </div>
   <div class="voice-grid" id="voice-grid"></div>
+
+  <!-- Create Your Own Voice Card -->
+  <div class="create-voice-card" id="create-voice-card" onclick="openCreateVoiceModal()">
+    <div class="create-voice-icon">⛙️</div>
+    <div class="create-voice-title">Create Your Own Voice</div>
+    <div class="create-voice-desc">Clone your voice in 30 seconds</div>
+  </div>
 </div>
 
 <!-- Generator -->
@@ -1537,7 +1745,177 @@ sb.auth.onAuthStateChange((event, session) => {
 });
 renderVoices();
 updateStats();
+
+// Custom Voice Cloning
+let mediaRecorder = null;
+let audioChunks = [];
+let recordedBlob = null;
+
+function openCreateVoiceModal() {
+  if (!userState.email) {
+    openAuthModal();
+    return;
+  }
+  document.getElementById('create-voice-modal').style.display = 'flex';
+  document.getElementById('cv-name').value = '';
+  document.getElementById('cv-public-toggle').checked = false;
+  document.getElementById('cv-rec-status').textContent = 'Ready to record';
+  document.getElementById('cv-rec-status').className = 'recorder-status';
+  document.getElementById('cv-audio-preview').style.display = 'none';
+  document.getElementById('cv-error-msg').style.display = 'none';
+}
+
+function closeCreateVoiceModal() {
+  document.getElementById('create-voice-modal').style.display = 'none';
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+  }
+}
+
+async function toggleRecording() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    document.getElementById('cv-record-btn').textContent = '\xf0\x9f\x8e\xa4 Start Recording';
+    document.getElementById('cv-rec-status').textContent = 'Recording stopped';
+    document.getElementById('cv-rec-status').className = 'recorder-status';
+    return;
+  }
+
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    mediaRecorder.ondataavailable = e => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = () => {
+      recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+      const audioUrl = URL.createObjectURL(recordedBlob);
+      document.getElementById('cv-preview-audio').src = audioUrl;
+      document.getElementById('cv-audio-preview').style.display = 'block';
+      document.getElementById('cv-rec-status').textContent = 'Recording ready - preview above';
+      document.getElementById('cv-rec-status').className = 'recorder-status';
+      stream.getTracks().forEach(t => t.stop());
+    };
+
+    mediaRecorder.start();
+    document.getElementById('cv-record-btn').textContent = '\xe2\x96\xb2 Stop Recording';
+    document.getElementById('cv-rec-status').textContent = 'Recording...';
+    document.getElementById('cv-rec-status').className = 'recorder-status recording';
+  } catch (err) {
+    showCvError('Microphone access denied. Please allow mic access.');
+  }
+}
+
+async function submitCustomVoice() {
+  const name = document.getElementById('cv-name').value.trim();
+  const isPublic = document.getElementById('cv-public-toggle').checked;
+  const submitBtn = document.getElementById('cv-submit-btn');
+  const errorDiv = document.getElementById('cv-error-msg');
+  const errorText = document.getElementById('cv-error-text');
+
+  errorDiv.style.display = 'none';
+
+  if (!name) { showCvError('Please enter a name for your voice.'); return; }
+  if (!recordedBlob) { showCvError('Please record a voice sample first.'); return; }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Processing...';
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('audio', recordedBlob, 'recording.webm');
+    formData.append('public', isPublic);
+
+    const resp = await fetch('/api/clone-voice', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${userState.token}` },
+      body: formData
+    });
+
+    const data = await resp.json();
+
+    if (!resp.ok) {
+      throw new Error(data.error || 'Voice cloning failed');
+    }
+
+    // Success - reload voices or update UI
+    closeCreateVoiceModal();
+    alert(isPublic
+      ? 'Your voice is live! Check your email for 6 months of free generation credits.'
+      : 'Your voice has been cloned! It will appear in your voice list.');
+    location.reload();
+
+  } catch (err) {
+    showCvError(err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Clone My Voice \xe2\x80\x94 $59.99';
+  }
+}
+
+function showCvError(msg) {
+  const errorDiv = document.getElementById('cv-error-msg');
+  const errorText = document.getElementById('cv-error-text');
+  errorText.textContent = msg;
+  errorDiv.style.display = 'block';
+}
+
 </script>
 
+
+<!-- Create Voice Modal -->
+<div class="modal" id="create-voice-modal" style="display:none;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h2>⛙️ Create Your Own Voice</h2>
+      <button class="modal-close" onclick="closeCreateVoiceModal()">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-info">Record yourself speaking for 30-60 seconds and we'll create a custom voice clone just for you.</p>
+
+      <div class="form-group">
+        <label>Voice Name</label>
+        <input type="text" id="cv-name" placeholder="e.g., My Voice, Dave's Narrator..." maxlength="30">
+      </div>
+
+      <div class="form-group">
+        <label>Recording</label>
+        <div class="recorder-container">
+          <button class="btn btn-primary" id="cv-record-btn" onclick="toggleRecording()">🎤 Start Recording</button>
+          <div class="recorder-status" id="cv-rec-status">Ready to record</div>
+          <div class="recorder-preview" id="cv-audio-preview" style="display:none;">
+            <audio id="cv-preview-audio" controls></audio>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="checkbox-group">
+          <input type="checkbox" id="cv-public-toggle">
+          <label for="cv-public-toggle">
+            <strong>Make this voice public (GNU)</strong><br>
+            <span class="sub-label">Contribute to the community library and get <strong>6 months FREE generation</strong></span>
+          </label>
+        </div>
+      </div>
+
+      <div class="cv-price-note">
+        <span class="price-badge">$59.99 one-time</span> to unlock voice cloning
+        <span class="price-note-sub"> (Public voices are FREE + bonus credit)</span>
+      </div>
+
+      <div class="form-group" style="display:none;" id="cv-error-msg">
+        <div class="error-msg" id="cv-error-text"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeCreateVoiceModal()">Cancel</button>
+      <button class="btn btn-primary" id="cv-submit-btn" onclick="submitCustomVoice()">Clone My Voice — $59.99</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
