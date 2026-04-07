@@ -2053,18 +2053,17 @@ filterVoices = function(category) {
       <button class="modal-close" onclick="closeCreateVoiceModal()">&times;</button>
     </div>
     <div class="modal-body">
-      <p class="modal-info">Record yourself speaking for 30-60 seconds and we'll create a custom voice clone just for you.</p>
+      <p class="modal-info">Record yourself reading the script below, then save your voice clone.</p>
 
-      <div class="form-group">
-        <label>Voice Name</label>
-        <input type="text" id="cv-name" placeholder="e.g., My Voice, Dave's Narrator..." maxlength="30">
-      </div>
-
-      <div class="form-group">
-        <label>What to Record</label>
-        <p style="font-style:italic;font-size:14px;color:var(--text-muted);margin:0 0 8px 0;line-height:1.5;">
-          <em>"Hey there, how's it going today? I'm heading out to the car right now because the weather's turning pretty wild out here in the Midwest. The rain started pouring hard, and those dark clouds are really moving fast across the sky. Have you ever thought about what makes a good road trip so much fun? It's all about the open highway, good music blasting from the radio, and stopping at little diners for burgers and fries. Yesterday I drove through the mountains, where the trees were turning bright red and orange in the fall air. But watch out for those sharp curves -- better take it easy or you might end up in trouble. My friend always says, 'Don't forget the map, or you'll get totally lost!' Anyway, I'm grabbing some coffee and a snack before I hit the road again. What about you? Got any big plans this weekend? Life's too short not to enjoy the ride, right? See you later!"</em>
-        </p>
+      <div style="display:flex;gap:16px;margin-bottom:16px;align-items:flex-start;flex-wrap:wrap;">
+        <div class="form-group" style="flex:0 0 180px;">
+          <label>Voice Name</label>
+          <input type="text" id="cv-name" placeholder="e.g., Dave's Voice" maxlength="30">
+        </div>
+        <div class="form-group" style="flex:1;min-width:280px;">
+          <label>Read This Script</label>
+          <p style="font-style:italic;font-size:13px;color:var(--text-muted);margin:0;line-height:1.5;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">"Hey there, how's it going today? I'm heading out to the car right now because the weather's turning pretty wild out here in the Midwest. The rain started pouring hard, and those dark clouds are really moving fast across the sky. Have you ever thought about what makes a good road trip so much fun? It's all about the open highway, good music blasting from the radio, and stopping at little diners for burgers and fries. Yesterday I drove through the mountains, where the trees were turning bright red and orange in the fall air. But watch out for those sharp curves -- better take it easy or you might end up in trouble. My friend always says, 'Don't forget the map, or you'll get totally lost!' Anyway, I'm grabbing some coffee and a snack before I hit the road again. What about you? Got any big plans this weekend? Life's too short not to enjoy the ride, right? See you later!"</p>
+        </div>
       </div>
 
       <div class="form-group">
@@ -2082,14 +2081,13 @@ filterVoices = function(category) {
         <div class="checkbox-group">
           <input type="checkbox" id="cv-public-toggle">
           <label for="cv-public-toggle">
-            <strong>Make this voice public (GNU)</strong><br>
-            <span class="sub-label">Contribute to the community library and get <strong>6 months FREE generation</strong></span>
+            <strong>Make this voice public (GNU)</strong> &mdash; Contribute to the community and get <strong>6 months FREE generation</strong>
           </label>
         </div>
       </div>
 
       <div class="cv-price-note">
-        <span class="price-badge">$59.99 one-time</span> to unlock voice cloning
+        <span class="price-badge">$59.99 one-time</span> to unlock private cloning
         <span class="price-note-sub"> (Public voices are FREE + bonus credit)</span>
       </div>
 
