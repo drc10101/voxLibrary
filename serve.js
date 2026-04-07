@@ -62,9 +62,9 @@ function parseMultipart(body, boundary) {
     const name = nameMatch[1];
     const bodyContent = bodyParts.join('\r\n\r\n').replace(/\r\n$/, '');
     if (filenameMatch) {
-      parts[name] = Buffer.from(bodyContent, 'binary');
+      parts[name] = Buffer.isBuffer(bodyContent) ? bodyContent : Buffer.from(bodyContent || '', 'binary');
     } else {
-      parts[name] = bodyContent.trim();
+      parts[name] = (bodyContent || '').trim();
     }
   }
   return parts;
@@ -205,7 +205,14 @@ const server = http.createServer((req, res) => {
       }
 
       // Simple multipart parser
-      const parts = parseMultipart(body, boundary);
+      let parts;
+      try {
+        parts = parseMultipart(body, boundary);
+      } catch (e) {
+        res.writeHead(400, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ error: 'Failed to parse form data: ' + e.message }));
+        return;
+      }
       const name = parts.name || '';
       const isPublic = parts.public === 'true';
       const accent = parts.accent || '';
