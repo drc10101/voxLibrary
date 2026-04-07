@@ -147,7 +147,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'GET' && req.url === '/api/community-voices') {
     try {
       const resp = await fetch(
-        `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,accent,pitch,describe1,describe2,uses,created_at&order=created_at.desc`,
+        `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,uses,created_at&order=created_at.desc`,
         {
           headers: {
             'apikey': SUPABASE_SERVICE_KEY,
@@ -361,17 +361,35 @@ const server = http.createServer((req, res) => {
             return;
           }
 
-          const privateVoices = profile.private_voices || {};
-          const publicVoices = profile.public_voices || {};
-          const customVoice = privateVoices[voiceKey] || publicVoices[voiceKey];
+          const privateVoices = pr
+          let customVoice = privateVoices[voiceKey] || publicVoices[voiceKey];
+          let audioSampleUrl = customVoice?.audioSampleUrl;
 
-          if (!customVoice || !customVoice.audioSampleUrl) {
+          // If not found in profile, check community voices table
+          if (!audioSampleUrl) {
+            const communityRes = await fetch(
+              `${SUPABASE_URL}/rest/v1/community_voices?voice_id=eq.${voiceKey}&select=audio_sample_url`,
+              {
+                headers: {
+                  'apikey': SUPABASE_SERVICE_KEY,
+                  'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+                }
+              }
+            );
+            const communityData = await communityRes.json();
+            if (communityData && communityData[0]?.audio_sample_url) {
+              audioSampleUrl = communityData[0].audio_sample_url;
+            }
+          }
+
+          if (!audioSampleUrl) {
             res.writeHead(400, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify({ error: 'Custom voice not found' }));
             return;
           }
 
           // Fetch reference audio from Supabase Storage
+          const refAudioResp = await fetch(audioSampleUrl);// Fetch reference audio from Supabase Storage
           const refAudioResp = await fetch(customVoice.audioSampleUrl);
           if (!refAudioResp.ok) throw new Error('Failed to fetch reference audio');
           const refAudioBuffer = await refAudioResp.arrayBuffer();
