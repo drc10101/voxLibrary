@@ -155,6 +155,8 @@ const server = http.createServer((req, res) => {
       return;
     }
 
+    const token = authHeader.split(' ')[1];
+
     // Parse multipart form data
     const chunks = [];
     req.on('data', chunk => chunks.push(chunk));
@@ -179,27 +181,18 @@ const server = http.createServer((req, res) => {
         return;
       }
 
-      // Verify user has paid for voice cloning OR is making a public contribution
       try {
-        // Check if user has voice_clone purchased in Stripe
-        const customer = await getStripeCustomer(authHeader.split(' ')[1]);
-        const hasAccess = await checkVoiceCloneAccess(customer, isPublic);
+        // Decode JWT to get user ID
+        const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+        const userId = payload.sub;
+        console.log('Clone voice for user:', userId);
 
-        if (!hasAccess) {
-          res.writeHead(402, { 'Content-Type': 'application/json' });
-          res.end(JSON.stringify({ error: 'Voice cloning not purchased. Visit /billing to upgrade.' }));
-          return;
-        }
-
-        // Save audio file and queue for processing
         const voiceId = uuidv4();
-        const audioPath = `/tmp/${voiceId}.webm`;
-        fs.writeFileSync(audioPath, audioData);
 
-        // Upload reference audio to Supabase Storage for persistence
+        // Upload reference audio to Supabase Storage
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('voice-samples')
-          .upload(`${customerId}/${voiceId}/reference.webm`, audioData, {
+          .upload(`${userId}/${voiceId}/reference.webm`, audioData, {
             contentType: 'audio/webm'
           });
 
@@ -209,7 +202,7 @@ const server = http.createServer((req, res) => {
 
         const { data: urlData } = supabase.storage
           .from('voice-samples')
-          .getPublicUrl(`${customerId}/${voiceId}/reference.webm`);
+          .getPublicUrl(`${userId}/${voiceId}/reference.webm`);
 
         const audioSampleUrl = urlData.publicUrl;
 
@@ -224,7 +217,7 @@ const server = http.createServer((req, res) => {
 
         // Get current profile
         const profileRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${customerId}`,
+          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
           {
             headers: {
               'apikey': SUPABASE_SERVICE_KEY,
@@ -238,7 +231,7 @@ const server = http.createServer((req, res) => {
         const updatedVoices = { ...existingVoices, [voiceId]: voiceData };
 
         const updateRes = await fetch(
-          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${customerId}`,
+          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
           {
             method: 'PATCH',
             headers: {
@@ -261,19 +254,19 @@ const server = http.createServer((req, res) => {
           voiceId,
           message: isPublic
             ? 'Voice submitted for review. You will receive 6 months free generation once approved.'
-            : 'Voice cloning in progress. Check back in a few minutes.'
+            : 'Voice saved! Select it from My Voices to generate.'
         }));
 
       } catch (err) {
         console.error('Clone voice error:', err);
         res.writeHead(500, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Internal error' }));
+        res.end(JSON.stringify({ error: 'Internal error: ' + err.message }));
       }
     });
     return;
   }
 
-  // API: TTS via RunPod Chatterbox Turbo (proxy to keep API key secure)
+// API: TTS via RunPod Chatterbox Turbo (proxy to keep API key secure)
   if (req.method === 'POST' && req.url === '/api/tts') {
     let body = '';
     req.on('data', chunk => body += chunk);
