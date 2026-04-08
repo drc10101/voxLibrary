@@ -62,9 +62,17 @@ function parseMultipart(body, boundary) {
     const name = nameMatch[1];
     const bodyContent = bodyParts.join('\r\n\r\n').replace(/\r\n$/, '');
     if (filenameMatch) {
-      parts[name] = Buffer.isBuffer(bodyContent) ? bodyContent : Buffer.from(bodyContent || '', 'binary');
+      let safeContent;
+      try {
+        safeContent = Buffer.isBuffer(bodyContent)
+          ? bodyContent
+          : Buffer.from(String(bodyContent || ''), 'binary');
+      } catch (e) {
+        safeContent = Buffer.alloc(0);
+      }
+      parts[name] = safeContent;
     } else {
-      parts[name] = (bodyContent || '').trim();
+      parts[name] = String(bodyContent || '').trim();
     }
   }
   return parts;
