@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const https = require('https');
 const Stripe = require('stripe');
 
 const PORT = process.env.PORT || 8080;
@@ -119,7 +120,6 @@ const server = http.createServer((req, res) => {
 
   // API: Daily stats (user count)
   if (req.method === 'GET' && req.url === '/api/stats') {
-    const https = require('https');
     const opts = {
       hostname: 'kxnqwpavjhiphgvkevvj.supabase.co',
       path: '/auth/v1/admin/users?page=1&per_page=1',
