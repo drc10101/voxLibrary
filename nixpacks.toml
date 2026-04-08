@@ -1,0 +1,8 @@
+[phases.setup]
+nixpacks = ["nodejs_24"]
+
+[phases.install]
+nixpacks = ["npm install"]
+
+[phases.start]
+cmd = ["npm", "start"]
