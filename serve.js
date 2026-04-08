@@ -4,12 +4,14 @@ const path = require('path');
 const https = require('https');
 const Stripe = require('stripe');
 
-const PORT = process.env.PORT || 8080;
-const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY;
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
-const stripe = Stripe(STRIPE_SECRET_KEY);
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxnqwpavjhiphgvkevvj.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY; // Service role key for admin
+const PORT = process.env.PORT || 8080;
+const RUNPOD_API_KEY = process.env.RUNPOD_API_KEY;
+const RUNPOD_FISH_SPEECH = process.env.RUNPOD_FISH_SPEECH;
+const RUNPOD_FISH_ENDPOINT_ID = process.env.RUNPOD_FISH_ENDPOINT_ID || '53xyuo8cif3b4k';
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
+const stripe = STRIPE_SECRET_KEY ? Stripe(STRIPE_SECRET_KEY) : null;
 
 // Voice mapping (Chatterbox Turbo preset voices + matching existing images)
 const VOICES = {
@@ -248,23 +250,27 @@ const server = http.createServer((req, res) => {
         console.log('Clone voice for user:', userId, '| audio size:', audioData.length);
 
         const voiceId = uuidv4();
+        const storagePath = `${userId}/${voiceId}/reference.webm`;
 
-        // Upload reference audio to Supabase Storage
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('voice-samples')
-          .upload(`${userId}/${voiceId}/reference.webm`, audioData, {
-            contentType: 'audio/webm'
-          });
-
-        if (uploadError) {
-          throw new Error('Failed to upload voice sample: ' + uploadError.message);
+        // Upload reference audio to Supabase Storage using REST API
+        const uploadResp = await fetch(
+          `${SUPABASE_URL}/storage/v1/object/voice-samples/${storagePath}`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+              'Content-Type': 'audio/webm',
+              'x-upsert': 'true'
+            },
+            body: audioData
+          }
+        );
+        if (!uploadResp.ok) {
+          const errText = await uploadResp.text();
+          throw new Error('Failed to upload voice sample: ' + errText);
         }
 
-        const { data: urlData } = supabase.storage
-          .from('voice-samples')
-          .getPublicUrl(`${userId}/${voiceId}/reference.webm`);
-
-        const audioSampleUrl = urlData.publicUrl;
+        const audioSampleUrl = `${SUPABASE_URL}/storage/v1/object/public/voice-samples/${storagePath}`;
 
         // Store voice data in Supabase profiles table
         const voiceData = {
@@ -358,6 +364,17 @@ const server = http.createServer((req, res) => {
         const { voiceKey, text, speed, format } = data;
         const voice = VOICES[voiceKey] || VOICES['brian'];
 
+        // Extract userId from auth header if present
+        let userId = null;
+        const authHeader = req.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          try {
+            const token = authHeader.split(' ')[1];
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+            userId = payload.sub;
+          } catch (e) { /* ignore invalid tokens */ }
+        }
+
         if (!RUNPOD_API_KEY) {
           throw new Error('RunPod API key not configured');
         }
@@ -393,7 +410,8 @@ const server = http.createServer((req, res) => {
             return;
           }
 
-          const privateVoices = pr
+          const privateVoices = profile.private_voices || {};
+          const publicVoices = profile.public_voices || {};
           let customVoice = privateVoices[voiceKey] || publicVoices[voiceKey];
           let audioSampleUrl = customVoice?.audioSampleUrl;
 
