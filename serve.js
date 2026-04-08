@@ -362,6 +362,7 @@ const server = http.createServer((incomingReq, serverRes) => {
           }
 
           // Fetch community voice audio
+          console.log('Fetching community voice for voiceKey:', voiceKey);
           const communityRes = await fetch(
             `${SUPABASE_URL}/rest/v1/community_voices?voice_id=eq.${voiceKey}&select=audio_sample_url,contributor_id`,
             {
@@ -372,8 +373,10 @@ const server = http.createServer((incomingReq, serverRes) => {
             }
           );
           const communityData = await communityRes.json();
+          console.log('Community data raw:', JSON.stringify(communityData));
           let audioSampleUrl = communityData?.[0]?.audio_sample_url;
           const contributorId = communityData?.[0]?.contributor_id;
+          console.log('audioSampleUrl:', audioSampleUrl, 'contributorId:', contributorId);
 
           // Fallback: construct URL from storage path if audio_sample_url is null
           if (!audioSampleUrl && contributorId) {
@@ -391,6 +394,7 @@ const server = http.createServer((incomingReq, serverRes) => {
           console.log('Fetching reference audio from:', audioSampleUrl);
           // Fetch reference audio
           const refAudioResp = await fetch(audioSampleUrl);
+          console.log('refAudioResp status:', refAudioResp.status, refAudioResp.ok);
           if (!refAudioResp.ok) throw new Error('Failed to fetch reference audio');
           const refAudioBuffer = await refAudioResp.arrayBuffer();
           const refAudioBase64 = Buffer.from(new Uint8Array(refAudioBuffer)).toString('base64');
