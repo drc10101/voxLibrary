@@ -39,8 +39,10 @@ const mimeTypes = {
 
 function parseMultipart(body, boundary) {
   const parts = {};
+  if (!body || !boundary) return parts;
   const boundaryBuffer = Buffer.from('--' + boundary);
-  const sections = body.toString('binary').split(Buffer.from(boundaryBuffer).toString('binary'));
+  const boundaryStr = boundaryBuffer.toString('binary');
+  const sections = body.toString('binary').split(boundaryStr);
   for (const section of sections) {
     if (!section || !section.includes('\r\n\r\n')) continue;
     const [headers, ...bodyParts] = section.split('\r\n\r\n');
@@ -52,10 +54,19 @@ function parseMultipart(body, boundary) {
     if (filenameMatch) {
       let safeContent;
       try {
-        safeContent = Buffer.isBuffer(bodyContent)
-          ? bodyContent
-          : Buffer.from(String(bodyContent || ''), 'binary');
+        if (Buffer.isBuffer(bodyContent)) {
+          safeContent = bodyContent;
+        } else if (typeof bodyContent === 'string') {
+          safeContent = Buffer.from(bodyContent, 'binary');
+        } else if (bodyContent instanceof ArrayBuffer) {
+          safeContent = Buffer.from(new Uint8Array(bodyContent));
+        } else if (bodyContent) {
+          safeContent = Buffer.from(String(bodyContent), 'binary');
+        } else {
+          safeContent = Buffer.alloc(0);
+        }
       } catch (e) {
+        console.error('Buffer creation error:', e.message);
         safeContent = Buffer.alloc(0);
       }
       parts[name] = safeContent;
@@ -233,6 +244,9 @@ const server = http.createServer((incomingReq, serverRes) => {
       }
 
       try {
+        if (!token || !token.includes('.')) {
+          throw new Error('Invalid token format');
+        }
         const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
         const userId = payload.sub;
         console.log('Clone voice for user:', userId, '| audio size:', audioData.length);
