@@ -84,6 +84,104 @@ function uuidv4() {
   });
 }
 
+// In-memory job storage for async TTS
+const ttsJobs = new Map();
+
+// Async TTS generation
+async function generateTTSAsync(jobId, voice, voiceKey, text, runpodFormat, isCustomVoice, userId) {
+  try {
+    let audioResult = null;
+
+    if (isCustomVoice) {
+      if (!userId) throw new Error('Login required for custom voices');
+
+      // Fetch community voice audio
+      const communityRes = await fetch(
+        `${SUPABASE_URL}/rest/v1/community_voices?voice_id=eq.${voiceKey}&select=audio_sample_url,contributor_id`,
+        { headers: { 'apikey': SUPABASE_SERVICE_KEY, 'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}` } }
+      );
+      const communityData = await communityRes.json();
+      let audioSampleUrl = communityData?.[0]?.audio_sample_url;
+      const contributorId = communityData?.[0]?.contributor_id;
+
+      if (!audioSampleUrl && contributorId) {
+        audioSampleUrl = `${SUPABASE_URL}/storage/v1/object/public/voice-samples/${contributorId}/${voiceKey}/reference.webm`;
+      }
+
+      if (!audioSampleUrl) throw new Error('Custom voice audio not found');
+
+      // Fetch reference audio
+      const refAudioResp = await fetch(audioSampleUrl);
+      if (!refAudioResp.ok) throw new Error('Failed to fetch reference audio');
+      const refAudioBuffer = await refAudioResp.arrayBuffer();
+      const refAudioBase64 = Buffer.from(new Uint8Array(refAudioBuffer)).toString('base64');
+
+      // Call Fish Speech
+      const fishResp = await fetch(
+        `https://api.runpod.ai/v2/${RUNPOD_FISH_ENDPOINT_ID}/run`,
+        {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${RUNPOD_FISH_SPEECH}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ input: { text: text.slice(0, 5000), format: 'wav', reference_audio: [refAudioBase64], reference_text: [''], chunk_length: 300 } })
+        }
+      );
+
+      const fishData = await fishResp.json();
+
+      if (fishData.status === 'IN_QUEUE' || fishData.status === 'IN_PROGRESS') {
+        const runpodJobId = fishData.id;
+        let waited = 0;
+        while (waited < 180) {
+          await new Promise(r => setTimeout(r, 5000));
+          waited += 5;
+          const statusResp = await fetch(
+            `https://api.runpod.ai/v2/${RUNPOD_FISH_ENDPOINT_ID}/status/${runpodJobId}`,
+            { headers: { 'Authorization': `Bearer ${RUNPOD_FISH_SPEECH}` } }
+          );
+          const statusData = await statusResp.json();
+          if (statusData.status === 'COMPLETED') {
+            audioResult = { audio_base64: statusData.output.audio_base64, format: 'wav' };
+            break;
+          } else if (statusData.status === 'FAILED') {
+            throw new Error('Fish Speech generation failed');
+          }
+          ttsJobs.set(jobId, { status: 'processing', progress: Math.min(waited / 180 * 100, 90) });
+        }
+        if (!audioResult) throw new Error('Fish Speech timed out');
+      } else if (fishData.output?.audio_base64) {
+        audioResult = { audio_base64: fishData.output.audio_base64, format: 'wav' };
+      } else {
+        throw new Error('Fish Speech returned unexpected response');
+      }
+    } else {
+      // Preset voice - Chatterbox Turbo
+      const response = await fetch('https://api.runpod.ai/v2/chatterbox-turbo/runsync', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${RUNPOD_API_KEY}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ input: { prompt: text, voice: voice.id, format: runpodFormat } })
+      });
+
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({}));
+        throw new Error(`RunPod error ${response.status}: ${err.error || 'Unknown'}`);
+      }
+
+      const result = await response.json();
+      if (result.status === 'FAILED') throw new Error('Generation failed: ' + (result.error || 'Unknown error'));
+
+      // Fetch audio
+      const audioResponse = await fetch(result.output.audio_url);
+      if (!audioResponse.ok) throw new Error('Failed to fetch audio from RunPod');
+      const audioBuffer = await audioResponse.arrayBuffer();
+      audioResult = { audioBuffer, format: runpodFormat };
+    }
+
+    ttsJobs.set(jobId, { status: 'completed', audio: audioResult });
+  } catch (err) {
+    ttsJobs.set(jobId, { status: 'failed', error: err.message });
+  }
+}
+
 const server = http.createServer((incomingReq, serverRes) => {
   console.log(`${incomingReq.method} ${incomingReq.url}`);
 
@@ -327,7 +425,8 @@ const server = http.createServer((incomingReq, serverRes) => {
     return;
   }
 
-  // API: TTS
+  // API: TTS - Streaming version
+  // Returns 202 immediately with job ID, generation happens async
   if (incomingReq.method === 'POST' && incomingReq.url === '/api/tts') {
     let body = '';
     incomingReq.on('data', chunk => body += chunk);
@@ -348,156 +447,82 @@ const server = http.createServer((incomingReq, serverRes) => {
         }
 
         if (!RUNPOD_API_KEY) {
-          throw new Error('RunPod API key not configured');
+          serverRes.writeHead(500, { 'Content-Type': 'application/json' });
+          serverRes.end(JSON.stringify({ error: 'RunPod API key not configured' }));
+          return;
         }
 
         const runpodFormat = format === 'flac_44100_16bit' ? 'flac' : 'wav';
         const isCustomVoice = !VOICES[voiceKey];
+        const jobId = uuidv4();
 
-        if (isCustomVoice) {
-          if (!userId) {
-            serverRes.writeHead(401, { 'Content-Type': 'application/json' });
-            serverRes.end(JSON.stringify({ error: 'Login required for custom voices' }));
-            return;
-          }
+        // Start generation async, respond immediately
+        generateTTSAsync(jobId, voice, voiceKey, text, runpodFormat, isCustomVoice, userId).catch(err => {
+          console.error('Async TTS error for job', jobId, ':', err.message);
+        });
 
-          // Fetch community voice audio
-          console.log('Fetching community voice for voiceKey:', voiceKey);
-          const communityRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/community_voices?voice_id=eq.${voiceKey}&select=audio_sample_url,contributor_id`,
-            {
-              headers: {
-                'apikey': SUPABASE_SERVICE_KEY,
-                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
-              }
-            }
-          );
-          const communityData = await communityRes.json();
-          console.log('Community data raw:', JSON.stringify(communityData));
-          let audioSampleUrl = communityData?.[0]?.audio_sample_url;
-          const contributorId = communityData?.[0]?.contributor_id;
-          console.log('audioSampleUrl:', audioSampleUrl, 'contributorId:', contributorId);
-
-          // Fallback: construct URL from storage path if audio_sample_url is null
-          if (!audioSampleUrl && contributorId) {
-            audioSampleUrl = `${SUPABASE_URL}/storage/v1/object/public/voice-samples/${contributorId}/${voiceKey}/reference.webm`;
-            console.log('Using fallback URL:', audioSampleUrl);
-          }
-
-          if (!audioSampleUrl) {
-            console.error('No audio URL found for voice:', voiceKey, 'contributorId:', contributorId);
-            serverRes.writeHead(400, { 'Content-Type': 'application/json' });
-            serverRes.end(JSON.stringify({ error: 'Custom voice audio not found' }));
-            return;
-          }
-
-          console.log('Fetching reference audio from:', audioSampleUrl);
-          // Fetch reference audio
-          const refAudioResp = await fetch(audioSampleUrl);
-          console.log('refAudioResp status:', refAudioResp.status, refAudioResp.ok);
-          if (!refAudioResp.ok) throw new Error('Failed to fetch reference audio');
-          const refAudioBuffer = await refAudioResp.arrayBuffer();
-          const refAudioBase64 = Buffer.from(new Uint8Array(refAudioBuffer)).toString('base64');
-
-          // Call Fish Speech
-          const fishResp = await fetch(
-            `https://api.runpod.ai/v2/${RUNPOD_FISH_ENDPOINT_ID}/run`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${RUNPOD_FISH_SPEECH}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                input: {
-                  text: text.slice(0, 5000),
-                  format: 'wav',
-                  reference_audio: [refAudioBase64],
-                  reference_text: [''],
-                  chunk_length: 300
-                }
-              })
-            }
-          );
-
-          const fishData = await fishResp.json();
-
-          if (fishData.status === 'IN_QUEUE' || fishData.status === 'IN_PROGRESS') {
-            const jobId = fishData.id;
-            let waited = 0;
-            while (waited < 180) {
-              await new Promise(r => setTimeout(r, 15000));
-              waited += 15;
-              const statusResp = await fetch(
-                `https://api.runpod.ai/v2/${RUNPOD_FISH_ENDPOINT_ID}/status/${jobId}`,
-                { headers: { 'Authorization': `Bearer ${RUNPOD_FISH_SPEECH}` } }
-              );
-              const statusData = await statusResp.json();
-              if (statusData.status === 'COMPLETED') {
-                const audioBytes = Buffer.from(statusData.output.audio_base64, 'base64');
-                serverRes.writeHead(200, { 'Content-Type': 'audio/wav' });
-                serverRes.end(audioBytes);
-                return;
-              } else if (statusData.status === 'FAILED') {
-                throw new Error('Fish Speech generation failed');
-              }
-            }
-            throw new Error('Fish Speech timed out');
-          } else if (fishData.output?.audio_base64) {
-            const audioBytes = Buffer.from(fishData.output.audio_base64, 'base64');
-            serverRes.writeHead(200, { 'Content-Type': 'audio/wav' });
-            serverRes.end(audioBytes);
-            return;
-          } else {
-            throw new Error('Fish Speech returned unexpected response');
-          }
-        } else {
-          // Preset voice
-          console.log('Calling Chatterbox Turbo for voice:', voice.id, 'text length:', text.length);
-          const response = await fetch('https://api.runpod.ai/v2/chatterbox-turbo/runsync', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${RUNPOD_API_KEY}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              input: {
-                prompt: text,
-                voice: voice.id,
-                format: runpodFormat
-              }
-            })
-          });
-          console.log('Chatterbox response status:', response.status);
-
-          if (!response.ok) {
-            const err = await response.json().catch(() => ({}));
-            throw new Error(`RunPod error ${response.status}: ${err.error || 'Unknown'}`);
-          }
-
-          const result = await response.json();
-          console.log('Chatterbox result status:', result.status);
-
-          if (result.status === 'FAILED') {
-            throw new Error('Generation failed: ' + (result.error || 'Unknown error'));
-          }
-
-          console.log('Fetching audio from:', result.output.audio_url);
-          const audioResponse = await fetch(result.output.audio_url);
-          if (!audioResponse.ok) throw new Error('Failed to fetch audio from RunPod');
-          const audioBuffer = await audioResponse.arrayBuffer();
-
-          serverRes.writeHead(200, { 'Content-Type': 'audio/wav' });
-          serverRes.end(Buffer.from(new Uint8Array(audioBuffer)));
-          console.log('Generation complete, sent audio');
-        }
+        // Return immediately with job ID
+        serverRes.writeHead(202, { 'Content-Type': 'application/json' });
+        serverRes.end(JSON.stringify({ jobId, status: 'processing' }));
 
       } catch (error) {
-        console.error('TTS error:', error);
+        console.error('TTS init error:', error);
         serverRes.writeHead(500, { 'Content-Type': 'application/json' });
         serverRes.end(JSON.stringify({ error: error.message }));
       }
     });
+    return;
+  }
+
+  // API: TTS status check
+  if (incomingReq.method === 'GET' && incomingReq.url.startsWith('/api/tts/status/')) {
+    const jobId = incomingReq.url.split('/api/tts/status/')[1];
+    const job = ttsJobs.get(jobId);
+
+    if (!job) {
+      serverRes.writeHead(404, { 'Content-Type': 'application/json' });
+      serverRes.end(JSON.stringify({ error: 'Job not found' }));
+      return;
+    }
+
+    serverRes.writeHead(200, { 'Content-Type': 'application/json' });
+    serverRes.end(JSON.stringify(job));
+    return;
+  }
+
+  // API: TTS audio fetch
+  if (incomingReq.method === 'GET' && incomingReq.url.startsWith('/api/tts/audio/')) {
+    const jobId = incomingReq.url.split('/api/tts/audio/')[1];
+    const job = ttsJobs.get(jobId);
+
+    if (!job) {
+      serverRes.writeHead(404, { 'Content-Type': 'application/json' });
+      serverRes.end(JSON.stringify({ error: 'Job not found' }));
+      return;
+    }
+
+    if (job.status !== 'completed' || !job.audio) {
+      serverRes.writeHead(400, { 'Content-Type': 'application/json' });
+      serverRes.end(JSON.stringify({ error: 'Audio not ready' }));
+      return;
+    }
+
+    if (job.audio.audio_base64) {
+      // Fish Speech - base64 encoded
+      const audioBytes = Buffer.from(job.audio.audio_base64, 'base64');
+      serverRes.writeHead(200, { 'Content-Type': 'audio/wav' });
+      serverRes.end(audioBytes);
+    } else if (job.audio.audioBuffer) {
+      // Chatterbox - ArrayBuffer
+      serverRes.writeHead(200, { 'Content-Type': 'audio/wav' });
+      serverRes.end(Buffer.from(new Uint8Array(job.audio.audioBuffer)));
+    } else {
+      serverRes.writeHead(500, { 'Content-Type': 'application/json' });
+      serverRes.end(JSON.stringify({ error: 'Invalid audio data' }));
+    }
+
+    // Clean up job after delivery
+    ttsJobs.delete(jobId);
     return;
   }
 

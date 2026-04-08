@@ -1797,7 +1797,7 @@ async function generateAudio() {
   }
 
   const btn = document.getElementById('generate-btn');
-  btn.textContent = '⏳ Generating... (may take 5-10 sec)';
+  btn.textContent = '⏳ Generating...';
   btn.disabled = true;
 
   try {
@@ -1827,21 +1827,46 @@ async function generateAudio() {
       })
     });
 
-    const result = await response;
+    const jobResult = await response.json();
 
-    if (!result.ok) {
-      const err = await result.json().catch(() => ({}));
-      throw new Error('API error ' + result.status + ': ' + (err.error || ''));
+    if (!response.ok || jobResult.error) {
+      throw new Error('API error: ' + (jobResult.error || response.status));
     }
 
-    // Backend returns raw WAV audio binary (CORS handled server-side)
-    const audioBlob = await result.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
+    // Poll for completion (async job)
+    let attempts = 0;
+    let audioData = null;
+    while (attempts < 120) { // Max 2 minutes polling
+      await new Promise(r => setTimeout(r, 2000)); // Poll every 2 seconds
+      attempts++;
+
+      const statusResp = await fetch(`/api/tts/status/${jobResult.jobId}`);
+      const statusData = await statusResp.json();
+
+      if (statusData.status === 'completed') {
+        // Fetch the actual audio file
+        const audioResp = await fetch(`/api/tts/audio/${jobResult.jobId}`);
+        if (!audioResp.ok) throw new Error('Failed to fetch audio');
+        audioData = await audioResp.blob();
+        break;
+      } else if (statusData.status === 'failed') {
+        throw new Error(statusData.error || 'Generation failed');
+      }
+
+      // Update button to show progress
+      btn.textContent = '⏳ Generating...' + (attempts % 5 === 0 ? ' Still working...' : '');
+    }
+
+    if (!audioData) {
+      throw new Error('Generation timed out');
+    }
+
+    const audioUrl = URL.createObjectURL(audioData);
 
     document.getElementById('audio-player').src = audioUrl;
     document.getElementById('download-voice-name').textContent = 'VOICE: ' + selectedVoice.name;
     document.getElementById('download-text-preview').textContent = '"' + text.substring(0, 80) + '..."';
-    document.getElementById('download-info').textContent = 'Format: WAV | Size: ' + (audioBlob.size / 1024).toFixed(1) + ' KB';
+    document.getElementById('download-info').textContent = 'Format: WAV | Size: ' + (audioData.size / 1024).toFixed(1) + ' KB';
     window.generatedAudioUrl = audioUrl;
     window.generatedAudioFilename = selectedVoice.name + '_' + selectedVoice.key + '_' + Date.now() + '.wav';
 
