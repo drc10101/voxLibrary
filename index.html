@@ -1930,7 +1930,7 @@ function closeCreateVoiceModal() {
 async function toggleRecording() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
-    document.getElementById('cv-record-btn').textContent = '🎤 Start Recording';
+    document.getElementById('cv-record-btn').textContent = 'Start Recording';
     document.getElementById('cv-rec-status').textContent = 'Recording stopped';
     document.getElementById('cv-rec-status').className = 'recorder-status';
     return;
@@ -1957,7 +1957,7 @@ async function toggleRecording() {
     };
 
     mediaRecorder.start();
-    document.getElementById('cv-record-btn').textContent = '▶ Stop Recording';
+    document.getElementById('cv-record-btn').textContent = 'Stop Recording';
     document.getElementById('cv-rec-status').textContent = 'Recording...';
     document.getElementById('cv-rec-status').className = 'recorder-status recording';
   } catch (err) {
