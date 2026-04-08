@@ -95,6 +95,17 @@
       transition: all 0.2s;
     }
 
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
     .btn-ghost {
       background: transparent;
       color: var(--text-muted);
@@ -1211,6 +1222,7 @@
       <label>Recording</label>
       <div class="recorder-container">
         <button class="btn btn-primary" id="cv-record-btn" onclick="toggleRecording()">Start Recording</button>
+        <button class="btn btn-secondary" id="cv-reset-btn" onclick="clearRecording()" style="display:none;">Start Over</button>
         <div class="recorder-status" id="cv-rec-status">Ready to record</div>
         <div class="recorder-preview" id="cv-audio-preview" style="display:none;">
           <audio id="cv-preview-audio" controls></audio>
@@ -1940,6 +1952,7 @@ async function toggleRecording() {
       document.getElementById('cv-audio-preview').style.display = 'block';
       document.getElementById('cv-rec-status').textContent = 'Recording ready - preview above';
       document.getElementById('cv-rec-status').className = 'recorder-status';
+      document.getElementById('cv-reset-btn').style.display = 'inline-block';
       stream.getTracks().forEach(t => t.stop());
     };
 
@@ -1950,6 +1963,17 @@ async function toggleRecording() {
   } catch (err) {
     showCvError('Microphone access denied. Please allow mic access.');
   }
+}
+
+function clearRecording() {
+  recordedBlob = null;
+  audioChunks = [];
+  document.getElementById('cv-preview-audio').src = '';
+  document.getElementById('cv-audio-preview').style.display = 'none';
+  document.getElementById('cv-rec-status').textContent = 'Ready to record';
+  document.getElementById('cv-rec-status').className = 'recorder-status';
+  document.getElementById('cv-reset-btn').style.display = 'none';
+  document.getElementById('cv-record-btn').textContent = '\xf0\x9f\x8e\xa4 Start Recording';
 }
 
 async function submitCustomVoice() {
