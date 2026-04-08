@@ -1930,7 +1930,7 @@ function closeCreateVoiceModal() {
 async function toggleRecording() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
-    document.getElementById('cv-record-btn').textContent = '\xf0\x9f\x8e\xa4 Start Recording';
+    document.getElementById('cv-record-btn').textContent = '🎤 Start Recording';
     document.getElementById('cv-rec-status').textContent = 'Recording stopped';
     document.getElementById('cv-rec-status').className = 'recorder-status';
     return;
@@ -1957,7 +1957,7 @@ async function toggleRecording() {
     };
 
     mediaRecorder.start();
-    document.getElementById('cv-record-btn').textContent = '\xe2\x96\xb2 Stop Recording';
+    document.getElementById('cv-record-btn').textContent = '▶ Stop Recording';
     document.getElementById('cv-rec-status').textContent = 'Recording...';
     document.getElementById('cv-rec-status').className = 'recorder-status recording';
   } catch (err) {
@@ -1973,7 +1973,7 @@ function clearRecording() {
   document.getElementById('cv-rec-status').textContent = 'Ready to record';
   document.getElementById('cv-rec-status').className = 'recorder-status';
   document.getElementById('cv-reset-btn').style.display = 'none';
-  document.getElementById('cv-record-btn').textContent = '\xf0\x9f\x8e\xa4 Start Recording';
+  document.getElementById('cv-record-btn').textContent = '\\u{1F3A4} Start Recording';
 }
 
 async function submitCustomVoice() {
