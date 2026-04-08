@@ -221,7 +221,7 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ error: 'Failed to parse form data: ' + e.message }));
         return;
       }
-      console.log('clone-voice fields:', Object.keys(parts));
+      console.log('clone-voice fields:', Object.keys(parts), {name, isPublic, accent, pitch, desc1, desc2, audioType: typeof audioData, audioLen: audioData ? audioData.length : 0});
       const name = parts.name || '';
       const isPublic = parts.public === 'true';
       const accent = parts.accent || '';
@@ -235,7 +235,7 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ error: 'Voice name is required' }));
         return;
       }
-      if (!audioData) {
+      if (!audioData || !Buffer.isBuffer(audioData) || audioData.length === 0) {
         res.writeHead(400, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'No audio recording found. Please record your voice first.' }));
         return;
@@ -424,7 +424,7 @@ const server = http.createServer((req, res) => {
           const refAudioResp = await fetch(customVoice.audioSampleUrl);
           if (!refAudioResp.ok) throw new Error('Failed to fetch reference audio');
           const refAudioBuffer = await refAudioResp.arrayBuffer();
-          const refAudioBase64 = Buffer.from(refAudioBuffer).toString('base64');
+          const refAudioBase64 = Buffer.from(new Uint8Array(refAudioBuffer)).toString('base64');
 
           // Call Fish Speech async
           const fishResp = await fetch(

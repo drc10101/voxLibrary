@@ -1981,6 +1981,8 @@ async function submitCustomVoice() {
     formData.append('desc1', desc1);
     formData.append('desc2', desc2);
 
+    console.log('Submitting voice clone:', { name, audioSize: recordedBlob.size, accent, pitch, desc1, desc2 });
+
     const resp = await fetch('/api/clone-voice', {
       method: 'POST',
       headers: { 'Authorization': `Bearer ${userState.token}` },
