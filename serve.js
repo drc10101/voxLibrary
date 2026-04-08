@@ -20,7 +20,7 @@ console.log('RUNPOD_API_KEY:', RUNPOD_API_KEY ? 'SET' : 'MISSING');
 console.log('RUNPOD_FISH_SPEECH:', RUNPOD_FISH_SPEECH ? 'SET' : 'MISSING');
 console.log('RUNPOD_FISH_ENDPOINT_ID:', RUNPOD_FISH_ENDPOINT_ID);
 console.log('STRIPE_SECRET_KEY:', STRIPE_SECRET_KEY ? 'SET' : 'MISSING');
-console.log('stripe:', stripe ? 'initialized' : 'null (skipping)');
+console.log('stripe:', stripe ? 'initialized' : 'null (will skip Stripe features)');
 console.log('=========================');
 
 const mimeTypes = {
@@ -292,7 +292,7 @@ const server = http.createServer((incomingReq, serverRes) => {
         }));
 
       } catch (err) {
-        console.error('Clone voice error:', err);
+        console.error('Clone voice error:', err.message, err.stack);
         serverRes.writeHead(500, { 'Content-Type': 'application/json' });
         serverRes.end(JSON.stringify({ error: 'Internal error: ' + err.message }));
       }
@@ -444,7 +444,7 @@ const server = http.createServer((incomingReq, serverRes) => {
           const audioBuffer = await audioResponse.arrayBuffer();
 
           serverRes.writeHead(200, { 'Content-Type': 'audio/wav' });
-          serverRes.end(Buffer.from(audioBuffer));
+          serverRes.end(Buffer.from(new Uint8Array(audioBuffer)));
         }
 
       } catch (error) {
