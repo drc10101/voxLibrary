@@ -1815,7 +1815,10 @@ async function generateAudio() {
     // Call backend proxy -> RunPod (keeps API key secure)
     const response = await fetch('/api/tts', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${userState.token}`
+      },
       body: JSON.stringify({
         voiceKey: selectedVoice.key,
         text: text,
