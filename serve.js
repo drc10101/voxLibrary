@@ -196,7 +196,9 @@ const server = http.createServer((incomingReq, serverRes) => {
 
   // API: Clone a voice
   if (incomingReq.method === 'POST' && incomingReq.url === '/api/clone-voice') {
+    console.log('=== CLONE VOICE REQUEST ===');
     const authHeader = incomingReq.headers.authorization;
+    console.log('Auth header present:', !!authHeader);
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       serverRes.writeHead(401, { 'Content-Type': 'application/json' });
       serverRes.end(JSON.stringify({ error: 'Unauthorized' }));
@@ -204,11 +206,17 @@ const server = http.createServer((incomingReq, serverRes) => {
     }
 
     const token = authHeader.split(' ')[1];
+    console.log('Token present:', !!token);
     const chunks = [];
     incomingReq.on('data', chunk => chunks.push(chunk));
     incomingReq.on('end', async () => {
+      console.log('Body received, chunks:', chunks.length);
       const body = Buffer.concat(chunks);
-      const boundary = incomingReq.headers['content-type'].split('boundary=')[1];
+      console.log('Body length:', body.length);
+      const contentType = incomingReq.headers['content-type'] || '';
+      console.log('Content-Type:', contentType);
+      const boundary = contentType.split('boundary=')[1];
+      console.log('Boundary:', boundary ? 'present' : 'MISSING');
       if (!boundary) {
         serverRes.writeHead(400, { 'Content-Type': 'application/json' });
         serverRes.end(JSON.stringify({ error: 'Invalid form data' }));
@@ -218,7 +226,9 @@ const server = http.createServer((incomingReq, serverRes) => {
       let parts;
       try {
         parts = parseMultipart(body, boundary);
+        console.log('Parsed parts:', Object.keys(parts));
       } catch (e) {
+        console.error('Parse error:', e.message);
         serverRes.writeHead(400, { 'Content-Type': 'application/json' });
         serverRes.end(JSON.stringify({ error: 'Failed to parse form data: ' + e.message }));
         return;
@@ -231,6 +241,7 @@ const server = http.createServer((incomingReq, serverRes) => {
       const desc1 = parts.desc1 || '';
       const desc2 = parts.desc2 || '';
       const audioData = parts.audio;
+      console.log('name:', name, '| audioData:', audioData ? (audioData.constructor.name + ' len=' + audioData.length) : 'MISSING');
 
       if (!name) {
         serverRes.writeHead(400, { 'Content-Type': 'application/json' });
