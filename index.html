@@ -1894,10 +1894,13 @@ async function loadUserProfile(user) {
 sb.auth.getSession().then(({ data: { session } }) => {
   if (session) userState.token = session.access_token;
   updateAuthUI(session ? session.user : null);
-  if (session) loadUserProfile(session.user);
+  if (session) {
+    loadUserProfile(session.user);
+    loadCustomVoices();
+  }
 });
 sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) { userState.token = session.session.access_token; updateAuthUI(session.user); loadUserProfile(session.user); }
+  if (event === 'SIGNED_IN' && session) { userState.token = session.session.access_token; updateAuthUI(session.user); loadUserProfile(session.user); loadCustomVoices(); }
   else if (event === 'SIGNED_OUT') { updateAuthUI(null); }
 });
 renderVoices();
