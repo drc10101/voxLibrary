@@ -378,14 +378,17 @@ const server = http.createServer((incomingReq, serverRes) => {
           // Fallback: construct URL from storage path if audio_sample_url is null
           if (!audioSampleUrl && contributorId) {
             audioSampleUrl = `${SUPABASE_URL}/storage/v1/object/public/voice-samples/${contributorId}/${voiceKey}/reference.webm`;
+            console.log('Using fallback URL:', audioSampleUrl);
           }
 
           if (!audioSampleUrl) {
+            console.error('No audio URL found for voice:', voiceKey, 'contributorId:', contributorId);
             serverRes.writeHead(400, { 'Content-Type': 'application/json' });
             serverRes.end(JSON.stringify({ error: 'Custom voice audio not found' }));
             return;
           }
 
+          console.log('Fetching reference audio from:', audioSampleUrl);
           // Fetch reference audio
           const refAudioResp = await fetch(audioSampleUrl);
           if (!refAudioResp.ok) throw new Error('Failed to fetch reference audio');
