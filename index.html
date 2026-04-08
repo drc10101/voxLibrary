@@ -1563,6 +1563,8 @@ async function handleAuth() {
       const { data, error } = await sb.auth.signUp({ email, password });
       if (error) throw error;
       if (data.session) {
+        // Store token for API calls
+        userState.token = data.session.access_token;
         // Profile created automatically by Supabase trigger
         userState.isTrial = true;
         const trialEnd = new Date();
@@ -1577,6 +1579,8 @@ async function handleAuth() {
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      // Store token for API calls
+      userState.token = data.session.access_token;
       // Load user profile for trial/subscription info
       const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
       if (profile) {
@@ -1888,11 +1892,12 @@ async function loadUserProfile(user) {
 }
 
 sb.auth.getSession().then(({ data: { session } }) => {
+  if (session) userState.token = session.access_token;
   updateAuthUI(session ? session.user : null);
   if (session) loadUserProfile(session.user);
 });
 sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) { updateAuthUI(session.user); loadUserProfile(session.user); }
+  if (event === 'SIGNED_IN' && session) { userState.token = session.session.access_token; updateAuthUI(session.user); loadUserProfile(session.user); }
   else if (event === 'SIGNED_OUT') { updateAuthUI(null); }
 });
 renderVoices();
