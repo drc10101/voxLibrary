@@ -161,9 +161,11 @@ const server = http.createServer((incomingReq, serverRes) => {
       return;
     }
     const voicesUrl = `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,accent,pitch,describe1,describe2,uses,created_at&order=created_at.desc`;
+    const parsedUrl = new URL(voicesUrl);
     const supaReq = https.request(
-      voicesUrl.replace('https://', ''),
       {
+        hostname: parsedUrl.hostname,
+        path: parsedUrl.pathname + parsedUrl.search,
         headers: {
           'apikey': SUPABASE_SERVICE_KEY,
           'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
