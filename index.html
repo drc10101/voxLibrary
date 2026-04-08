@@ -2101,6 +2101,12 @@ function renderCommunityVoices(voices) {
       <div class="voice-qualities">${[v.describe1, v.describe2].filter(Boolean).join(', ')}</div>
     </div>
   `).join('');
+
+  // Also normalize community voices for the TTS handler (add key = voice_id)
+  const normalized = voices.map(v => ({ ...v, key: v.voice_id }));
+  const existing = JSON.parse(localStorage.getItem('community_voices') || '[]');
+  const normalizedExisting = existing.map(v => ({ ...v, key: v.voice_id }));
+  localStorage.setItem('community_voices', JSON.stringify(normalizedExisting.length > 0 ? normalizedExisting : normalized));
 }
 
 function selectVoice(id, type) {
@@ -2112,6 +2118,7 @@ function selectVoice(id, type) {
   } else if (type === 'community') {
     const communityVoices = JSON.parse(localStorage.getItem('community_voices') || '[]');
     voice = communityVoices.find(v => v.voice_id === id);
+    if (voice) voice.key = id; // Normalize for TTS handler
   } else {
     voice = voices.find(v => v.id === id);
   }
