@@ -245,7 +245,7 @@ const server = http.createServer((req, res) => {
         // Decode JWT to get user ID
         const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
         const userId = payload.sub;
-        console.log('Clone voice for user:', userId);
+        console.log('Clone voice for user:', userId, '| audio size:', audioData.length);
 
         const voiceId = uuidv4();
 
