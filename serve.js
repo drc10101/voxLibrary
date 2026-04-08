@@ -160,7 +160,7 @@ const server = http.createServer((incomingReq, serverRes) => {
       serverRes.end(JSON.stringify({ error: 'SUPABASE_SERVICE_KEY not set' }));
       return;
     }
-    const voicesUrl = `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,accent,pitch,describe1,describe2,uses,created_at&order=created_at.desc`;
+    const voicesUrl = `${SUPABASE_URL}/rest/v1/community_voices?select=voice_id,name,accent,pitch,describe1,describe2,uses,created_at,contributor_id&order=created_at.desc`;
     const parsedUrl = new URL(voicesUrl);
     const supaReq = https.request(
       {
@@ -363,7 +363,7 @@ const server = http.createServer((incomingReq, serverRes) => {
 
           // Fetch community voice audio
           const communityRes = await fetch(
-            `${SUPABASE_URL}/rest/v1/community_voices?voice_id=eq.${voiceKey}&select=audio_sample_url`,
+            `${SUPABASE_URL}/rest/v1/community_voices?voice_id=eq.${voiceKey}&select=audio_sample_url,contributor_id`,
             {
               headers: {
                 'apikey': SUPABASE_SERVICE_KEY,
@@ -372,11 +372,17 @@ const server = http.createServer((incomingReq, serverRes) => {
             }
           );
           const communityData = await communityRes.json();
-          const audioSampleUrl = communityData?.[0]?.audio_sample_url;
+          let audioSampleUrl = communityData?.[0]?.audio_sample_url;
+          const contributorId = communityData?.[0]?.contributor_id;
+
+          // Fallback: construct URL from storage path if audio_sample_url is null
+          if (!audioSampleUrl && contributorId) {
+            audioSampleUrl = `${SUPABASE_URL}/storage/v1/object/public/voice-samples/${contributorId}/${voiceKey}/reference.webm`;
+          }
 
           if (!audioSampleUrl) {
             serverRes.writeHead(400, { 'Content-Type': 'application/json' });
-            serverRes.end(JSON.stringify({ error: 'Custom voice not found' }));
+            serverRes.end(JSON.stringify({ error: 'Custom voice audio not found' }));
             return;
           }
 
