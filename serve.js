@@ -453,6 +453,7 @@ const server = http.createServer((incomingReq, serverRes) => {
           }
         } else {
           // Preset voice
+          console.log('Calling Chatterbox Turbo for voice:', voice.id, 'text length:', text.length);
           const response = await fetch('https://api.runpod.ai/v2/chatterbox-turbo/runsync', {
             method: 'POST',
             headers: {
@@ -467,6 +468,7 @@ const server = http.createServer((incomingReq, serverRes) => {
               }
             })
           });
+          console.log('Chatterbox response status:', response.status);
 
           if (!response.ok) {
             const err = await response.json().catch(() => ({}));
@@ -474,17 +476,20 @@ const server = http.createServer((incomingReq, serverRes) => {
           }
 
           const result = await response.json();
+          console.log('Chatterbox result status:', result.status);
 
           if (result.status === 'FAILED') {
             throw new Error('Generation failed: ' + (result.error || 'Unknown error'));
           }
 
+          console.log('Fetching audio from:', result.output.audio_url);
           const audioResponse = await fetch(result.output.audio_url);
           if (!audioResponse.ok) throw new Error('Failed to fetch audio from RunPod');
           const audioBuffer = await audioResponse.arrayBuffer();
 
           serverRes.writeHead(200, { 'Content-Type': 'audio/wav' });
           serverRes.end(Buffer.from(new Uint8Array(audioBuffer)));
+          console.log('Generation complete, sent audio');
         }
 
       } catch (error) {
