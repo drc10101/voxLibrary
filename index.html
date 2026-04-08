@@ -1900,7 +1900,7 @@ sb.auth.getSession().then(({ data: { session } }) => {
   }
 });
 sb.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) { userState.token = session.session.access_token; updateAuthUI(session.user); loadUserProfile(session.user); loadCustomVoices(); }
+  if (event === 'SIGNED_IN' && session) { userState.token = session.access_token; updateAuthUI(session.user); loadUserProfile(session.user); loadCustomVoices(); }
   else if (event === 'SIGNED_OUT') { updateAuthUI(null); }
 });
 renderVoices();
