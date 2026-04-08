@@ -232,7 +232,6 @@ const server = http.createServer((req, res) => {
         res.end(JSON.stringify({ error: 'No audio recording found. Please record your voice first.' }));
         return;
       }
-      }
 
       try {
         // Decode JWT to get user ID
