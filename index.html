@@ -1817,12 +1817,12 @@ async function generateAudio() {
     const remaining = Math.max(0, trialChars - userState.charsUsed);
 
     if (daysLeft <= 0) {
-      alert('Your free trial has expired. Upgrade to continue!');
+      alert('Your free trial has ended! Upgrade now — paid plans start at just $3.99/month and give you 3x more characters to keep creating.');
       showBilling();
       return;
     }
     if (userState.charsUsed >= trialChars) {
-      alert('You\'ve used all your free trial characters. Upgrade to continue!');
+      alert('You\'ve hit your free trial limit! Upgrade for just $3.99/month and get 3x more characters — keep your voice克隆 going.');
       showBilling();
       return;
     }
