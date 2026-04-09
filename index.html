@@ -1749,14 +1749,40 @@ function updateStats() {
 // Voices
 function renderVoices(filter = 'all') {
   const grid = document.getElementById('voice-grid');
-  const filtered = filter === 'all' ? voices : voices.filter(v => v.category === filter);
-  grid.innerHTML = filtered.map(voice => `
-    <div class="voice-card ${selectedVoice?.id === voice.id ? 'selected' : ''}" onclick="selectVoice(${voice.id})">
-      ${selectedVoice?.id === voice.id ? '<span class="selected-badge">✓ Selected</span>' : ''}
-      <img class="voice-icon" src="${voice.img}" alt="${voice.name}">
+
+  // Get community voices from localStorage
+  const communityVoices = JSON.parse(localStorage.getItem('community_voices') || '[]');
+
+  // Build combined voice list
+  const presetVoices = filter === 'all' ? voices : voices.filter(v => v.category === filter);
+  const allVoices = [
+    ...presetVoices.map(voice => ({
+      type: 'preset',
+      id: voice.id,
+      key: voice.key,
+      name: voice.name,
+      desc: voice.accent + (voice.pitch ? ' | ' + voice.pitch : ''),
+      qualities: voice.qualities,
+      img: voice.img
+    })),
+    ...communityVoices.map(v => ({
+      type: 'community',
+      id: v.voice_id,
+      key: v.voice_id,
+      name: v.name,
+      desc: [v.accent, v.pitch].filter(Boolean).join(' | ') || 'Community',
+      qualities: [v.describe1, v.describe2].filter(Boolean).join(', '),
+      img: null
+    }))
+  ];
+
+  grid.innerHTML = allVoices.map(voice => `
+    <div class="voice-card ${selectedVoice?.key === voice.key ? 'selected' : ''}" onclick="selectVoice('${voice.id}', '${voice.type}')">
+      ${selectedVoice?.key === voice.key ? '<span class="selected-badge">✓ Selected</span>' : ''}
+      ${voice.img ? `<img class="voice-icon" src="${voice.img}" alt="${voice.name}">` : `<div style="width:80px;height:80px;background:var(--bg);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:36px;">&#128101;</div>`}
       <div class="voice-name">${voice.name}</div>
-      <div class="voice-desc">${voice.accent}${voice.pitch ? ' | ' + voice.pitch : ''}</div>
-      <div class="voice-qualities">${voice.qualities}</div>
+      <div class="voice-desc">${voice.desc}</div>
+      ${voice.qualities ? `<div class="voice-qualities">${voice.qualities}</div>` : ''}
     </div>
   `).join('');
 }
@@ -1767,10 +1793,17 @@ function filterVoices(category) {
   renderVoices(category);
 }
 
-function selectVoice(id) {
-  selectedVoice = voices.find(v => v.id === id);
+function selectVoice(id, type) {
+  if (type === 'community') {
+    const communityVoices = JSON.parse(localStorage.getItem('community_voices') || '[]');
+    selectedVoice = communityVoices.find(v => v.voice_id === id);
+    selectedVoice = { ...selectedVoice, key: selectedVoice.voice_id, type: 'community' };
+  } else {
+    selectedVoice = voices.find(v => v.id === id);
+    selectedVoice = { ...selectedVoice, type: 'preset' };
+  }
   document.getElementById('selected-voice-name').textContent = selectedVoice.name;
-  document.getElementById('selected-voice-desc').textContent = selectedVoice.accent + (selectedVoice.pitch ? ' | ' + selectedVoice.pitch : '') + ' - ' + selectedVoice.qualities;
+  document.getElementById('selected-voice-desc').textContent = selectedVoice.desc || (type === 'community' ? 'Community Voice' : 'Ready to generate');
   renderVoices();
   document.getElementById('browse-section').style.display = 'none';
   document.getElementById('hero-section').style.display = 'none';
