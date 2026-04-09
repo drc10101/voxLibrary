@@ -1104,6 +1104,37 @@
       content: ' ✓';
     }
 
+    .tips-box {
+      background: rgba(139, 92, 246, 0.08);
+      border: 1px solid rgba(139, 92, 246, 0.25);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin: 0 0 20px 0;
+    }
+    .tips-box h4 {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .tips-box ol {
+      margin: 0;
+      padding-left: 20px;
+    }
+    .tips-box li {
+      margin-bottom: 10px;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted);
+    }
+    .tips-box li:last-child {
+      margin-bottom: 0;
+    }
+    .tips-box li strong {
+      color: var(--text);
+    }
+
     @media (max-width: 900px) {
       .generator { grid-template-columns: 1fr; }
       .stats { display: none; }
@@ -1259,6 +1290,15 @@
 </div>
 
 <!-- Generator -->
+<div class="tips-box">
+  <h4>TIPS for Best Results</h4>
+  <ol>
+    <li><strong>Quiet space:</strong> Sit in a quiet space, not a bathroom but somewhere out of the way with furniture, cabinetry, or carpet. It will sound more natural. Keep the microphone 6-10 inches from your mouth with a pop filter if you have one.</li>
+    <li><strong>Listen:</strong> What do you hear? Try to eliminate strange sounds like road traffic, TV programs, radio, or loud conversations.</li>
+    <li><strong>Warm up:</strong> Read the training script several times so you already feel the vibe of the conversation.</li>
+  </ol>
+</div>
+
 <div class="section generator" id="generator-section">
   <div class="generator-main">
     <div class="generator-header">
