@@ -51,6 +51,36 @@ CREATE POLICY "Public can read voice samples" ON storage.objects
 CREATE INDEX IF NOT EXISTS idx_community_voices_contributor ON community_voices(contributor_id);
 CREATE INDEX IF NOT EXISTS idx_community_voices_uses ON community_voices(uses DESC);
 
+-- 6. Enable RLS on key tables
+ALTER TABLE community_voices ENABLE ROW LEVEL SECURITY;
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+
+-- 7. RLS Policies for community_voices
+-- Anyone can read community voices (public library)
+CREATE POLICY "Anyone can read community voices" ON community_voices
+  FOR SELECT USING (true);
+
+-- Users can insert their own voice contribution
+CREATE POLICY "Users can insert their own voice" ON community_voices
+  FOR INSERT WITH CHECK (auth.uid() = contributor_id);
+
+-- Users can update their own voice
+CREATE POLICY "Users can update their own voice" ON community_voices
+  FOR UPDATE USING (auth.uid() = contributor_id);
+
+-- Users can delete their own voice
+CREATE POLICY "Users can delete their own voice" ON community_voices
+  FOR DELETE USING (auth.uid() = contributor_id);
+
+-- 8. RLS Policies for profiles
+-- Users can view their own profile
+CREATE POLICY "Users can view own profile" ON profiles
+  FOR SELECT USING (auth.uid() = id);
+
+-- Users can update their own profile
+CREATE POLICY "Users can update own profile" ON profiles
+  FOR UPDATE USING (auth.uid() = id);
+
 -- =====================================================
 -- Voice data structure in private_voices / public_voices:
 -- {
