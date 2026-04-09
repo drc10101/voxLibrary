@@ -1159,7 +1159,7 @@
     <span class="trial-info" id="trial-info" style="display:none;"> - <span id="trial-days-left">5</span> days left</span>
   </div>
   <div class="upgrade-btns">
-    <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $3.99 - 15K chars</button>
+    <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $3.99 - 30K chars</button>
     <button class="upgrade-btn" id="upgrade-btn-creator" onclick="upgradePlan('creator')">Creator $9.99 - 25K chars</button>
     <button class="upgrade-btn" id="upgrade-btn-studio" onclick="upgradePlan('studio')">Studio $59.99 - 80K chars</button>
     <button class="upgrade-btn pro" id="upgrade-btn-pro" onclick="upgradePlan('pro')">Pro $79.99 - 250K chars</button>
@@ -1408,7 +1408,7 @@
       <div class="plan-option" onclick="upgradePlan('starter')">
         <div class="plan-option-name">Starter</div>
         <div class="plan-option-price">$3.99<span>/mo</span></div>
-        <div class="plan-option-chars">15,000 chars</div>
+        <div class="plan-option-chars">30,000 chars</div>
       </div>
       <div class="plan-option" onclick="upgradePlan('creator')">
         <div class="plan-option-name">Creator</div>
@@ -1525,7 +1525,7 @@ const TRIAL_DAYS = 3;
 const TRIAL_CHARS = 10000;
 
 const PLANS = {
-  starter: { name: 'Starter', chars: 15000 },
+  starter: { name: 'Starter', chars: 30000 },
   creator: { name: 'Creator', chars: 50000 },
   studio: { name: 'Studio', chars: 250000 },
   pro: { name: 'Pro', chars: 500000 },
@@ -1658,7 +1658,7 @@ function updateBillingDisplay() {
   // Handle trial or unknown plan
   const plan = PLANS[userState.plan] || { name: 'Trial', chars: 1000, price: '$0' };
   document.getElementById('billing-plan-name').textContent = plan.name;
-  document.getElementById('billing-plan-price').textContent = userState.plan === 'trial' ? 'Free Trial' : '$' + (userState.plan === 'starter' ? '9.99' : userState.plan === 'creator' ? '24.99' : userState.plan === 'studio' ? '59.99' : '129.99') + '/mo';
+  document.getElementById('billing-plan-price').textContent = userState.plan === 'trial' ? 'Free Trial' : '$' + (userState.plan === 'starter' ? '3.99' : userState.plan === 'creator' ? '9.99' : userState.plan === 'studio' ? '59.99' : '129.99') + '/mo';
   document.getElementById('billing-plan-chars').textContent = plan.chars.toLocaleString();
   document.getElementById('billing-chars-used').textContent = userState.charsUsed.toLocaleString();
   document.getElementById('billing-chars-remaining').textContent = Math.max(0, plan.chars - userState.charsUsed).toLocaleString();
