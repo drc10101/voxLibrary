@@ -276,7 +276,7 @@
     .section-title {
       font-size: 24px;
       font-weight: 600;
-      margin-bottom: 20px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 10px;
@@ -1132,6 +1132,74 @@
       .hero h1 { font-size: 36px; }
       .billing-grid { grid-template-columns: 1fr; }
       .plans-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 600px) {
+      /* Reduce gaps and padding */
+      body { padding: 8px; }
+      .container { padding: 12px 8px; }
+
+      /* Hero: smaller text, less space */
+      .hero { padding: 20px 12px; margin-bottom: 12px; }
+      .hero h1 { font-size: 28px; line-height: 1.2; }
+      .hero p { font-size: 14px; }
+
+      /* Section titles: less margin */
+      .section-title { font-size: 18px; margin-bottom: 8px; }
+      #community-voices-section { margin-top: 16px; }
+
+      /* Categories: wrap, smaller buttons */
+      .categories { gap: 6px; flex-wrap: wrap; }
+      .cat-btn { font-size: 13px; padding: 6px 10px; }
+
+      /* Voice grid: 3 columns on mobile */
+      .voice-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .voice-card { padding: 10px 6px; }
+      .voice-name { font-size: 11px; }
+      .voice-desc { font-size: 10px; }
+
+      /* Community voices grid same layout */
+      #community-voices-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      /* Generator: stack sidebar below main */
+      .generator { grid-template-columns: 1fr; }
+      .generator-sidebar { padding: 12px 8px; }
+
+      /* Plans: single column */
+      .plans-grid { grid-template-columns: 1fr; }
+      .billing-grid { grid-template-columns: 1fr; }
+
+      /* Create button: fit mobile width */
+      #create-voice-section + div,
+      [style*="text-align:center"][style*="padding:20px"] {
+        padding: 12px 8px !important;
+      }
+
+      /* Tips box: smaller text */
+      .tips-box { font-size: 13px; padding: 12px; }
+      .tips-box h4 { font-size: 14px; }
+      .tips-box li { margin-bottom: 6px; }
+
+      /* Modal / Create Voice section: full width, less padding */
+      #create-voice-section { padding: 12px 8px; }
+      #create-voice-section .form-group { margin-bottom: 12px; }
+      #create-voice-section input,
+      #create-voice-section select { font-size: 14px; padding: 8px; }
+
+      /* Format/control groups: smaller labels */
+      .control-label { font-size: 13px; }
+      .format-picker { gap: 6px; }
+      .format-btn { font-size: 12px; padding: 6px 10px; }
+
+      /* Audio player/recorder: full width */
+      audio { width: 100%; }
+      .recorder-container { flex-direction: column; gap: 8px; }
     }
   </style>
 </head>
