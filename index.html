@@ -1968,6 +1968,33 @@ function selectVoice(id) {
   document.getElementById('generator-section').classList.add('active');
 }
 
+function showGeneratorWithVoice(voiceId) {
+  // Load community voices from localStorage and find the one just submitted
+  const communityVoices = JSON.parse(localStorage.getItem('community_voices') || '[]');
+  const voice = communityVoices.find(v => v.voice_id === voiceId);
+  if (!voice) {
+    // Fallback: reload community voices from server
+    fetch('/api/community-voices')
+      .then(r => r.json())
+      .then(data => {
+        const freshVoice = (data.voices || []).find(v => v.voice_id === voiceId);
+        if (freshVoice) openGeneratorWithCommunityVoice(freshVoice);
+      });
+    return;
+  }
+  openGeneratorWithCommunityVoice(voice);
+}
+
+function openGeneratorWithCommunityVoice(voice) {
+  selectedVoice = { key: voice.voice_id, name: voice.name, type: 'community', accent: voice.accent, pitch: voice.pitch, qualities: [voice.describe1, voice.describe2].filter(Boolean).join(' | ') };
+  document.getElementById('selected-voice-name').textContent = voice.name;
+  document.getElementById('selected-voice-desc').textContent = [voice.accent, voice.pitch].filter(Boolean).join(' | ') + ' | ' + [voice.describe1, voice.describe2].filter(Boolean).join(' | ');
+  document.getElementById('browse-section').style.display = 'none';
+  document.getElementById('hero-section').style.display = 'none';
+  document.getElementById('generator-section').classList.add('active');
+  document.getElementById('text-input').focus();
+}
+
 function showBrowse() {
   document.getElementById('generator-section').classList.remove('active');
   document.getElementById('download-section').classList.remove('active');
@@ -2549,8 +2576,7 @@ async function submitCommunityVoice() {
     if (!resp.ok) throw new Error(data.error || 'Voice cloning failed');
 
     closeCreateVoiceModal();
-    alert('Your voice has been submitted to the community library!');
-    location.reload();
+    showGeneratorWithVoice(data.voiceId);
 
   } catch (err) {
     showCvError(err.message);
