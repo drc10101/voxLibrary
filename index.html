@@ -1344,7 +1344,18 @@
   <div class="form-group" style="display:none;" id="cv-error-msg">
     <div class="error-msg" id="cv-error-text"></div>
   </div>
-  <div style="display:flex;gap:10px;margin-top:16px;">
+
+  <!-- Show after recording is ready -->
+  <div id="cv-submit-choice" style="display:none; margin-top: 16px;">
+    <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">How would you like to use your voice?</p>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="btn btn-primary" id="cv-submit-community-btn" onclick="submitCommunityVoice()">Submit to Community (Free)</button>
+      <button class="btn btn-secondary" id="cv-submit-private-btn" onclick="submitPrivateVoice()">Use Privately ($29.99)</button>
+    </div>
+  </div>
+
+  <!-- Original submit button (hidden once choice appears) -->
+  <div style="display:flex;gap:10px;margin-top:16px;" id="cv-submit-original">
     <button class="btn btn-primary" id="cv-submit-btn" onclick="submitCustomVoice()">Submit Voice Sample</button>
   </div>
 </div>
@@ -2441,6 +2452,14 @@ function closeCreateVoiceModal() {
   if (mediaRecorder && mediaRecorder.state === 'recording') {
     mediaRecorder.stop();
   }
+  // Reset form state
+  clearRecording();
+  document.getElementById('cv-name').value = '';
+  document.getElementById('cv-accent').value = '';
+  document.getElementById('cv-pitch').value = '';
+  document.getElementById('cv-desc1').value = '';
+  document.getElementById('cv-desc2').value = '';
+  document.getElementById('cv-error-msg').style.display = 'none';
 }
 
 async function toggleRecording() {
@@ -2469,6 +2488,8 @@ async function toggleRecording() {
       document.getElementById('cv-rec-status').textContent = 'Recording ready - preview above';
       document.getElementById('cv-rec-status').className = 'recorder-status';
       document.getElementById('cv-reset-btn').style.display = 'inline-block';
+      document.getElementById('cv-submit-choice').style.display = 'block';
+      document.getElementById('cv-submit-original').style.display = 'none';
       stream.getTracks().forEach(t => t.stop());
     };
 
@@ -2489,7 +2510,99 @@ function clearRecording() {
   document.getElementById('cv-rec-status').textContent = 'Ready to record';
   document.getElementById('cv-rec-status').className = 'recorder-status';
   document.getElementById('cv-reset-btn').style.display = 'none';
-  document.getElementById('cv-record-btn').textContent = '\Start Recording';
+  document.getElementById('cv-record-btn').textContent = 'Start Recording';
+  document.getElementById('cv-submit-choice').style.display = 'none';
+  document.getElementById('cv-submit-original').style.display = 'flex';
+}
+
+async function submitCommunityVoice() {
+  const name = document.getElementById('cv-name').value.trim();
+  const accent = document.getElementById('cv-accent').value.trim();
+  const pitch = document.getElementById('cv-pitch').value;
+  const desc1 = document.getElementById('cv-desc1').value.trim();
+  const desc2 = document.getElementById('cv-desc2').value.trim();
+  const submitBtn = document.getElementById('cv-submit-community-btn');
+
+  if (!name) { showCvError('Please enter a name for your voice.'); return; }
+  if (!recordedBlob || recordedBlob.size === 0) { showCvError('Please record a voice sample first.'); return; }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Submitting...';
+
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('audio', recordedBlob, 'recording.webm');
+    formData.append('public', true);
+    formData.append('accent', accent);
+    formData.append('pitch', pitch);
+    formData.append('desc1', desc1);
+    formData.append('desc2', desc2);
+
+    const resp = await fetch('/api/clone-voice', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${userState.token}` },
+      body: formData
+    });
+
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Voice cloning failed');
+
+    closeCreateVoiceModal();
+    alert('Your voice has been submitted to the community library!');
+    location.reload();
+
+  } catch (err) {
+    showCvError(err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit to Community (Free)';
+  }
+}
+
+async function submitPrivateVoice() {
+  const name = document.getElementById('cv-name').value.trim();
+  const submitBtn = document.getElementById('cv-submit-private-btn');
+
+  if (!name) { showCvError('Please enter a name for your voice.'); return; }
+  if (!recordedBlob || recordedBlob.size === 0) { showCvError('Please record a voice sample first.'); return; }
+  if (!userState.email) { showCvError('Please sign in first.'); return; }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Processing...';
+
+  try {
+    // Convert recording to base64
+    const arrayBuffer = await recordedBlob.arrayBuffer();
+    const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+    // Create Stripe checkout for $29.99
+    const resp = await fetch('/api/create-private-voice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        audioBase64,
+        fileName: 'recording.webm',
+        voiceName: name,
+        userEmail: userState.email
+      })
+    });
+
+    const result = await resp.json();
+    if (result.error) throw new Error(result.error);
+
+    if (result.checkoutUrl) {
+      window.location.href = result.checkoutUrl;
+      return;
+    }
+
+    closeCreateVoiceModal();
+    alert('Private voice created! Check your email for your generated audio.');
+
+  } catch (err) {
+    showCvError(err.message);
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Use Privately ($29.99)';
+  }
 }
 
 async function submitCustomVoice() {
