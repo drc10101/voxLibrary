@@ -6,7 +6,10 @@
 ALTER TABLE profiles
 ADD COLUMN IF NOT EXISTS private_voices JSONB DEFAULT '{}'::jsonb,
 ADD COLUMN IF NOT EXISTS public_voices JSONB DEFAULT '{}'::jsonb,
-ADD COLUMN IF NOT EXISTS community_credits INTEGER DEFAULT 0;
+ADD COLUMN IF NOT EXISTS community_credits INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS chars_used INTEGER DEFAULT 0,
+ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT 'trial',
+ADD COLUMN IF NOT EXISTS trial_end TIMESTAMPTZ;
 
 -- 2. Create community_voices table
 CREATE TABLE IF NOT EXISTS community_voices (
