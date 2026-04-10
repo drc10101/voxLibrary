@@ -2067,7 +2067,7 @@ async function generateAudio() {
     window.generatedAudioFilename = selectedVoice.name + '_' + selectedVoice.key + '_' + Date.now() + '.wav';
     window.generatedAudioVoiceName = selectedVoice.name;
     window.generatedAudioText = text;
-    window.generatedAudioFormat = format;
+    window.generatedAudioFormat = selectedFormat;
 
     document.getElementById('generator-section').classList.remove('active');
     document.getElementById('download-section').classList.add('active');
