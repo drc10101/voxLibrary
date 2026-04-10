@@ -1,4 +1,4 @@
-const http = require('http');
+﻿const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
@@ -960,7 +960,7 @@ const server = http.createServer((incomingReq, serverRes) => {
     incomingReq.on('data', function(c) { chunks.push(c); });
     incomingReq.on('end', function() {
       var body = Buffer.concat(chunks);
-      fetch('${SUPABASE_URL}/auth/v1/user', {
+      fetch(SUPABASE_URL + '/auth/v1/user', {
         headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_SERVICE_KEY }
       }).then(function(userRes) {
         if (!userRes.ok) throw new Error('Invalid token');
