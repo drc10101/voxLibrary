@@ -2531,7 +2531,7 @@
   <div id="community-voices-section" style="margin-top: 24px;">
     <div class="section-title" style="font-size:18px;background:linear-gradient(135deg,#818cf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">Community Voices</div>
     <div style="text-align:center;padding:0 0 12px 0;">
-      <a href="#" onclick="openBringVoiceModal();return false;" style="color:#818cf8;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;padding:8px 16px;border:1px solid rgba(99,102,241,0.4);border-radius:8px;background:rgba(99,102,241,0.1);">Bring your own voice file</a>
+      <a href="#" onclick="window.openBringVoiceModal();return false;" style="color:#818cf8;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;padding:8px 16px;border:1px solid rgba(99,102,241,0.4);border-radius:8px;background:rgba(99,102,241,0.1);">Bring your own voice file</a>
     </div>
     <div class="voice-grid" id="community-voices-grid"></div>
   </div>
@@ -2837,22 +2837,23 @@
 
 
 
-  <div style="margin-top: 20px; padding: 16px; background: rgba(99,102,241,0.1); border-radius: 12px; border: 1px solid rgba(99,102,241,0.3);">
-
+  <!-- Email section - only shown for community voices -->
+  <div id="email-section" style="display:none; margin-top: 20px; padding: 16px; background: rgba(99,102,241,0.1); border-radius: 12px; border: 1px solid rgba(99,102,241,0.3);">
     <p style="color: var(--text); font-size: 14px; margin: 0 0 10px 0; font-weight: 600;">Email your audio instead</p>
-
-    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-
-      <input type="email" id="email-audio-input" placeholder="your@email.com" style="flex: 1; min-width: 160px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
-
-      <button class="btn btn-primary" id="email-audio-btn" onclick="emailAudioFile()">Send Email</button>
-
+    <div style="margin-bottom: 10px;">
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); cursor: pointer;">
+        <input type="checkbox" id="email-use-private-checkbox" onchange="toggleEmailPrivate()">
+        <span id="email-private-label">I want to keep this voice private ($9.99)</span>
+      </label>
     </div>
-
-    <div id="email-audio-status" style="font-size: 13px; margin-top: 8px; color: var(--text-muted);"></div>
-
+    <div id="email-form-area" style="display:none;">
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+        <input type="email" id="email-audio-input" placeholder="your@email.com" style="flex: 1; min-width: 160px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
+        <button class="btn btn-primary" id="email-audio-btn" onclick="emailAudioFile()">Send Email</button>
+      </div>
+      <div id="email-audio-status" style="font-size: 13px; color: var(--text-muted);"></div>
+    </div>
   </div>
-
 
 
   <div class="download-btns" style="margin-top: 20px;">
@@ -4187,15 +4188,27 @@ async function generateAudio() {
 
 
 
-    // Pre-fill email if logged in
-
-    if (userState.email) {
-
-      document.getElementById('email-audio-input').value = userState.email;
-
+    //
+    // Show/hide email section for community voices only
+    const isCommunityVoice = selectedVoice && (
+      selectedVoice.voice_id ||
+      (selectedVoice.key && !voices.find(v => v.id === selectedVoice.id))
+    );
+    const emailSection = document.getElementById('email-section');
+    const emailFormArea = document.getElementById('email-form-area');
+    const privateCheckbox = document.getElementById('email-use-private-checkbox');
+    if (isCommunityVoice) {
+      emailSection.style.display = 'block';
+      emailFormArea.style.display = 'none';
+      privateCheckbox.checked = false;
+      if (userState.email) {
+        document.getElementById('email-audio-input').value = userState.email;
+      } else {
+        document.getElementById('email-audio-input').value = '';
+      }
+    } else {
+      emailSection.style.display = 'none';
     }
-
-
 
     document.getElementById('char-count').textContent = text.length;
 
@@ -5510,6 +5523,63 @@ document.getElementById('community-voices-section').style.display = 'block';
 </body>
 
 </html>
+
+
+
+function toggleEmailPrivate() {
+  const checkbox = document.getElementById('email-use-private-checkbox');
+  const emailForm = document.getElementById('email-form-area');
+  const label = document.getElementById('email-private-label');
+  if (checkbox.checked) {
+    // Send to Stripe for $9.99 private voice
+    const email = userState.email || document.getElementById('email-audio-input').value;
+    if (!email) {
+      checkbox.checked = false;
+      alert('Please enter your email address first.');
+      return;
+    }
+    // Create Stripe checkout for private voice
+    fetch('/api/create-private-voice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + userState.token },
+      body: JSON.stringify({ email: email })
+    }).then(r => r.json()).then(data => {
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        checkbox.checked = false;
+        alert('Could not create checkout. Please try again.');
+      }
+    }).catch(() => {
+      checkbox.checked = false;
+      alert('Could not create checkout. Please try again.');
+    });
+  } else {
+    emailForm.style.display = 'none';
+  }
+}
+    // Show/hide email section based on voice type (community voices only)
+    const isCommunityVoice = selectedVoice && (
+      selectedVoice.voice_id ||
+      (selectedVoice.key && !voices.find(v => v.id === selectedVoice.id))
+    );
+    const emailSection = document.getElementById('email-section');
+    const emailFormArea = document.getElementById('email-form-area');
+    const privateCheckbox = document.getElementById('email-use-private-checkbox');
+    if (isCommunityVoice) {
+      emailSection.style.display = 'block';
+      emailFormArea.style.display = 'none';
+      privateCheckbox.checked = false;
+      // Pre-fill email if logged in
+      if (userState.email) {
+        document.getElementById('email-audio-input').value = userState.email;
+      } else {
+        document.getElementById('email-audio-input').value = '';
+      }
+    } else {
+      emailSection.style.display = 'none';
+    }
+
 
 
 
