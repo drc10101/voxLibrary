@@ -1,2763 +1,5515 @@
 ﻿<!DOCTYPE html>
+
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <title>VoxLibrary - Professional AI Voices</title>
+
   <meta name="description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
+
   <meta name="keywords" content="AI voice generator, text to speech, TTS, voiceover, AI voice, ElevenLabs alternative, free voice generator, professional voice AI, audio generation, AI voice cloning">
+
   <meta name="robots" content="index, follow">
+
   <meta name="author" content="VoxLibrary">
+
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 
+
+
   <!-- Open Graph / Facebook -->
+
   <meta property="og:type" content="website">
+
   <meta property="og:url" content="https://jedsVoxLibrary.com/">
+
   <meta property="og:title" content="VoxLibrary - Professional AI Voices">
+
   <meta property="og:description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
+
   <meta property="og:image" content="og-image.png">
+
   <meta property="og:site_name" content="VoxLibrary">
 
+
+
   <!-- Twitter -->
+
   <meta name="twitter:card" content="summary_large_image">
+
   <meta name="twitter:url" content="https://jedsVoxLibrary.com/">
+
   <meta name="twitter:title" content="VoxLibrary - Professional AI Voices">
+
   <meta name="twitter:description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
+
   <meta name="twitter:image" content="og-image.png">
 
+
+
   <!-- Canonical -->
+
   <link rel="canonical" href="https://jedsVoxLibrary.com/">
+
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
+
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+
   <link rel="apple-touch-icon" href="favicon-256.png">
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <script src="https://js.stripe.com/v3/"></script>
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
   <style>
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+
+
     :root {
+
       --bg-dark: #0a0a0f;
+
       --bg-card: rgba(255,255,255,0.03);
+
       --bg-card-hover: rgba(255,255,255,0.08);
+
       --accent: #6366f1;
+
       --accent2: #8b5cf6;
+
       --text: #ffffff;
+
       --text-muted: #9ca3af;
+
       --border: rgba(255,255,255,0.1);
+
     }
+
+
 
     body {
+
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
       background: var(--bg-dark);
+
       color: var(--text);
+
       min-height: 100vh;
+
       background-image:
+
         radial-gradient(ellipse at 20% 20%, rgba(99,102,241,0.15) 0%, transparent 50%),
+
         radial-gradient(ellipse at 80% 80%, rgba(139,92,246,0.1) 0%, transparent 50%);
+
     }
+
+
 
     /* Header */
+
     header {
+
       display: flex;
+
       justify-content: space-between;
+
       align-items: center;
+
       padding: 20px 40px;
+
       border-bottom: 1px solid var(--border);
+
       backdrop-filter: blur(20px);
+
       position: sticky;
+
       top: 0;
+
       z-index: 100;
+
       background: rgba(10,10,15,0.8);
+
     }
+
+
 
     .logo {
+
       font-size: 22px;
+
       font-weight: 700;
+
       background: linear-gradient(135deg, #fff, #a5b4fc);
+
       -webkit-background-clip: text;
+
       -webkit-text-fill-color: transparent;
+
     }
+
+
 
     .header-right {
+
       display: flex;
+
       align-items: center;
+
       gap: 15px;
+
     }
+
+
 
     .btn {
+
       padding: 10px 20px;
+
       border-radius: 10px;
+
       border: none;
+
       font-size: 14px;
+
       font-weight: 600;
+
       cursor: pointer;
+
       transition: all 0.2s;
+
     }
+
+
 
     .btn-secondary {
+
       background: var(--bg-tertiary);
+
       color: var(--text);
+
       border: 1px solid var(--border);
+
       padding: 10px 20px;
+
       border-radius: 10px;
+
       font-size: 14px;
+
       font-weight: 600;
+
       cursor: pointer;
+
     }
+
+
 
     .btn-ghost {
+
       background: transparent;
+
       color: var(--text-muted);
+
     }
+
+
 
     .btn-ghost:hover {
+
       color: var(--text);
+
       background: var(--bg-card);
+
     }
+
+
 
     .btn-primary {
+
       background: linear-gradient(135deg, var(--accent), var(--accent2));
+
       color: white;
+
       box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+
     }
+
+
 
     .btn-primary:hover {
+
       transform: translateY(-1px);
+
       box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+
     }
+
+
 
     .btn-small {
+
       padding: 6px 14px;
+
       font-size: 12px;
+
     }
+
+
 
     /* Hero */
+
     .hero {
+
       text-align: center;
+
       padding: 40px 20px 34px;
+
     }
+
+
 
     .hero h1 {
+
       font-size: 56px;
+
       font-weight: 700;
+
       margin-bottom: 10px;
+
       background: linear-gradient(135deg, #fff 0%, #c7d2fe 50%, #fff 100%);
+
       -webkit-background-clip: text;
+
       -webkit-text-fill-color: transparent;
+
       line-height: 1.1;
+
     }
+
+
 
     .hero p {
+
       font-size: 20px;
+
       color: var(--text-muted);
+
       max-width: 600px;
+
       margin: 0 auto 20px;
+
       line-height: 1.6;
+
     }
 
+
+
     /* Plan bar */
+
     .plan-bar {
+
       display: none;
+
       padding: 15px 40px;
+
       background: var(--bg-card);
+
       border-bottom: 1px solid var(--border);
+
       flex-wrap: wrap;
+
       gap: 15px;
+
       align-items: center;
+
     }
+
+
 
     .plan-bar.visible { display: flex; }
 
+
+
     .current-plan-info {
+
       display: flex;
+
       align-items: center;
+
       gap: 6px;
+
       font-size: 13px;
+
     }
+
     .plan-label { color: var(--text-muted); }
+
     .plan-name { font-weight: 600; color: white; }
+
     .plan-sep { color: var(--text-muted); }
+
     .plan-chars { color: var(--accent); font-weight: 500; }
+
     .trial-info { color: #f59e0b; font-weight: 600; }
 
+
+
     .plan-selector select {
+
       background: rgba(255,255,255,0.05);
+
       border: 1px solid var(--border);
+
       color: white;
+
       padding: 8px 14px;
+
       border-radius: 8px;
+
       font-size: 13px;
+
       cursor: pointer;
+
     }
+
+
 
     .upgrade-btns {
+
       display: flex;
+
       gap: 8px;
+
     }
+
+
 
     .upgrade-btn {
+
       padding: 6px 14px;
+
       border-radius: 8px;
+
       border: 1px solid var(--border);
+
       background: rgba(255,255,255,0.03);
+
       color: var(--text-muted);
+
       font-size: 12px;
+
       font-weight: 600;
+
       cursor: pointer;
+
       transition: all 0.2s;
+
       outline: none;
+
     }
+
+
 
     .upgrade-btn:hover {
+
       background: var(--bg-card-hover);
+
       border-color: var(--accent);
+
       color: white;
+
     }
+
+
 
     .upgrade-btn.current-plan {
+
       background: linear-gradient(135deg, var(--accent), var(--accent2));
+
       border: none;
+
       color: white;
+
       cursor: default;
+
     }
+
+
 
     .upgrade-btn.pro {
+
       background: rgba(255,255,255,0.03);
+
       border: 1px solid var(--border);
+
       color: var(--text-muted);
+
       padding: 6px 14px;
+
       border-radius: 8px;
+
       cursor: pointer;
+
     }
+
+
 
     .upgrade-btn.pro:hover {
+
       background: rgba(255,255,255,0.1);
+
       border-color: var(--accent);
+
       color: white;
+
     }
+
+
 
     .upgrade-btn.pro.current-plan {
+
       background: linear-gradient(135deg, var(--accent), var(--accent2));
+
       border: none;
+
       color: white;
+
     }
+
+
 
     .stats {
+
       margin-left: auto;
+
       display: flex;
+
       gap: 30px;
+
     }
+
+
 
     .stat {
+
       text-align: center;
+
     }
+
+
 
     .stat-value {
+
       font-size: 20px;
+
       font-weight: 700;
+
       color: var(--accent);
+
     }
+
+
 
     .stat-label {
+
       font-size: 11px;
+
       color: var(--text-muted);
+
       text-transform: uppercase;
+
       letter-spacing: 0.5px;
+
     }
+
+
 
     /* Voice Grid */
+
     .section {
+
       padding: 20px 40px;
+
       max-width: 1400px;
+
       margin: 0 auto;
+
     }
 
+
+
     .section-title {
+
       font-size: 24px;
+
       font-weight: 600;
+
       margin-bottom: 8px;
+
       display: flex;
+
       align-items: center;
+
       gap: 10px;
+
     }
+
+
 
     .categories {
+
       display: flex;
+
       gap: 10px;
+
       margin-bottom: 20px;
+
       flex-wrap: wrap;
+
     }
+
+
 
     .cat-btn {
+
       padding: 8px 18px;
+
       border-radius: 20px;
+
       border: 1px solid var(--border);
+
       background: transparent;
+
       color: var(--text-muted);
+
       font-size: 13px;
+
       cursor: pointer;
+
       transition: all 0.2s;
+
     }
+
+
 
     .cat-btn:hover, .cat-btn.active {
+
       background: var(--accent);
+
       border-color: var(--accent);
+
       color: white;
+
     }
+
+
 
     .voice-grid {
+
       display: grid;
+
       grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+
       gap: 20px;
+
     }
+
+
 
     .voice-card {
+
       background: var(--bg-card);
+
       border: 1px solid var(--border);
+
       border-radius: 16px;
+
       padding: 18px;
+
       cursor: pointer;
+
       transition: all 0.3s;
+
       position: relative;
+
       overflow: hidden;
+
     }
+
+
 
     .voice-card::before {
+
       content: '';
+
       position: absolute;
+
       top: 0;
+
       left: 0;
+
       right: 0;
+
       height: 3px;
+
       background: linear-gradient(90deg, var(--accent), var(--accent2));
+
       opacity: 0;
+
       transition: opacity 0.3s;
+
     }
+
+
 
     .voice-card:hover {
+
       background: var(--bg-card-hover);
+
       transform: translateY(-4px);
+
       border-color: var(--accent);
+
     }
+
+
 
     .voice-card:hover::before {
+
       opacity: 1;
+
     }
+
+
 
     .voice-card.selected {
+
       border-color: var(--accent);
+
       background: rgba(99,102,241,0.1);
+
     }
+
+
 
     .voice-icon {
+
       width: 56px;
+
       height: 56px;
+
       border-radius: 14px;
+
       margin-bottom: 10px;
+
       object-fit: cover;
+
     }
+
+
 
     .voice-name {
+
       font-size: 17px;
+
       font-weight: 600;
+
       margin-bottom: 4px;
+
     }
+
+
 
     .voice-desc {
+
       font-size: 12px;
+
       color: var(--text-muted);
+
       margin-top: 2px;
+
     }
+
     .voice-qualities {
+
       font-size: 11px;
+
       color: var(--accent);
+
       margin-top: 2px;
+
       font-weight: 500;
+
     }
+
+
 
     /* Community Voices Section */
+
     #community-voices-section {
+
       margin-top: 24px;
+
     }
+
+
 
     .section-title {
+
       font-size: 16px;
+
       font-weight: 700;
+
       color: var(--text);
+
       margin-bottom: 12px;
+
     }
+
+
 
     #community-voices-grid {
+
       display: grid;
+
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+
       gap: 16px;
+
     }
+
+
 
     /* My voice cards have a key icon */
+
     .voice-card[data-type="private"]:after {
+
       content: '\ud83d\udd11';
+
       position: absolute;
+
       top: 6px;
+
       right: 6px;
+
       font-size: 12px;
+
     }
+
+
 
     .voice-card[data-type="community"]:after {
+
       content: '';
+
     }
+
+
 
     /* Create Your Own Voice Card */
+
     .create-voice-card {
+
       background: linear-gradient(135deg, var(--accent), #6c5ce7);
+
       border-radius: 16px;
+
       padding: 24px 16px;
+
       text-align: center;
+
       cursor: pointer;
+
       transition: transform 0.2s, box-shadow 0.2s;
+
       border: 2px dashed rgba(255,255,255,0.3);
+
       min-height: 180px;
+
       display: flex;
+
       flex-direction: column;
+
       align-items: center;
+
       justify-content: center;
+
       gap: 8px;
+
     }
+
+
 
     .create-voice-card:hover {
+
       transform: translateY(-4px);
+
       box-shadow: 0 12px 32px rgba(108, 92, 231, 0.4);
+
     }
+
+
 
     .create-voice-icon {
+
       font-size: 40px;
+
       margin-bottom: 4px;
+
     }
+
+
 
     .create-voice-title {
+
       font-size: 16px;
+
       font-weight: 700;
+
       color: white;
+
     }
+
+
 
     .create-voice-desc {
+
       font-size: 12px;
+
       color: rgba(255,255,255,0.8);
+
     }
+
+
 
     /* Modal */
+
     .modal {
+
       background: #1a1a2e;
+
       border: 1px solid var(--border);
+
       border-radius: 24px;
+
       padding: 40px;
+
       width: 400px;
+
       max-width: 90%;
+
       max-height: 90vh;
+
       overflow-y: auto;
+
     }
+
+
 
     .modal-content {
+
       background: var(--bg-card);
+
       border-radius: 16px;
+
       width: 90%;
+
       max-width: 520px;
+
       max-height: 90vh;
+
       overflow-y: auto;
+
     }
+
+
 
     .modal-header {
+
       display: flex;
+
       justify-content: space-between;
+
       align-items: center;
+
       padding: 20px 24px;
+
       border-bottom: 1px solid var(--border);
+
     }
+
+
 
     .modal-header h2 {
+
       font-size: 20px;
+
       margin: 0;
+
     }
 
+
+
     .modal-close {
+
       background: none;
+
       border: none;
+
       font-size: 28px;
+
       cursor: pointer;
+
       color: var(--text-muted);
+
       line-height: 1;
+
     }
+
+
 
     .modal-close:hover { color: var(--text); }
 
+
+
     .modal-body { padding: 24px; overflow-y: auto; max-height: 80vh; }
 
+
+
     .modal-info {
+
       font-size: 14px;
+
       color: var(--text-muted);
+
       margin: 0 0 20px 0;
+
     }
+
+
 
     .form-group { margin-bottom: 20px; }
 
+
+
     .form-group label {
+
       display: block;
+
       font-size: 13px;
+
       font-weight: 600;
+
       margin-bottom: 6px;
+
       color: var(--text);
+
     }
+
+
 
     .form-group input[type="text"] {
+
       width: 100%;
+
       padding: 10px 14px;
+
       border: 1px solid var(--border);
+
       border-radius: 8px;
+
       background: var(--bg);
+
       color: var(--text);
+
       font-size: 14px;
+
       box-sizing: border-box;
+
     }
+
+
 
     .recorder-container {
+
       display: flex;
+
       flex-direction: column;
+
       gap: 10px;
+
       align-items: flex-start;
+
     }
+
+
 
     .cv-script-box {
+
       background: var(--bg);
+
       border: 1px solid var(--border);
+
       border-radius: 8px;
+
       padding: 14px 16px;
+
       font-size: 13px;
+
       line-height: 1.6;
+
       color: var(--text);
+
       max-height: 160px;
+
       overflow-y: auto;
+
     }
+
+
 
     .cv-script-box p {
+
       margin: 0;
+
       white-space: pre-wrap;
+
     }
+
+
 
     .recorder-status {
+
       font-size: 13px;
+
       color: var(--text-muted);
+
     }
+
+
 
     .recorder-status.recording {
+
       color: #e74c3c;
+
       font-weight: 600;
+
     }
+
+
 
     .recorder-preview audio {
+
       width: 100%;
+
       height: 36px;
+
     }
+
+
 
     .checkbox-group {
+
       display: flex;
+
       gap: 10px;
+
       align-items: flex-start;
+
       padding: 14px;
+
       background: var(--bg);
+
       border-radius: 8px;
+
       border: 1px solid var(--border);
+
     }
+
+
 
     .checkbox-group input[type="checkbox"] {
+
       margin-top: 3px;
+
       width: 16px;
+
       height: 16px;
+
       flex-shrink: 0;
+
     }
+
+
 
     .checkbox-group label {
+
       font-size: 13px;
+
       color: var(--text);
+
       line-height: 1.5;
+
     }
+
+
 
     .sub-label {
+
       font-size: 12px;
+
       color: var(--text-muted);
+
     }
+
+
 
     .cv-price-note {
+
       font-size: 13px;
+
       color: var(--text-muted);
+
       text-align: center;
+
       margin: 16px 0;
+
     }
+
+
 
     .price-badge {
+
       background: var(--accent);
+
       color: white;
+
       padding: 4px 10px;
+
       border-radius: 20px;
+
       font-weight: 600;
+
       font-size: 12px;
+
     }
+
+
 
     .price-note-sub {
+
       display: block;
+
       margin-top: 4px;
+
       font-size: 11px;
+
     }
+
+
 
     .modal-footer {
+
       display: flex;
+
       justify-content: flex-end;
+
       gap: 10px;
+
       padding: 16px 24px;
+
       border-top: 1px solid var(--border);
+
     }
 
+
+
     .error-msg {
+
       background: #fde8e8;
+
       color: #c0392b;
+
       padding: 10px 14px;
+
       border-radius: 8px;
+
       font-size: 13px;
+
     }
+
+
 
     #cv-error-msg { display: none; }
 
+
+
     .selected-badge {
+
       position: absolute;
+
       top: 12px;
+
       right: 12px;
+
       background: var(--accent);
+
       color: white;
+
       font-size: 10px;
+
       font-weight: 600;
+
       padding: 4px 8px;
+
       border-radius: 6px;
+
     }
 
+
+
     /* Generator */
+
     .generator {
+
       display: none;
+
       grid-template-columns: 1fr 380px;
+
       gap: 30px;
+
       margin-top: 40px;
+
     }
+
+
 
     .generator.active { display: grid; }
 
+
+
     .generator-main {
+
       background: var(--bg-card);
+
       border: 1px solid var(--border);
+
       border-radius: 20px;
+
       padding: 30px;
+
     }
+
+
 
     .generator-header {
+
       display: flex;
+
       align-items: center;
+
       gap: 15px;
+
       margin-bottom: 24px;
+
       padding-bottom: 20px;
+
       border-bottom: 1px solid var(--border);
+
     }
 
+
+
     .back-btn {
+
       background: transparent;
+
       border: none;
+
       color: var(--text-muted);
+
       cursor: pointer;
+
       font-size: 20px;
+
       padding: 8px;
+
     }
+
+
 
     .back-btn:hover { color: white; }
 
+
+
     .selected-voice-info h3 {
+
       font-size: 18px;
+
       font-weight: 600;
+
     }
+
+
 
     .selected-voice-info p {
+
       font-size: 13px;
+
       color: var(--text-muted);
+
     }
+
+
 
     .text-area {
+
       width: 100%;
+
       height: 200px;
+
       background: rgba(0,0,0,0.3);
+
       border: 1px solid var(--border);
+
       border-radius: 12px;
+
       color: white;
+
       padding: 16px;
+
       font-size: 15px;
+
       font-family: inherit;
+
       resize: none;
+
     }
+
+
 
     .text-area:focus {
+
       outline: none;
+
       border-color: var(--accent);
+
     }
+
+
 
     .char-count {
+
       text-align: right;
+
       font-size: 12px;
+
       color: var(--text-muted);
+
       margin-top: 8px;
+
     }
+
+
 
     .generator-sidebar {
+
       background: var(--bg-card);
+
       border: 1px solid var(--border);
+
       border-radius: 20px;
+
       padding: 24px;
+
     }
+
+
 
     .control-group {
+
       margin-bottom: 24px;
+
     }
+
+
 
     .control-label {
+
       display: flex;
+
       justify-content: space-between;
+
       font-size: 13px;
+
       font-weight: 500;
+
       margin-bottom: 10px;
+
     }
+
+
 
     .slider-value {
+
       color: var(--accent);
+
       font-weight: 600;
+
     }
+
+
 
     .slider {
+
       width: 100%;
+
       height: 6px;
+
       border-radius: 3px;
+
       background: rgba(255,255,255,0.1);
+
       -webkit-appearance: none;
+
       cursor: pointer;
+
     }
+
+
 
     .slider::-webkit-slider-thumb {
+
       -webkit-appearance: none;
+
       width: 18px;
+
       height: 18px;
+
       border-radius: 50%;
+
       background: linear-gradient(135deg, var(--accent), var(--accent2));
+
       cursor: pointer;
+
       box-shadow: 0 2px 8px rgba(99,102,241,0.4);
+
     }
+
+
 
     .format-picker {
+
       display: flex;
+
       gap: 8px;
+
     }
+
+
 
     .format-btn {
+
       flex: 1;
+
       padding: 12px;
+
       border-radius: 10px;
+
       border: 1px solid var(--border);
+
       background: transparent;
+
       color: var(--text-muted);
+
       font-size: 12px;
+
       font-weight: 600;
+
       cursor: pointer;
+
       transition: all 0.2s;
+
     }
+
+
 
     .format-btn:hover {
+
       background: var(--bg-card-hover);
+
       color: white;
+
     }
+
+
 
     .format-btn.active {
+
       background: var(--accent);
+
       border-color: var(--accent);
+
       color: white;
+
     }
+
+
 
     .generate-btn {
+
       width: 100%;
+
       padding: 16px;
+
       border-radius: 12px;
+
       border: none;
+
       background: linear-gradient(135deg, #22c55e, #16a34a);
+
       color: white;
+
       font-size: 16px;
+
       font-weight: 600;
+
       cursor: pointer;
+
       transition: all 0.2s;
+
       box-shadow: 0 4px 15px rgba(34,197,94,0.3);
+
     }
+
+
 
     .generate-btn:hover {
+
       transform: translateY(-2px);
+
       box-shadow: 0 6px 20px rgba(34,197,94,0.4);
+
     }
+
+
 
     .generate-btn:disabled {
+
       opacity: 0.6;
+
       cursor: not-allowed;
+
       transform: none;
+
     }
 
+
+
     /* Auth Modal */
+
     .modal-overlay {
+
       display: none;
+
       position: fixed;
+
       inset: 0;
+
       background: rgba(0,0,0,0.7);
+
       backdrop-filter: blur(8px);
+
       z-index: 1000;
+
       align-items: center;
+
       justify-content: center;
+
     }
+
+
 
     .modal-overlay.active { display: flex; }
 
+
+
     .modal {
+
       background: #1a1a2e;
+
       border: 1px solid var(--border);
+
       border-radius: 24px;
+
       padding: 40px;
+
       width: 400px;
+
       max-width: 90%;
+
     }
+
+
 
     .modal h2 {
+
       font-size: 24px;
+
       margin-bottom: 8px;
+
     }
+
+
 
     .modal p {
+
       color: var(--text-muted);
+
       font-size: 14px;
+
       margin-bottom: 24px;
+
     }
+
+
 
     .input {
+
       width: 100%;
+
       padding: 14px 16px;
+
       background: rgba(0,0,0,0.3);
+
       border: 1px solid var(--border);
+
       border-radius: 10px;
+
       color: white;
+
       font-size: 14px;
+
       margin-bottom: 12px;
+
     }
+
+
 
     .input:focus {
+
       outline: none;
+
       border-color: var(--accent);
+
     }
+
+
 
     .modal-btn {
+
       width: 100%;
+
       padding: 14px;
+
       border-radius: 10px;
+
       border: none;
+
       font-size: 15px;
+
       font-weight: 600;
+
       cursor: pointer;
+
       margin-bottom: 12px;
+
     }
+
+
 
     .modal-btn.primary {
+
       background: linear-gradient(135deg, var(--accent), var(--accent2));
+
       color: white;
+
     }
+
+
 
     .modal-btn.secondary {
+
       background: rgba(255,255,255,0.1);
+
       color: white;
+
     }
+
+
 
     .modal-switch {
+
       text-align: center;
+
       font-size: 13px;
+
       color: var(--text-muted);
+
       margin-top: 16px;
+
     }
+
+
 
     .modal-switch a {
+
       color: var(--accent);
+
       cursor: pointer;
+
     }
+
+
 
     .error-msg {
+
       color: #f87171;
+
       font-size: 13px;
+
       text-align: center;
+
       margin-bottom: 12px;
+
     }
 
+
+
     /* Download */
+
     .download-screen {
+
       display: none;
+
       text-align: center;
+
       padding: 60px 20px;
+
     }
+
+
 
     .download-screen.active { display: block; }
 
+
+
     .success-icon {
+
       width: 100px;
+
       height: 100px;
+
       background: linear-gradient(135deg, #22c55e, #16a34a);
+
       border-radius: 50%;
+
       display: flex;
+
       align-items: center;
+
       justify-content: center;
+
       font-size: 48px;
+
       margin: 0 auto 24px;
+
     }
+
+
 
     .download-card {
+
       background: var(--bg-card);
+
       border: 1px solid var(--border);
+
       border-radius: 16px;
+
       padding: 30px;
+
       max-width: 500px;
+
       margin: 0 auto 30px;
+
     }
+
+
 
     .download-card audio {
+
       width: 100%;
+
       margin: 20px 0;
+
     }
+
+
 
     .download-btns {
+
       display: flex;
+
       gap: 15px;
+
       justify-content: center;
+
     }
+
+
 
     /* Billing */
+
     .billing-screen {
+
       display: none;
+
       padding: 60px 40px;
+
       max-width: 900px;
+
       margin: 0 auto;
+
     }
+
     .billing-screen.active { display: block; }
 
+
+
     .billing-header {
+
       text-align: center;
+
       margin-bottom: 50px;
+
     }
+
     .billing-header h2 {
+
       font-size: 36px;
+
       margin-bottom: 10px;
+
     }
+
     .billing-header p {
+
       color: var(--text-muted);
+
       font-size: 16px;
+
     }
+
+
 
     .billing-grid {
+
       display: grid;
+
       grid-template-columns: 1fr 1fr;
+
       gap: 30px;
+
       margin-bottom: 40px;
+
     }
+
+
 
     .billing-card {
+
       background: var(--bg-card);
+
       border: 1px solid var(--border);
+
       border-radius: 20px;
+
       padding: 30px;
+
     }
+
     .billing-card h3 {
+
       font-size: 14px;
+
       color: var(--text-muted);
+
       text-transform: uppercase;
+
       letter-spacing: 1px;
+
       margin-bottom: 20px;
+
     }
+
+
 
     .plan-display {
+
       display: flex;
+
       align-items: center;
+
       gap: 15px;
+
       margin-bottom: 20px;
+
     }
+
     .plan-badge {
+
       background: linear-gradient(135deg, var(--accent), var(--accent2));
+
       padding: 8px 20px;
+
       border-radius: 30px;
+
       font-size: 18px;
+
       font-weight: 700;
+
     }
+
     .plan-price {
+
       font-size: 24px;
+
       font-weight: 600;
+
     }
+
     .plan-price span {
+
       font-size: 14px;
+
       color: var(--text-muted);
+
       font-weight: 400;
+
     }
+
+
 
     .billing-stat {
+
       display: flex;
+
       justify-content: space-between;
+
       padding: 12px 0;
+
       border-bottom: 1px solid var(--border);
+
       font-size: 14px;
+
     }
+
     .billing-stat:last-child { border-bottom: none; }
+
     .billing-stat-label { color: var(--text-muted); }
+
     .billing-stat-value { font-weight: 600; }
 
+
+
     .billing-actions {
+
       display: flex;
+
       flex-direction: column;
+
       gap: 12px;
+
     }
+
     .billing-btn {
+
       width: 100%;
+
       padding: 14px;
+
       border-radius: 12px;
+
       border: none;
+
       font-size: 14px;
+
       font-weight: 600;
+
       cursor: pointer;
+
       transition: all 0.2s;
+
     }
+
     .billing-btn.primary {
+
       background: linear-gradient(135deg, var(--accent), var(--accent2));
+
       color: white;
+
     }
+
     .billing-btn.primary:hover {
+
       transform: translateY(-1px);
+
       box-shadow: 0 6px 20px rgba(99,102,241,0.4);
+
     }
+
     .billing-btn.secondary {
+
       background: rgba(255,255,255,0.05);
+
       color: var(--text-muted);
+
       border: 1px solid var(--border);
+
     }
+
     .billing-btn.secondary:hover {
+
       background: rgba(255,255,255,0.1);
+
       color: white;
+
     }
+
+
 
     .plans-grid {
+
       display: grid;
+
       grid-template-columns: repeat(4, 1fr);
+
       gap: 15px;
+
     }
+
     .plan-option {
+
       background: var(--bg-card);
+
       border: 2px solid var(--border);
+
       border-radius: 16px;
+
       padding: 20px;
+
       text-align: center;
+
       cursor: pointer;
+
       transition: all 0.2s;
+
     }
+
     .plan-option:hover {
+
       border-color: var(--accent);
+
       background: rgba(99,102,241,0.1);
+
     }
+
     .plan-option.current {
+
       border-color: var(--accent);
+
       background: rgba(99,102,241,0.1);
+
     }
+
     .plan-option-name {
+
       font-size: 16px;
+
       font-weight: 700;
+
       margin-bottom: 8px;
+
     }
+
     .plan-option-price {
+
       font-size: 22px;
+
       font-weight: 600;
+
       color: var(--accent);
+
     }
+
     .plan-option-price span {
+
       font-size: 12px;
+
       color: var(--text-muted);
+
       font-weight: 400;
+
     }
+
     .plan-option-chars {
+
       font-size: 12px;
+
       color: var(--text-muted);
+
       margin-top: 5px;
+
     }
+
     .plan-option.current .plan-option-name::after {
+
       content: ' -';
+
     }
+
+
 
     .tips-box {
+
       background: rgba(139, 92, 246, 0.08);
+
       border: 1px solid rgba(139, 92, 246, 0.25);
+
       border-radius: 12px;
+
       padding: 16px 20px;
+
       margin: 0 0 20px 0;
+
     }
+
     .tips-box h4 {
+
       margin: 0 0 10px 0;
+
       font-size: 14px;
+
       color: var(--accent);
+
       text-transform: uppercase;
+
       letter-spacing: 0.5px;
+
     }
+
     .tips-box ol {
+
       margin: 0;
+
       padding-left: 20px;
+
     }
+
     .tips-box li {
+
       margin-bottom: 10px;
+
       font-size: 13px;
+
       line-height: 1.5;
+
       color: var(--text-muted);
+
     }
+
     .tips-box li:last-child {
+
       margin-bottom: 0;
+
     }
+
     .tips-box li strong {
+
       color: var(--text);
+
     }
+
+
 
     @media (max-width: 900px) {
+
       .generator { grid-template-columns: 1fr; }
+
       .stats { display: none; }
+
       .upgrade-btns { display: none; }
+
       .hero h1 { font-size: 36px; }
+
       .billing-grid { grid-template-columns: 1fr; }
+
       .plans-grid { grid-template-columns: repeat(2, 1fr); }
+
     }
+
+
 
     @media (max-width: 600px) {
+
       /* Reduce gaps and padding */
+
       body { padding: 8px; }
+
       .container { padding: 12px 8px; }
 
+
+
       /* Hero: smaller text, less space */
+
       .hero { padding: 20px 12px; margin-bottom: 12px; }
+
       .hero h1 { font-size: 28px; line-height: 1.2; }
+
       .hero p { font-size: 14px; }
 
+
+
       /* Section titles: less margin */
+
       .section-title { font-size: 18px; margin-bottom: 8px; }
+
       #community-voices-section { margin-top: 16px; }
 
+
+
       /* Categories: wrap, smaller buttons */
+
       .categories { gap: 6px; flex-wrap: wrap; }
+
       .cat-btn { font-size: 13px; padding: 6px 10px; }
 
+
+
       /* Voice grid: 3 columns on mobile */
+
       .voice-grid {
+
         grid-template-columns: repeat(3, 1fr);
+
         gap: 8px;
+
       }
+
       .voice-card { padding: 10px 6px; }
+
       .voice-name { font-size: 11px; }
+
       .voice-desc { font-size: 10px; }
 
+
+
       /* Community voices grid same layout */
+
       #community-voices-grid {
+
         grid-template-columns: repeat(3, 1fr);
+
         gap: 8px;
+
       }
+
+
 
       /* Generator: stack sidebar below main */
+
       .generator { grid-template-columns: 1fr; }
+
       .generator-sidebar { padding: 12px 8px; }
 
+
+
       /* Plans: single column */
+
       .plans-grid { grid-template-columns: 1fr; }
+
       .billing-grid { grid-template-columns: 1fr; }
 
+
+
       /* Create button: fit mobile width */
+
       #create-voice-section + div,
+
       [style*="text-align:center"][style*="padding:20px"] {
+
         padding: 12px 8px !important;
+
       }
+
+
 
       /* Tips box: smaller text */
+
       .tips-box { font-size: 13px; padding: 12px; }
+
       .tips-box h4 { font-size: 14px; }
+
       .tips-box li { margin-bottom: 6px; }
 
+
+
       /* Modal / Create Voice section: full width, less padding */
+
       #create-voice-section { padding: 12px 8px; }
+
       #create-voice-section .form-group { margin-bottom: 12px; }
+
       #create-voice-section input,
+
       #create-voice-section select { font-size: 14px; padding: 8px; }
 
+
+
       /* Format/control groups: smaller labels */
+
       .control-label { font-size: 13px; }
+
       .format-picker { gap: 6px; }
+
       .format-btn { font-size: 12px; padding: 6px 10px; }
 
+
+
       /* Audio player/recorder: full width */
+
       audio { width: 100%; }
+
       .recorder-container { flex-direction: column; gap: 8px; }
+
     }
+
   </style>
+
 </head>
+
 <body>
 
+
+
 <header>
+
   <div class="logo" onclick="showBrowse()"><img src="images/microphone_icon.png" alt="VoxLibrary" style="height:32px;vertical-align:middle;margin-right:8px;">VoxLibrary</div>
+
   <div class="header-right">
+
     <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">Billing</button>
+
     <div id="header-auth">
+
       <button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>
+
     </div>
+
   </div>
+
 </header>
 
+
+
 <!-- Plan bar -->
+
 <div class="plan-bar" id="plan-bar">
+
   <div class="current-plan-info">
+
     <span class="plan-label">Your Plan:</span>
+
     <span class="plan-name" id="plan-bar-name">Trial</span>
+
     <span class="plan-sep">-</span>
+
     <span class="plan-chars" id="plan-bar-chars">2,000 chars</span>
+
     <span class="trial-info" id="trial-info" style="display:none;"> - <span id="trial-days-left">5</span> days left</span>
+
   </div>
+
   <div class="upgrade-btns">
+
     <button class="upgrade-btn" id="upgrade-btn-starter" onclick="upgradePlan('starter')">Starter $3.99 - 30K chars</button>
+
     <button class="upgrade-btn" id="upgrade-btn-creator" onclick="upgradePlan('creator')">Creator $9.99 - 50K chars</button>
+
     <button class="upgrade-btn" id="upgrade-btn-studio" onclick="upgradePlan('studio')">Studio $59.99 - 250K chars</button>
+
     <button class="upgrade-btn pro" id="upgrade-btn-pro" onclick="upgradePlan('pro')">Pro $79.99 - 500K chars</button>
+
     <button class="upgrade-btn pro" id="upgrade-btn-business" onclick="upgradePlan('business')">Business $129.99 - 2M chars</button>
+
   </div>
+
   <div class="stats">
+
     <div class="stat">
+
       <div class="stat-value"><span id="chars-remaining">1,000</span></div>
+
       <div class="stat-label">Chars Left</div>
+
     </div>
+
     <div class="stat" id="trial-days-stat" style="display:none;">
+
       <div class="stat-value" id="trial-days-val">5</div>
+
       <div class="stat-label">Days Left</div>
+
     </div>
+
   </div>
+
 </div>
+
+
 
 <!-- Hero -->
+
 <div class="hero" id="hero-section">
+
   <h1>Professional AI Voices<br>in Seconds</h1>
+
   <p>Choose from 20 premium voices. Adjust speed, stability, and style. Download studio-quality audio instantly.</p>
+
 </div>
+
+
 
 <!-- Browse Voices -->
+
 <div class="section" id="browse-section">
+
   <div class="section-title">Choose a Voice</div>
+
   <div class="categories">
+
     <button class="cat-btn active" onclick="filterVoices('all')">All</button>
+
     <button class="cat-btn" onclick="filterVoices('professional')">Professional</button>
+
     <button class="cat-btn" onclick="filterVoices('story')">Storytelling</button>
+
     <button class="cat-btn" onclick="filterVoices('social')">Social</button>
+
     <button class="cat-btn" onclick="filterVoices('everyman')">Everyday</button>
+
     <button class="cat-btn" onclick="filterVoices('character')">Character</button>
+
   </div>
+
   <div class="voice-grid" id="voice-grid"></div>
 
-</div>
 
-<!-- Community Voices -->
-<div class="section" id="community-voices-section" style="display:none;">
 
-<!-- Create Your Own Voice -->
-<div style="text-align:center;padding:20px 16px;margin-top:12px;">
-  <a href="#" onclick="openCreateVoiceModal();return false;" style="color:#818cf8;font-size:18px;font-weight:600;text-decoration:none;display:inline-block;padding:12px 24px;border:2px solid rgba(99,102,241,0.4);border-radius:12px;background:rgba(99,102,241,0.1);transition:all 0.2s;">
-    + Create your own voice clone
-  </a>
-</div>
+
+  <!-- Community Voices - inside browse, expands as voices are added -->
+  <div id="community-voices-section" style="margin-top: 24px;">
+    <div class="section-title" style="font-size:18px;background:linear-gradient(135deg,#818cf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">Community Voices</div>
+    <div style="text-align:center;padding:0 0 12px 0;">
+      <a href="#" onclick="openBringVoiceModal();return false;" style="color:#818cf8;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;padding:8px 16px;border:1px solid rgba(99,102,241,0.4);border-radius:8px;background:rgba(99,102,241,0.1);">Bring your own voice file</a>
+    </div>
+    <div class="voice-grid" id="community-voices-grid"></div>
+  </div>
+
+
+
 
 <!-- Create Voice Modal (hidden until button clicked) -->
+
 <div class="section" id="create-voice-section" style="display:none;">
+
   <div class="section-header">
+
     <h2 style="font-size:20px; margin-bottom: 10px;">Create Your Own Voice</h2>
+
   </div>
+
+
 
   <div class="tips-box">
+
     <h4>TIPS for Best Results</h4>
+
     <ol>
+
       <li><strong>Quiet space:</strong> Sit in a quiet space, not a bathroom but somewhere out of the way with furniture, cabinetry, or carpet. It will sound more natural. Keep the microphone 6-10 inches from your mouth with a pop filter if you have one.</li>
+
       <li><strong>Listen:</strong> What do you hear? Try to eliminate strange sounds like road traffic, TV programs, radio, or loud conversations.</li>
+
       <li><strong>Warm up:</strong> Read the training script several times so you already feel the vibe of the conversation.</li>
+
     </ol>
+
   </div>
+
+
 
   <p style="color:var(--text-muted);font-size:14px;margin:0 0 16px 0;">Record yourself reading the script below, then save your voice clone.</p>
+
   <div style="display:flex;gap:16px;margin-bottom:16px;align-items:flex-start;flex-wrap:wrap;flex-direction:row;">
+
     <div class="form-group" style="flex:0 0 180px;">
+
       <label>Voice Name</label>
+
       <input type="text" id="cv-name" placeholder="e.g., Dave's Voice" maxlength="30">
+
     </div>
+
     <div class="form-group" style="flex:0 0 120px;">
+
       <label>Accent</label>
+
       <input type="text" id="cv-accent" placeholder="e.g., Southern" maxlength="30">
+
     </div>
+
     <div class="form-group" style="flex:0 0 120px;">
+
       <label>Pitch</label>
+
       <select id="cv-pitch" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:14px;">
+
         <option value="">Select...</option>
+
         <option value="Low">Low</option>
+
         <option value="Mid">Mid</option>
+
         <option value="High">High</option>
+
       </select>
+
     </div>
+
     <div class="form-group" style="flex:0 0 140px;">
+
       <label>Describe 1</label>
+
       <input type="text" id="cv-desc1" placeholder="e.g., Warm" maxlength="30">
+
     </div>
+
     <div class="form-group" style="flex:0 0 140px;">
+
       <label>Describe 2</label>
+
       <input type="text" id="cv-desc2" placeholder="e.g., Friendly" maxlength="30">
+
     </div>
+
   </div>
+
   <div class="form-group">
+
     <label>Read This Script While Recording</label>
+
     <p style="font-style:italic;font-size:16px;color:var(--text-muted);margin:0;line-height:1.5;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;white-space:pre-wrap;">"Hey there, how's it going today? I'm heading out to the car right now because the weather's turning pretty wild out here in the Midwest. The rain started pouring hard, and those dark clouds are really moving fast across the sky. Have you ever thought about what makes a good road trip so much fun? It's all about the open highway, good music blasting from the radio, and stopping at little diners for burgers and fries. Yesterday I drove through the mountains, where the trees were turning bright red and orange in the fall air. But watch out for those sharp curves -- better take it easy or you might end up in trouble. My friend always says, 'Don't forget the map, or you'll get totally lost!' Anyway, I'm grabbing some coffee and a snack before I hit the road again. What about you? Got any big plans this weekend? Life's too short not to enjoy the ride, right? See you later!"</p>
+
   </div>
+
   <div class="form-group">
+
     <label>Recording</label>
+
     <div class="recorder-container">
+
       <button class="btn btn-primary" id="cv-record-btn" onclick="toggleRecording()">Start Recording</button>
+
       <button class="btn btn-secondary" id="cv-reset-btn" onclick="clearRecording()" style="display:none;">Start Over</button>
+
       <div class="recorder-status" id="cv-rec-status">Ready to record</div>
+
       <div class="recorder-preview" id="cv-audio-preview" style="display:none;">
+
         <audio id="cv-preview-audio" controls></audio>
+
       </div>
+
     </div>
+
   </div>
+
   <div class="form-group">
+
     <p style="font-size:13px;color:var(--text-muted);margin:0;">
+
       Your voice will be publicly available under the
+
       <strong>Creative Commons Attribution (CC BY)</strong> license.
+
     </p>
+
   </div>
+
   <div class="form-group" style="display:none;" id="cv-error-msg">
+
     <div class="error-msg" id="cv-error-text"></div>
+
   </div>
+
+
 
   <!-- Show after recording is ready -->
+
   <div id="cv-submit-choice" style="display:none; margin-top: 16px;">
+
     <p style="font-size: 14px; font-weight: 600; margin-bottom: 10px;">How would you like to use your voice?</p>
+
     <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+
       <button class="btn btn-primary" id="cv-submit-community-btn" onclick="submitCommunityVoice()">Submit to Community (Free)</button>
+
       <button class="btn btn-secondary" id="cv-submit-private-btn" onclick="submitPrivateVoice()">Use Privately ($29.99)</button>
+
     </div>
+
   </div>
+
+
 
   <!-- Original submit button (hidden once choice appears) -->
+
   <div style="display:flex;gap:10px;margin-top:16px;" id="cv-submit-original">
+
     <button class="btn btn-primary" id="cv-submit-btn" onclick="submitCustomVoice()">Submit Voice Sample</button>
+
   </div>
+
 </div>
+
+
 
 <!-- Generator -->
+
 <div class="section generator" id="generator-section">
+
   <div class="generator-main">
+
     <div class="generator-header">
+
       <button class="back-btn" onclick="showBrowse()"></button>
+
       <div class="selected-voice-info">
+
         <h3 id="selected-voice-name">Select a voice</h3>
+
         <p id="selected-voice-desc">Ready to generate</p>
+
       </div>
+
     </div>
+
     <textarea class="text-area" id="text-input" placeholder="Type or paste your text here..."></textarea>
+
     <div class="char-count"><span id="char-count">0</span> characters</div>
+
   </div>
+
   <div class="generator-sidebar">
+
     <div class="control-group">
+
       <div class="control-label">
+
         <span>Speed</span>
+
         <span class="slider-value" id="speed-val">1.0x</span>
+
       </div>
+
       <input type="range" class="slider" min="0.5" max="2" step="0.1" value="1" id="speed-slider" oninput="updateSlider('speed', this.value)">
+
     </div>
+
     <div class="control-group">
+
       <div class="control-label">
+
         <span>Stability</span>
+
         <span class="slider-value" id="stability-val">50%</span>
+
       </div>
+
       <input type="range" class="slider" min="0" max="100" step="5" value="50" id="stability-slider" oninput="updateSlider('stability', this.value)">
+
     </div>
+
     <div class="control-group">
+
       <div class="control-label">
+
         <span>Similarity</span>
+
         <span class="slider-value" id="similarity-val">50%</span>
+
       </div>
+
       <input type="range" class="slider" min="0" max="100" step="5" value="50" id="similarity-slider" oninput="updateSlider('similarity', this.value)">
+
     </div>
+
     <div class="control-group">
+
       <div class="control-label">
+
         <span>Style</span>
+
         <span class="slider-value" id="style-val">0%</span>
+
       </div>
+
       <input type="range" class="slider" min="0" max="100" step="5" value="0" id="style-slider" oninput="updateSlider('style', this.value)">
+
     </div>
+
     <div class="control-group">
+
       <div class="control-label"><span>Format</span></div>
+
       <div class="format-picker">
+
         <button class="format-btn active" onclick="selectFormat('wav_44100_16bit', this)">WAV</button>
+
         <button class="format-btn" onclick="selectFormat('flac_44100_16bit', this)">FLAC</button>
+
       </div>
+
     </div>
+
+
 
     <button class="generate-btn" id="generate-btn" onclick="generateAudio()">Generate Audio</button>
+
   </div>
+
 </div>
+
+
 
 <!-- Download Screen -->
+
 <div class="download-screen" id="download-section">
+
   <div class="success-icon">V</div>
+
   <h2>Generation Complete!</h2>
+
   <p style="color: var(--text-muted); margin-bottom: 30px;">Your audio is ready</p>
+
   <div class="download-card">
+
     <div id="download-voice-name" style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px;"></div>
+
     <div id="download-text-preview" style="color: var(--accent); font-size: 14px; margin-bottom: 16px;"></div>
+
     <audio controls id="audio-player"></audio>
+
     <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;" id="download-info"></div>
+
   </div>
+
+
 
   <div style="margin-top: 20px; padding: 16px; background: rgba(99,102,241,0.1); border-radius: 12px; border: 1px solid rgba(99,102,241,0.3);">
+
     <p style="color: var(--text); font-size: 14px; margin: 0 0 10px 0; font-weight: 600;">Email your audio instead</p>
+
     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+
       <input type="email" id="email-audio-input" placeholder="your@email.com" style="flex: 1; min-width: 160px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
+
       <button class="btn btn-primary" id="email-audio-btn" onclick="emailAudioFile()">Send Email</button>
+
     </div>
+
     <div id="email-audio-status" style="font-size: 13px; margin-top: 8px; color: var(--text-muted);"></div>
+
   </div>
+
+
 
   <div class="download-btns" style="margin-top: 20px;">
+
     <button class="btn btn-primary" onclick="downloadFile()">Download</button>
+
     <button class="btn btn-ghost" onclick="showBrowse()">Generate Another</button>
+
   </div>
+
 </div>
+
+
 
 <!-- Billing Screen -->
+
 <div class="billing-screen" id="billing-section">
+
   <div class="billing-header">
+
     <h2>Billing</h2>
+
     <p>Manage your subscription and payment details</p>
+
   </div>
+
+
 
   <div class="billing-grid">
-    <div class="billing-card">
-      <h3>Current Plan</h3>
-      <div class="plan-display">
-        <div class="plan-badge" id="billing-plan-name">Starter</div>
-        <div class="plan-price"><span id="billing-plan-price">$9.99</span>/mo</div>
-      </div>
-      <div class="billing-stat">
-        <span class="billing-stat-label">Characters Included</span>
-        <span class="billing-stat-value" id="billing-plan-chars">8,000</span>
-      </div>
-      <div class="billing-stat">
-        <span class="billing-stat-label">Characters Used</span>
-        <span class="billing-stat-value" id="billing-chars-used">0</span>
-      </div>
-      <div class="billing-stat">
-        <span class="billing-stat-label">Characters Remaining</span>
-        <span class="billing-stat-value" id="billing-chars-remaining">8,000</span>
-      </div>
-      <div class="billing-stat">
-        <span class="billing-stat-label">Next Billing Date</span>
-        <span class="billing-stat-value" id="billing-next-date">--</span>
-      </div>
-    </div>
 
     <div class="billing-card">
-      <h3>Quick Actions</h3>
-      <div class="billing-actions">
-        <button class="billing-btn primary" onclick="upgradePlan(userState.plan)">Upgrade Plan</button>
-        <button class="billing-btn secondary" onclick="openBillingPortal()">Manage Billing & Invoices</button>
-        <button class="billing-btn secondary" onclick="updatePaymentMethod()">Update Payment Method</button>
+
+      <h3>Current Plan</h3>
+
+      <div class="plan-display">
+
+        <div class="plan-badge" id="billing-plan-name">Starter</div>
+
+        <div class="plan-price"><span id="billing-plan-price">$9.99</span>/mo</div>
+
       </div>
+
+      <div class="billing-stat">
+
+        <span class="billing-stat-label">Characters Included</span>
+
+        <span class="billing-stat-value" id="billing-plan-chars">8,000</span>
+
+      </div>
+
+      <div class="billing-stat">
+
+        <span class="billing-stat-label">Characters Used</span>
+
+        <span class="billing-stat-value" id="billing-chars-used">0</span>
+
+      </div>
+
+      <div class="billing-stat">
+
+        <span class="billing-stat-label">Characters Remaining</span>
+
+        <span class="billing-stat-value" id="billing-chars-remaining">8,000</span>
+
+      </div>
+
+      <div class="billing-stat">
+
+        <span class="billing-stat-label">Next Billing Date</span>
+
+        <span class="billing-stat-value" id="billing-next-date">--</span>
+
+      </div>
+
     </div>
+
+
+
+    <div class="billing-card">
+
+      <h3>Quick Actions</h3>
+
+      <div class="billing-actions">
+
+        <button class="billing-btn primary" onclick="upgradePlan(userState.plan)">Upgrade Plan</button>
+
+        <button class="billing-btn secondary" onclick="openBillingPortal()">Manage Billing & Invoices</button>
+
+        <button class="billing-btn secondary" onclick="updatePaymentMethod()">Update Payment Method</button>
+
+      </div>
+
+    </div>
+
   </div>
+
+
 
   <!-- Gift Cards -->
+
   <div class="billing-card" style="grid-column: 1 / -1;">
+
     <h3>Gift VoxLibrary</h3>
+
     <p style="color: var(--text-muted); font-size: 14px; margin: 0 0 16px 0;">Send VoxLibrary to someone special. They'll get a code via email.</p>
+
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+
       <div class="gift-option" onclick="selectGiftOption('chars_10k', 4.99)" style="padding: 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: border-color 0.2s;">
+
         <div style="font-size: 20px; font-weight: 700;">10,000 Characters</div>
+
         <div style="font-size: 24px; color: var(--accent); font-weight: 700;">$4.99</div>
+
         <div style="font-size: 12px; color: var(--text-muted);">One-time</div>
+
       </div>
+
       <div class="gift-option" onclick="selectGiftOption('starter', 19.99)" style="padding: 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: border-color 0.2s;">
+
         <div style="font-size: 20px; font-weight: 700;">Starter Plan</div>
+
         <div style="font-size: 24px; color: var(--accent); font-weight: 700;">$19.99</div>
+
         <div style="font-size: 12px; color: var(--text-muted);">3 months included</div>
+
       </div>
+
       <div class="gift-option" onclick="selectGiftOption('creator', 49.99)" style="padding: 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: border-color 0.2s;">
+
         <div style="font-size: 20px; font-weight: 700;">Creator Plan</div>
+
         <div style="font-size: 24px; color: var(--accent); font-weight: 700;">$49.99</div>
+
         <div style="font-size: 12px; color: var(--text-muted);">6 months included</div>
+
       </div>
+
       <div class="gift-option" onclick="selectGiftOption('studio', 149.99)" style="padding: 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: border-color 0.2s;">
+
         <div style="font-size: 20px; font-weight: 700;">Studio Plan</div>
+
         <div style="font-size: 24px; color: var(--accent); font-weight: 700;">$149.99</div>
+
         <div style="font-size: 12px; color: var(--text-muted);">3 months included</div>
+
       </div>
+
     </div>
+
     <div id="gift-form" style="display: none; margin-top: 16px; padding: 16px; background: rgba(99,102,241,0.1); border-radius: 12px;">
+
       <div style="font-weight: 700; margin-bottom: 12px;">Send Gift</div>
+
       <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+
         <input type="text" id="gift-recipient-name" placeholder="Recipient name" style="flex: 1; min-width: 120px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
+
         <input type="email" id="gift-recipient-email" placeholder="Recipient email" style="flex: 1; min-width: 160px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
+
       </div>
+
       <div style="display: flex; gap: 8px; align-items: center;">
+
         <button class="btn btn-primary" id="gift-checkout-btn" onclick="checkoutGift()">Buy Gift - <span id="gift-price-display"></span></button>
+
         <button class="btn btn-ghost" onclick="cancelGift()">Cancel</button>
+
       </div>
+
       <div id="gift-error" style="color: #ef4444; font-size: 13px; margin-top: 8px;"></div>
+
     </div>
+
     <div id="gift-success" style="display: none; margin-top: 16px; padding: 16px; background: rgba(34,197,94,0.1); border-radius: 12px; color: #22c55e; font-weight: 600; text-align: center;">
+
       Gift sent! Check your email for confirmation.
+
     </div>
+
     <div style="margin-top: 12px;">
+
       <button class="btn btn-ghost" onclick="showRedeemModal()" style="font-size: 13px;">Have a gift code? Redeem here</button>
+
     </div>
+
   </div>
+
+
 
   <!-- Private Voice Profiles -->
+
   <div class="billing-card" style="grid-column: 1 / -1;">
+
     <h3>Private Voice Profiles</h3>
+
     <p style="color: var(--text-muted); font-size: 14px; margin: 0 0 16px 0;">Upload your own voice for private, personal use. Not shared with the community. One-time payment.</p>
 
+
+
     <div style="display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap;">
-      <div style="flex: 1; min-width: 240px;">
-        <div style="padding: 20px; background: rgba(99,102,241,0.1); border-radius: 12px; border: 2px solid rgba(99,102,241,0.3); text-align: center;">
-          <div style="font-size: 32px; margin-bottom: 8px;">&#127908;</div>
-          <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Private Voice Profile</div>
-          <div style="font-size: 28px; color: var(--accent); font-weight: 700;">$29.99</div>
-          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">one-time</div>
-          <ul style="text-align: left; font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0; padding-left: 20px;">
-            <li>Your voice, completely private</li>
-            <li>Upload any audio file you own</li>
-            <li>Get source + generated WAV by email</li>
-            <li>Use with any text, anytime</li>
-            <li>Never shared or listed publicly</li>
-          </ul>
-          <button class="btn btn-primary" onclick="showPrivateVoiceUpload()" style="width: 100%;">Upload & Buy</button>
-        </div>
-      </div>
 
       <div style="flex: 1; min-width: 240px;">
-        <div id="private-voice-upload-area" style="display: none; padding: 20px; background: var(--bg); border-radius: 12px; border: 2px dashed var(--border);">
-          <p style="font-weight: 600; margin: 0 0 12px 0;">Upload Your Voice File</p>
-          <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 12px 0;">WAV, MP3, or FLAC. 30+ seconds of you speaking clearly works best.</p>
-          <input type="file" id="private-voice-file" accept="audio/*,.wav,.mp3,.flac" onchange="handlePrivateVoiceFile(this)" style="margin-bottom: 12px;">
-          <div id="private-voice-file-info" style="font-size: 13px; margin-bottom: 12px;"></div>
-          <div class="form-group" style="margin-bottom: 12px;">
-            <label style="font-size: 13px; color: var(--text-muted);">Voice Name</label>
-            <input type="text" id="private-voice-name" placeholder="e.g. My Voice" maxlength="30" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
-          </div>
-          <div id="private-voice-error" style="color: #ef4444; font-size: 13px; margin-bottom: 8px;"></div>
-          <button class="btn btn-primary" id="private-voice-checkout-btn" onclick="checkoutPrivateVoice()" disabled>Pay $29.99 &amp; Generate</button>
-          <button class="btn btn-ghost" onclick="cancelPrivateVoiceUpload()" style="margin-top: 8px; font-size: 13px;">Cancel</button>
+
+        <div style="padding: 20px; background: rgba(99,102,241,0.1); border-radius: 12px; border: 2px solid rgba(99,102,241,0.3); text-align: center;">
+
+          <div style="font-size: 32px; margin-bottom: 8px;">&#127908;</div>
+
+          <div style="font-size: 20px; font-weight: 700; margin-bottom: 4px;">Private Voice Profile</div>
+
+          <div style="font-size: 28px; color: var(--accent); font-weight: 700;">$29.99</div>
+
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">one-time</div>
+
+          <ul style="text-align: left; font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0; padding-left: 20px;">
+
+            <li>Your voice, completely private</li>
+
+            <li>Upload any audio file you own</li>
+
+            <li>Get source + generated WAV by email</li>
+
+            <li>Use with any text, anytime</li>
+
+            <li>Never shared or listed publicly</li>
+
+          </ul>
+
+          <button class="btn btn-primary" onclick="showPrivateVoiceUpload()" style="width: 100%;">Upload & Buy</button>
+
         </div>
+
+      </div>
+
+
+
+      <div style="flex: 1; min-width: 240px;">
+
+        <div id="private-voice-upload-area" style="display: none; padding: 20px; background: var(--bg); border-radius: 12px; border: 2px dashed var(--border);">
+
+          <p style="font-weight: 600; margin: 0 0 12px 0;">Upload Your Voice File</p>
+
+          <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 12px 0;">WAV, MP3, or FLAC. 30+ seconds of you speaking clearly works best.</p>
+
+          <input type="file" id="private-voice-file" accept="audio/*,.wav,.mp3,.flac" onchange="handlePrivateVoiceFile(this)" style="margin-bottom: 12px;">
+
+          <div id="private-voice-file-info" style="font-size: 13px; margin-bottom: 12px;"></div>
+
+          <div class="form-group" style="margin-bottom: 12px;">
+
+            <label style="font-size: 13px; color: var(--text-muted);">Voice Name</label>
+
+            <input type="text" id="private-voice-name" placeholder="e.g. My Voice" maxlength="30" style="width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
+
+          </div>
+
+          <div id="private-voice-error" style="color: #ef4444; font-size: 13px; margin-bottom: 8px;"></div>
+
+          <button class="btn btn-primary" id="private-voice-checkout-btn" onclick="checkoutPrivateVoice()" disabled>Pay $29.99 &amp; Generate</button>
+
+          <button class="btn btn-ghost" onclick="cancelPrivateVoiceUpload()" style="margin-top: 8px; font-size: 13px;">Cancel</button>
+
+        </div>
+
+
 
         <div id="private-voice-success" style="display: none; padding: 20px; background: rgba(34,197,94,0.1); border-radius: 12px; color: #22c55e; font-weight: 600; text-align: center;">
+
           Payment successful! Check your email for your generated audio files.
+
         </div>
+
       </div>
+
     </div>
+
+
 
     <!-- List of user's private voices -->
+
     <div id="my-private-voices" style="margin-top: 20px;">
+
       <p style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">My Private Voices</p>
+
       <div id="private-voices-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px;"></div>
+
     </div>
+
   </div>
+
+
 
   <div class="billing-card">
+
     <h3>Monthly Plans</h3>
+
     <div class="plans-grid">
+
       <div class="plan-option" onclick="upgradePlan('starter')">
+
         <div class="plan-option-name">Starter</div>
+
         <div class="plan-option-price">$3.99<span>/mo</span></div>
+
         <div class="plan-option-chars">30,000 chars</div>
+
       </div>
+
       <div class="plan-option" onclick="upgradePlan('creator')">
+
         <div class="plan-option-name">Creator</div>
+
         <div class="plan-option-price">$9.99<span>/mo</span></div>
+
         <div class="plan-option-chars">50,000 chars</div>
+
       </div>
+
       <div class="plan-option" onclick="upgradePlan('studio')">
+
         <div class="plan-option-name">Studio</div>
+
         <div class="plan-option-price">$59.99<span>/mo</span></div>
+
         <div class="plan-option-chars">250,000 chars</div>
+
       </div>
+
       <div class="plan-option" onclick="upgradePlan('pro')">
+
         <div class="plan-option-name">Pro</div>
+
         <div class="plan-option-price">$79.99<span>/mo</span></div>
+
         <div class="plan-option-chars">500,000 chars</div>
+
       </div>
+
       <div class="plan-option" onclick="upgradePlan('business')">
+
         <div class="plan-option-name">Business</div>
+
         <div class="plan-option-price">$129.99<span>/mo</span></div>
+
         <div class="plan-option-chars">2,000,000 chars</div>
+
       </div>
+
     </div>
+
   </div>
+
+
 
   <div style="text-align: center; margin-top: 30px;">
+
     <button class="btn btn-ghost" onclick="showBrowse()">Back to Voices</button>
+
   </div>
+
 </div>
+
+
 
 <!-- Auth Modal -->
+
 <div class="modal-overlay" id="auth-modal">
+
   <div class="modal">
+
     <h2 id="auth-title">Sign Up</h2>
+
     <p id="auth-subtitle">Create an account to get started</p>
+
     <div class="error-msg" id="auth-error" style="display: none;"></div>
+
     <input type="email" class="input" id="auth-email" placeholder="Email address">
+
     <input type="password" class="input" id="auth-password" placeholder="Password">
+
     <button class="modal-btn primary" id="auth-submit" onclick="handleAuth()">Sign Up</button>
+
     <div class="modal-switch" id="auth-switch">Already have an account? <a onclick="toggleAuthMode()">Sign In</a></div>
+
   </div>
+
 </div>
+
+
 
 <!-- Redeem Gift Modal -->
+
 <div class="modal-overlay" id="redeem-modal">
+
   <div class="modal">
+
     <h2>Redeem Gift Code</h2>
+
     <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Enter your gift code below to claim your VoxLibrary credits.</p>
+
     <input type="text" class="input" id="redeem-code-input" placeholder="e.g. VOX-GIFT-XXXX-XXXX" style="text-transform: uppercase; letter-spacing: 1px; font-size: 16px; text-align: center;">
+
     <button class="modal-btn primary" onclick="redeemGiftCode()" style="margin-top: 12px;">Redeem Code</button>
+
     <button class="modal-btn" onclick="closeRedeemModal()" style="margin-top: 8px; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Cancel</button>
+
     <div id="redeem-error" style="color: #ef4444; font-size: 13px; margin-top: 8px; display: none;"></div>
+
     <div id="redeem-success" style="color: #22c55e; font-size: 14px; margin-top: 8px; font-weight: 600; display: none;"></div>
+
   </div>
+
 </div>
 
+
+
 <script>
+
 // Supabase
+
 const SUPABASE_URL = 'https://kxnqwpavjhiphgvkevvj.supabase.co';
+
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4bnF3cGF2amhpcGhndmtldnZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMjQxNzQsImV4cCI6MjA5MDgwMDE3NH0.BnZOeI9x5AzirRwT617ccMhjPCO4howf8ROL8fVc5u0';
+
 let sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+
+
 // Stripe
+
 const STRIPE_PK = 'pk_live_51TIFTVGfRLc2oae0aINRC9uP1oJ4PbV6Lb9vfrMkFZq0X0JXZMU9NarlZvn8DUbGZIEHSYd0bEiC8RodMCTmwCQG00D8Bjpkif';
+
 const PRICE_IDS = {
+
   starter: 'price_1TIGvyGfRLc2oae0fw5dEEYU',
+
   creator: 'price_1TIGvzGfRLc2oae0ljAG06ij',
+
   studio: 'price_1TIGw0GfRLc2oae0hveGx70E',
+
   pro: 'price_1TIGw0GfRLc2oae0lsHC0bfO'
+
 };
+
 const stripe = Stripe(STRIPE_PK);
 
+
+
 async function upgradePlan(plan) {
+
   const { data: { session } } = await sb.auth.getSession();
+
   if (!session) { openAuthModal(); return; }
 
+
+
   // Payment Links
+
   const PAYMENT_LINKS = {
+
     starter: 'https://buy.stripe.com/cNi6oH85a9WIbjY90Hbsc00',
+
     creator: 'https://buy.stripe.com/00w9ATgBG9WIbjY1yfbsc01',
+
     studio: 'https://buy.stripe.com/3cIcN599ed8U1Joel1bsc03',
+
     pro: 'https://buy.stripe.com/7sYeVd85a9WIafU6Szbsc02',
+
     business: 'https://buy.stripe.com/fZu4gz3OU8SE5ZE2Cjbsc04'
+
   };
 
+
+
   const link = PAYMENT_LINKS[plan];
+
   if (link) {
+
     window.open(link, '_blank');
+
   } else {
+
     alert('Payment link not configured for ' + plan);
+
   }
+
 }
+
+
 
 // ElevenLabs (DEPRECATED - moved to RunPod Chatterbox Turbo April 5, 2026)
+
 // const ELEVENLABS_API_KEY = 'sk_84ebebc8813d25d47e2a643ca556b6739ef7badfe396fb52';
 
+
+
 // RunPod Chatterbox Turbo via backend proxy (API key kept secure on server)
+
 const RUNPOD_API_KEY = ''; // No longer used - backend proxy handles this
+
 const API_BASE = ''; // Will use relative path to call our own backend
 
+
+
 // Voices (mapped to Chatterbox Turbo preset voices + matching existing images)
+
 // Voices (mapped to Chatterbox Turbo preset voices + matching existing images)
+
 const voices = [
+
   { id: 1, key: 'andy', name: "Andy", accent: "American", pitch: "Low", qualities: "Warm & Clear", category: "everyman", img: "images/andy.png" },
+
   { id: 2, key: 'brian', name: "Brian", accent: "American", pitch: "High", qualities: "Clear & Energetic", category: "professional", img: "images/brian.png" },
+
   { id: 3, key: 'archer', name: "Archer", accent: "American", pitch: "Mid", qualities: "Slow & Relaxed", category: "professional", img: "images/archer.png" },
+
   { id: 4, key: 'madison', name: "Madison", accent: "American", pitch: "Mid", qualities: "Warm & Sultry", category: "social", img: "images/madison.png" },
+
   { id: 5, key: 'walter', name: "Walter", accent: "Southern", pitch: "Low", qualities: "Mature & Paced", category: "professional", img: "images/walter.png" },
+
   { id: 6, key: 'gavin', name: "Gavin", accent: "British", pitch: "Mid", qualities: "Upbeat & Clear", category: "professional", img: "images/gavin.png" },
+
   { id: 7, key: 'aaron', name: "Aaron", accent: "American", pitch: "Mid", qualities: "Settled & Informative", category: "everyman", img: "images/aaron.png" },
+
   { id: 8, key: 'emmanuel', name: "Emmanuel", accent: "American", pitch: "High", qualities: "Young & Eager", category: "professional", img: "images/emmanuel.png" },
+
   { id: 9, key: 'abigail', name: "Abigail", accent: "British", pitch: "Mid", qualities: "Relaxed & Educated", category: "professional", img: "images/abigail.png" },
+
   { id: 10, key: 'anaya', name: "Anaya", accent: "Indian", pitch: "High", qualities: "Fast & Tidy", category: "social", img: "images/anaya.png" },
+
   { id: 11, key: 'chloe', name: "Chloe", accent: "American", pitch: "Low", qualities: "Mature & Serious", category: "social", img: "images/chloe.png" },
+
   { id: 12, key: 'dylan', name: "Dylan", accent: "American", pitch: "Low", qualities: "Relaxed & Cool", category: "everyman", img: "images/dylan.png" },
+
   { id: 13, key: 'ethan', name: "Ethan", accent: "American", pitch: "Mid", qualities: "Learned & Trustworthy", category: "professional", img: "images/ethan.png" },
+
   { id: 14, key: 'marisol', name: "Marisol", accent: "American", pitch: "Low", qualities: "Tough & Well-Spoken", category: "everyman", img: "images/marisol.png" },
+
   { id: 15, key: 'evelyn', name: "Evelyn", accent: "American", pitch: "High", qualities: "Plain & Youthful", category: "story", img: "images/evelyn.png" },
+
   { id: 16, key: 'ivan', name: "Ivan", accent: "American", pitch: "Mid", qualities: "Deep & Reliable", category: "professional", img: "images/ivan.png" },
+
   { id: 17, key: 'laura', name: "Laura", accent: "American", pitch: "Low", qualities: "Flat & Direct", category: "everyman", img: "images/laura.png" },
+
   { id: 18, key: 'meera', name: "Matilda", accent: "Indian", pitch: "Mid", qualities: "Mature & Confident", category: "social", img: "images/matilda.png" },
+
   { id: 20, key: 'roger', name: "Roger", accent: "American", pitch: "Mid", qualities: "Calm & Refined", category: "professional", img: "images/brian.png" },
+
   { id: 21, key: 'brian', name: "Eric", accent: "American", pitch: "Mid", qualities: "Calm & Refined", category: "professional", img: "images/eric.png" }
+
 ];
 
+
+
 const TRIAL_PLAN = { name: 'Trial', chars: 1000 };
+
 const TRIAL_DAYS = 3;
+
 const TRIAL_CHARS = 10000;
 
+
+
 const PLANS = {
+
   starter: { name: 'Starter', chars: 30000 },
+
   creator: { name: 'Creator', chars: 50000 },
+
   studio: { name: 'Studio', chars: 250000 },
+
   pro: { name: 'Pro', chars: 500000 },
+
   business: { name: 'Business', chars: 2000000 }
+
 };
+
+
 
 const PLAN_PRICES = {
+
   starter: '3.99',
+
   creator: '9.99',
+
   studio: '59.99',
+
   pro: '79.99',
+
   business: '129.99'
+
 };
 
+
+
 let userState = { plan: 'trial', charsUsed: 0, trialEnd: null, isTrial: true };
+
 let selectedVoice = null;
+
 let selectedFormat = 'mp3_44100_128';
+
 let authMode = 'signup';
 
+
+
 // Auth
+
 function updateAuthUI(user) {
+
   const headerAuth = document.getElementById('header-auth');
+
   const planBar = document.getElementById('plan-bar');
+
   const billingBtn = document.getElementById('billing-btn');
+
   if (user) {
+
     userState.email = user.email;
+
     headerAuth.innerHTML = '<span style="color:var(--text-muted);font-size:13px;">' + user.email + '</span> <button class="btn btn-ghost btn-small" onclick="logout()">Logout</button>';
+
     planBar.classList.add('visible');
+
     if (billingBtn) billingBtn.style.display = 'block';
+
   } else {
+
     userState.email = null;
+
     headerAuth.innerHTML = '<button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>';
+
     planBar.classList.remove('visible');
+
     if (billingBtn) billingBtn.style.display = 'none';
+
   }
+
 }
+
+
 
 function openAuthModal() {
+
   document.getElementById('auth-modal').classList.add('active');
+
   document.getElementById('auth-email').value = '';
+
   document.getElementById('auth-password').value = '';
+
   document.getElementById('auth-error').style.display = 'none';
+
 }
+
+
 
 function closeAuthModal() {
+
   document.getElementById('auth-modal').classList.remove('active');
+
 }
+
+
 
 function toggleAuthMode() {
+
   authMode = authMode === 'signup' ? 'login' : 'signup';
+
   document.getElementById('auth-title').textContent = authMode === 'signup' ? 'Sign Up' : 'Sign In';
+
   document.getElementById('auth-subtitle').textContent = authMode === 'signup' ? 'Create an account to get started' : 'Welcome back';
+
   document.getElementById('auth-submit').textContent = authMode === 'signup' ? 'Sign Up' : 'Sign In';
+
   document.getElementById('auth-switch').innerHTML = authMode === 'signup' ? 'Already have an account? <a onclick="toggleAuthMode()">Sign In</a>' : 'Need an account? <a onclick="toggleAuthMode()">Sign Up</a>';
+
 }
+
+
 
 async function handleAuth() {
+
   const email = document.getElementById('auth-email').value;
+
   const password = document.getElementById('auth-password').value;
+
   const errorEl = document.getElementById('auth-error');
+
   if (!email || !password) { errorEl.textContent = 'Please enter email and password'; errorEl.style.display = 'block'; return; }
+
   try {
+
     if (authMode === 'signup') {
+
       const { data, error } = await sb.auth.signUp({ email, password });
+
       if (error) throw error;
+
       if (data.session) {
+
         // Store token for API calls
+
         userState.token = data.session.access_token;
+
         // Profile created automatically by Supabase trigger
+
         userState.isTrial = true;
+
         const trialEnd = new Date();
+
         trialEnd.setDate(trialEnd.getDate() + TRIAL_DAYS);
+
         userState.trialEnd = trialEnd.toISOString();
+
         userState.plan = 'trial';
+
         userState.charsUsed = 0;
+
         updateAuthUI(data.user);
+
         updateStats();
+
         closeAuthModal();
+
       } else { errorEl.textContent = 'Check your email to confirm'; errorEl.style.display = 'block'; }
+
     } else {
+
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
+
       if (error) throw error;
+
       // Store token for API calls
+
       userState.token = data.session.access_token;
+
       // Load user profile for trial/subscription info
+
       const { data: profile } = await sb.from('profiles').select('*').eq('id', data.user.id).single();
+
       if (profile) {
+
         userState.plan = profile.plan || 'trial';
+
         userState.charsUsed = profile.chars_used || 0;
+
         userState.isTrial = profile.plan === 'trial';
+
         userState.trialEnd = profile.trial_end;
+
       }
+
       updateAuthUI(data.user);
+
       updateStats();
+
       closeAuthModal();
+
     }
+
   } catch (error) { errorEl.textContent = error.message; errorEl.style.display = 'block'; }
+
 }
 
+
+
 async function saveCharsUsed() {
+
   const { data: { session } } = await sb.auth.getSession();
+
   if (!session) return;
+
   await sb.from('profiles').upsert({
+
     id: session.user.id,
+
     chars_used: userState.charsUsed
+
   }, { onConflict: 'id' });
+
 }
+
+
 
 async function logout() { await sb.auth.signOut(); updateAuthUI(null); }
 
+
+
 // Billing
+
 function showBilling() {
+
   const bs = document.getElementById('billing-section');
+
   if (!bs) { alert('Billing section not found!'); return; }
+
   hideAll();
+
   updateBillingDisplay();
+
   bs.style.display = 'block';
+
   bs.classList.add('active');
+
 }
+
+
 
 function hideAll() {
+
   document.getElementById('browse-section').style.display = 'none';
+
   document.getElementById('hero-section').style.display = 'none';
+
   document.getElementById('generator-section').classList.remove('active');
+
   document.getElementById('download-section').classList.remove('active');
+
   document.getElementById('billing-section').classList.remove('active');
+
 }
+
+
 
 function updateBillingDisplay() {
+
   // Handle trial or unknown plan
+
   const plan = PLANS[userState.plan] || { name: 'Trial', chars: 1000, price: '$0' };
+
   document.getElementById('billing-plan-name').textContent = plan.name;
+
   document.getElementById('billing-plan-price').textContent = userState.plan === 'trial' ? 'Free Trial' : '$' + (userState.plan === 'starter' ? '3.99' : userState.plan === 'creator' ? '9.99' : userState.plan === 'studio' ? '59.99' : '129.99') + '/mo';
+
   document.getElementById('billing-plan-chars').textContent = plan.chars.toLocaleString();
+
   document.getElementById('billing-chars-used').textContent = userState.charsUsed.toLocaleString();
+
   document.getElementById('billing-chars-remaining').textContent = Math.max(0, plan.chars - userState.charsUsed).toLocaleString();
+
   document.getElementById('billing-next-date').textContent = userState.plan === 'trial' ? 'N/A (Trial)' : 'May 4, 2026';
 
+
+
   // Highlight current plan in grid
+
   document.querySelectorAll('.plan-option').forEach(el => el.classList.remove('current'));
+
   const planIndex = { starter: 0, creator: 1, studio: 2, pro: 3 }[userState.plan];
+
   if (planIndex !== undefined) {
+
     document.querySelectorAll('.plan-option')[planIndex]?.classList.add('current');
+
   }
+
 }
 
+
+
 async function openBillingPortal() {
+
   const { data: { session } } = await sb.auth.getSession();
+
   if (!session) { openAuthModal(); return; }
 
+
+
   const userEmail = session.user.email;
+
   const returnUrl = window.location.origin + '?billing=done';
 
+
+
   try {
+
     const response = await fetch('/api/billing-portal', {
+
       method: 'POST',
+
       headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({ email: userEmail, returnUrl })
+
     });
+
+
 
     if (!response.ok) throw new Error('Failed to create portal session');
 
+
+
     const { url } = await response.json();
+
     window.open(url, '_blank');
+
   } catch (error) {
+
     alert('Could not open billing portal: ' + error.message);
+
   }
+
 }
+
+
 
 async function updatePaymentMethod() {
+
   // Opens Stripe portal directly to payment method update
+
   await openBillingPortal();
+
 }
+
+
 
 // Stats
+
 function updateStats() {
+
   const plan = PLANS[userState.plan] || TRIAL_PLAN;
+
   const remaining = Math.max(0, plan.chars - userState.charsUsed);
+
   document.getElementById('chars-remaining').textContent = remaining.toLocaleString();
 
+
+
   // Update plan bar
+
   const displayPlan = userState.isTrial ? { name: 'Trial', chars: TRIAL_CHARS } : plan;
+
   document.getElementById('plan-bar-name').textContent = displayPlan.name;
+
   document.getElementById('plan-bar-chars').textContent = displayPlan.chars.toLocaleString() + ' chars';
 
+
+
   // Handle trial display
+
   const trialInfo = document.getElementById('trial-info');
+
   const trialDaysStat = document.getElementById('trial-days-stat');
+
   if (userState.isTrial && userState.trialEnd) {
+
     const now = new Date();
+
     const trialEnd = new Date(userState.trialEnd);
+
     const daysLeft = Math.max(0, Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24)));
+
     if (daysLeft > 0) {
+
       trialInfo.style.display = 'inline';
+
       trialDaysStat.style.display = 'block';
+
       document.getElementById('trial-days-left').textContent = daysLeft;
+
       document.getElementById('trial-days-val').textContent = daysLeft;
+
     } else {
+
       trialInfo.style.display = 'none';
+
       trialDaysStat.style.display = 'none';
+
     }
+
   } else {
+
     trialInfo.style.display = 'none';
+
     trialDaysStat.style.display = 'none';
+
   }
+
+
 
   // Highlight current plan button
+
   ['starter', 'creator', 'studio', 'pro'].forEach(p => {
+
     const btn = document.getElementById('upgrade-btn-' + p);
+
     if (btn) {
+
       btn.classList.remove('current-plan');
+
       btn.style.background = '';
+
     }
+
   });
+
   const currentBtn = document.getElementById('upgrade-btn-' + userState.plan);
+
   if (currentBtn) {
+
     currentBtn.classList.add('current-plan');
+
   }
+
 }
+
+
 
 // Voices
+
 function renderVoices(filter = 'all') {
+
   const grid = document.getElementById('voice-grid');
+
   const filtered = filter === 'all' ? voices : voices.filter(v => v.category === filter);
+
   grid.innerHTML = filtered.map(voice => `
+
     <div class="voice-card ${selectedVoice?.id === voice.id ? 'selected' : ''}" onclick="selectVoice(${voice.id})">
+
       ${selectedVoice?.id === voice.id ? '<span class="selected-badge" style="color:var(--accent);font-size:11px;">&#10003; Selected</span>' : ''}
+
       <img class="voice-icon" src="${voice.img}" alt="${voice.name}">
+
       <div class="voice-name">${voice.name}</div>
+
       <div class="voice-desc">${voice.accent}${voice.pitch ? ' | ' + voice.pitch : ''}</div>
+
       <div class="voice-qualities">${voice.qualities}</div>
+
     </div>
+
   `).join('');
+
 }
+
+
 
 function filterVoices(category) {
+
   document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
+
   event.target.classList.add('active');
+
   renderVoices(category);
+
 }
+
+
 
 function selectVoice(id) {
+
   selectedVoice = voices.find(v => v.id === id);
+
   document.getElementById('selected-voice-name').textContent = selectedVoice.name;
+
   document.getElementById('selected-voice-desc').textContent = selectedVoice.accent + (selectedVoice.pitch ? ' | ' + selectedVoice.pitch : '') + ' - ' + selectedVoice.qualities;
+
   renderVoices();
+
   document.getElementById('browse-section').style.display = 'none';
+
   document.getElementById('hero-section').style.display = 'none';
+
   document.getElementById('generator-section').classList.add('active');
+
 }
+
+
 
 function showGeneratorWithVoice(voiceId) {
+
   // Load community voices from localStorage and find the one just submitted
+
   const communityVoices = JSON.parse(localStorage.getItem('community_voices') || '[]');
+
   const voice = communityVoices.find(v => v.voice_id === voiceId);
+
   if (!voice) {
+
     // Fallback: reload community voices from server
+
     fetch('/api/community-voices')
+
       .then(r => r.json())
+
       .then(data => {
+
         const freshVoice = (data.voices || []).find(v => v.voice_id === voiceId);
+
         if (freshVoice) openGeneratorWithCommunityVoice(freshVoice);
+
       });
+
     return;
+
   }
+
   openGeneratorWithCommunityVoice(voice);
+
 }
+
+
 
 function openGeneratorWithCommunityVoice(voice) {
+
   selectedVoice = { key: voice.voice_id, name: voice.name, type: 'community', accent: voice.accent, pitch: voice.pitch, qualities: [voice.describe1, voice.describe2].filter(Boolean).join(' | ') };
+
   document.getElementById('selected-voice-name').textContent = voice.name;
+
   document.getElementById('selected-voice-desc').textContent = [voice.accent, voice.pitch].filter(Boolean).join(' | ') + ' | ' + [voice.describe1, voice.describe2].filter(Boolean).join(' | ');
+
   document.getElementById('browse-section').style.display = 'none';
+
   document.getElementById('hero-section').style.display = 'none';
+
   document.getElementById('generator-section').classList.add('active');
+
   document.getElementById('text-input').focus();
+
 }
+
+
 
 function showBrowse() {
+
   document.getElementById('generator-section').classList.remove('active');
+
   document.getElementById('download-section').classList.remove('active');
+
   document.getElementById('billing-section').classList.remove('active');
+
   document.getElementById('browse-section').style.display = 'block';
+
   document.getElementById('hero-section').style.display = 'block';
+
 }
+
+
 
 // Generator
+
 function updateSlider(type, value) {
+
   if (type === 'speed') {
+
     document.getElementById('speed-val').textContent = parseFloat(value).toFixed(1) + 'x';
+
   } else {
+
     document.getElementById(type + '-val').textContent = value + '%';
+
   }
+
 }
+
+
 
 function selectFormat(format, btn) {
+
   selectedFormat = format;
+
   document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+
   btn.classList.add('active');
+
 }
 
+
+
 async function generateAudio() {
+
   const { data: { session } } = await sb.auth.getSession();
+
   if (!session) { openAuthModal(); return; }
+
   if (!selectedVoice) { alert('Please select a voice first!'); return; }
+
   const text = document.getElementById('text-input').value;
+
   if (!text.trim()) { alert('Please enter some text!'); return; }
 
+
+
   // Check trial status
+
   if (userState.isTrial) {
+
     const now = new Date();
+
     const trialEnd = new Date(userState.trialEnd);
+
     const daysLeft = Math.ceil((trialEnd - now) / (1000 * 60 * 60 * 24));
+
     const plan = PLANS['starter']; // Trial uses same chars as starter
+
     const trialChars = TRIAL_CHARS; // Trial character limit
+
     const remaining = Math.max(0, trialChars - userState.charsUsed);
 
+
+
     if (daysLeft <= 0) {
+
       alert('Your free trial has ended! Upgrade now " paid plans start at just $3.99/month and give you 3x more characters to keep creating.');
+
       showBilling();
+
       return;
+
     }
+
     if (userState.charsUsed >= trialChars) {
+
       alert('You\'ve hit your free trial limit! Upgrade for just $3.99/month and get 3x more characters " keep your voiceå…‹éš† going.');
+
       showBilling();
+
       return;
+
     }
+
   }
 
+
+
   const btn = document.getElementById('generate-btn');
+
   btn.textContent = 'Generating... (may take 5-10 sec)';
+
   btn.disabled = true;
 
+
+
   try {
+
     const speed = parseFloat(document.getElementById('speed-slider').value);
+
     // Chatterbox Turbo: speed 0.5-2.0 (default 1.0)
+
     const runpodSpeed = Math.max(0.5, Math.min(2.0, 1.0 / speed));
 
+
+
     const stability = parseInt(document.getElementById('stability-slider').value);
+
     const similarity = parseInt(document.getElementById('similarity-slider').value);
+
     const style = parseInt(document.getElementById('style-slider').value);
 
+
+
     // Call backend proxy -> RunPod (keeps API key secure)
+
     const response = await fetch('/api/tts', {
+
       method: 'POST',
+
       headers: {
+
         'Content-Type': 'application/json',
+
         'Authorization': `Bearer ${userState.token}`
+
       },
+
       body: JSON.stringify({
+
         voiceKey: selectedVoice.key,
+
         text: text,
+
         speed: runpodSpeed,
+
         stability: stability,
+
         similarity: similarity,
+
         style: style,
+
         format: selectedFormat
+
       })
+
     });
+
+
 
     const result = await response;
 
+
+
     if (!result.ok) {
+
       const err = await result.json().catch(() => ({}));
+
       throw new Error('API error ' + result.status + ': ' + (err.error || ''));
+
     }
+
+
 
     // Backend returns raw WAV audio binary (CORS handled server-side)
+
     const audioBlob = await result.blob();
+
     const audioUrl = URL.createObjectURL(audioBlob);
 
+
+
     document.getElementById('audio-player').src = audioUrl;
+
     document.getElementById('download-voice-name').textContent = 'VOICE: ' + selectedVoice.name;
+
     document.getElementById('download-text-preview').textContent = '"' + text.substring(0, 80) + '..."';
+
     document.getElementById('download-info').textContent = 'Format: WAV | Size: ' + (audioBlob.size / 1024).toFixed(1) + ' KB';
+
     window.generatedAudioUrl = audioUrl;
+
     window.generatedAudioFilename = selectedVoice.name + '_' + selectedVoice.key + '_' + Date.now() + '.wav';
+
     window.generatedAudioVoiceName = selectedVoice.name;
+
     window.generatedAudioText = text;
+
     window.generatedAudioFormat = selectedFormat;
 
+
+
     document.getElementById('generator-section').classList.remove('active');
+
     document.getElementById('download-section').classList.add('active');
 
+
+
     // Pre-fill email if logged in
+
     if (userState.email) {
+
       document.getElementById('email-audio-input').value = userState.email;
+
     }
 
+
+
     document.getElementById('char-count').textContent = text.length;
+
     userState.charsUsed += text.length;
+
     updateStats();
+
     saveCharsUsed();
+
   } catch (error) {
+
     alert('Generation failed: ' + error.message);
+
   } finally {
+
     btn.textContent = 'Generate Audio';
+
     btn.disabled = false;
+
   }
+
 }
+
+
 
 function downloadFile() {
+
   if (window.generatedAudioUrl) {
+
     const a = document.createElement('a');
+
     a.href = window.generatedAudioUrl;
+
     a.download = window.generatedAudioFilename;
+
     document.body.appendChild(a);
+
     a.click();
+
     document.body.removeChild(a);
+
   }
+
 }
 
+
+
 async function emailAudioFile() {
+
   const btn = document.getElementById('email-audio-btn');
+
   const status = document.getElementById('email-audio-status');
+
   const emailInput = document.getElementById('email-audio-input');
+
   const email = emailInput.value.trim();
 
+
+
   if (!email) {
+
     status.style.color = '#ef4444';
+
     status.textContent = 'Please enter an email address';
+
     return;
+
   }
+
+
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+
     status.style.color = '#ef4444';
+
     status.textContent = 'Please enter a valid email address';
+
     return;
+
   }
+
+
 
   if (!window.generatedAudioUrl) {
+
     status.style.color = '#ef4444';
+
     status.textContent = 'No audio to send';
+
     return;
+
   }
 
+
+
   btn.disabled = true;
+
   btn.textContent = 'Sending...';
+
   status.style.color = 'var(--text-muted)';
+
   status.textContent = 'Fetching audio...';
 
+
+
   try {
+
     // Fetch the audio blob and convert to base64
+
     const audioResp = await fetch(window.generatedAudioUrl);
+
     const audioBlob = await audioResp.blob();
+
     const arrayBuffer = await audioBlob.arrayBuffer();
+
     const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+
 
     status.textContent = 'Sending email...';
 
+
+
     const resp = await fetch('/api/send-audio', {
+
       method: 'POST',
+
       headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
+
         email,
+
         audioBase64,
+
         voiceName: window.generatedAudioVoiceName || '',
+
         text: window.generatedAudioText || '',
+
         format: window.generatedAudioFormat || 'wav_44100_16bit'
+
       })
+
     });
+
+
 
     const result = await resp.json();
 
+
+
     if (result.success) {
+
       status.style.color = '#22c55e';
+
       status.textContent = 'Audio sent to ' + email + '!';
+
       emailInput.value = '';
+
     } else {
+
       throw new Error(result.error || 'Failed to send email');
+
     }
+
   } catch (err) {
+
     status.style.color = '#ef4444';
+
     status.textContent = 'Error: ' + err.message;
+
     btn.disabled = false;
+
     btn.textContent = 'Send Email';
+
   }
+
 }
+
+
 
 let selectedGiftOption = null;
 
+
+
 function selectGiftOption(plan, price) {
+
   selectedGiftOption = { plan, price };
 
+
+
   // Highlight selected option
+
   document.querySelectorAll('.gift-option').forEach(el => {
+
     el.style.borderColor = 'var(--border)';
+
   });
+
   event.currentTarget.style.borderColor = 'var(--accent)';
 
+
+
   // Show gift form
+
   document.getElementById('gift-form').style.display = 'block';
+
   document.getElementById('gift-price-display').textContent = '$' + price.toFixed(2);
+
   document.getElementById('gift-success').style.display = 'none';
+
   document.getElementById('gift-error').textContent = '';
+
 }
+
+
 
 function cancelGift() {
+
   document.getElementById('gift-form').style.display = 'none';
+
   selectedGiftOption = null;
+
   document.querySelectorAll('.gift-option').forEach(el => {
+
     el.style.borderColor = 'var(--border)';
+
   });
+
 }
+
+
 
 async function checkoutGift() {
+
   const name = document.getElementById('gift-recipient-name').value.trim();
+
   const email = document.getElementById('gift-recipient-email').value.trim();
+
   const btn = document.getElementById('gift-checkout-btn');
+
   const error = document.getElementById('gift-error');
 
+
+
   if (!name) { error.textContent = 'Please enter recipient name'; return; }
+
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { error.textContent = 'Please enter a valid email'; return; }
+
   if (!selectedGiftOption) { error.textContent = 'Please select a gift option'; return; }
 
+
+
   btn.disabled = true;
+
   btn.textContent = 'Processing...';
+
   error.textContent = '';
 
+
+
   try {
+
     const resp = await fetch('/api/create-gift', {
+
       method: 'POST',
+
       headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
+
         plan: selectedGiftOption.plan,
+
         price: selectedGiftOption.price,
+
         recipientName: name,
+
         recipientEmail: email,
+
         purchaserEmail: userState.email || ''
+
       })
+
     });
 
+
+
     const result = await resp.json();
+
     if (result.error) throw new Error(result.error);
 
+
+
     // Stripe checkout
+
     if (result.checkoutUrl) {
+
       window.location.href = result.checkoutUrl;
+
       return;
+
     }
 
+
+
     document.getElementById('gift-form').style.display = 'none';
+
     document.getElementById('gift-success').style.display = 'block';
+
     document.getElementById('gift-recipient-name').value = '';
+
     document.getElementById('gift-recipient-email').value = '';
+
     cancelGift();
 
+
+
   } catch (err) {
+
     error.textContent = err.message;
+
     btn.disabled = false;
+
     btn.textContent = 'Buy Gift - $' + selectedGiftOption.price.toFixed(2);
+
   }
+
 }
+
+
 
 function showRedeemModal() {
+
   document.getElementById('redeem-modal').classList.add('active');
+
   document.getElementById('redeem-code-input').value = '';
+
   document.getElementById('redeem-error').style.display = 'none';
+
   document.getElementById('redeem-success').style.display = 'none';
+
 }
+
+
 
 function closeRedeemModal() {
+
   document.getElementById('redeem-modal').classList.remove('active');
+
 }
 
+
+
 async function redeemGiftCode() {
+
   const code = document.getElementById('redeem-code-input').value.trim().toUpperCase();
+
   const error = document.getElementById('redeem-error');
+
   const success = document.getElementById('redeem-success');
+
+
 
   if (!code) { error.textContent = 'Please enter a gift code'; error.style.display = 'block'; return; }
 
+
+
   try {
+
     const resp = await fetch('/api/redeem-gift', {
+
       method: 'POST',
+
       headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({ code })
+
     });
+
     const result = await resp.json();
+
     if (result.error) throw new Error(result.error);
 
+
+
     success.textContent = 'Gift redeemed! ' + result.message;
+
     success.style.display = 'block';
+
     error.style.display = 'none';
 
+
+
     // Refresh user data
+
     if (userState.email) {
+
       await loadUserProfile(supabase.auth.user());
+
       updateStats();
+
     }
+
+
 
     setTimeout(closeRedeemModal, 2500);
 
+
+
   } catch (err) {
+
     error.textContent = err.message;
+
     error.style.display = 'block';
+
     success.style.display = 'none';
+
   }
+
 }
+
+
 
 let selectedPrivateVoiceFile = null;
 
+
+
 function showPrivateVoiceUpload() {
+
   document.getElementById('private-voice-upload-area').style.display = 'block';
+
   document.getElementById('private-voice-success').style.display = 'none';
+
   document.getElementById('private-voice-file').value = '';
+
   document.getElementById('private-voice-file-info').textContent = '';
+
   document.getElementById('private-voice-name').value = '';
+
   document.getElementById('private-voice-error').textContent = '';
+
   document.getElementById('private-voice-checkout-btn').disabled = true;
+
   selectedPrivateVoiceFile = null;
+
 }
+
+
 
 function cancelPrivateVoiceUpload() {
+
   document.getElementById('private-voice-upload-area').style.display = 'none';
+
   selectedPrivateVoiceFile = null;
+
 }
 
+
+
 function handlePrivateVoiceFile(input) {
+
   const file = input.files[0];
+
   const info = document.getElementById('private-voice-file-info');
+
   const btn = document.getElementById('private-voice-checkout-btn');
+
   const error = document.getElementById('private-voice-error');
 
+
+
   error.textContent = '';
+
+
 
   if (!file) return;
 
+
+
   // Check file type
+
   const allowedTypes = ['audio/wav', 'audio/mpeg', 'audio/flac', 'audio/mp3', 'audio/x-wav'];
+
   if (!allowedTypes.includes(file.type) && !file.name.match(/\.(wav|mp3|flac)$/i)) {
+
     error.textContent = 'Please upload a WAV, MP3, or FLAC file';
+
     btn.disabled = true;
+
     return;
+
   }
+
+
 
   // Check file size (max 10MB)
+
   if (file.size > 10 * 1024 * 1024) {
+
     error.textContent = 'File must be under 10MB';
+
     btn.disabled = true;
+
     return;
+
   }
+
+
 
   selectedPrivateVoiceFile = file;
+
   info.textContent = `${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+
   btn.disabled = !document.getElementById('private-voice-name').value.trim();
+
 }
+
+
 
 async function checkoutPrivateVoice() {
+
   const name = document.getElementById('private-voice-name').value.trim();
+
   const error = document.getElementById('private-voice-error');
+
   const btn = document.getElementById('private-voice-checkout-btn');
 
+
+
   if (!name) { error.textContent = 'Please enter a voice name'; return; }
+
   if (!selectedPrivateVoiceFile) { error.textContent = 'Please select an audio file'; return; }
+
   if (!userState.email) {
+
     error.textContent = 'Please sign in first';
+
     return;
+
   }
+
+
 
   btn.disabled = true;
+
   btn.textContent = 'Processing...';
+
   error.textContent = '';
 
+
+
   try {
+
     // Convert file to base64
+
     const arrayBuffer = await selectedPrivateVoiceFile.arrayBuffer();
+
     const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
+
+
     // Create Stripe checkout for $29.99
+
     const resp = await fetch('/api/create-private-voice', {
+
       method: 'POST',
+
       headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
+
         audioBase64,
+
         fileName: selectedPrivateVoiceFile.name,
+
         voiceName: name,
+
         userEmail: userState.email
+
       })
+
     });
 
+
+
     const result = await resp.json();
+
     if (result.error) throw new Error(result.error);
 
+
+
     if (result.checkoutUrl) {
+
       window.location.href = result.checkoutUrl;
+
       return;
+
     }
+
+
 
     document.getElementById('private-voice-upload-area').style.display = 'none';
+
     document.getElementById('private-voice-success').style.display = 'block';
+
     selectedPrivateVoiceFile = null;
 
+
+
   } catch (err) {
+
     error.textContent = err.message;
+
     btn.disabled = false;
+
     btn.textContent = 'Pay $29.99 & Generate';
+
   }
+
 }
+
+
 
 // Init
+
 async function loadUserProfile(user) {
+
   if (!user) return;
+
   const { data: profile } = await sb.from('profiles').select('*').eq('id', user.id).single();
+
   if (profile) {
+
     userState.plan = profile.plan || 'trial';
+
     userState.charsUsed = profile.chars_used || 0;
+
     userState.isTrial = profile.plan === 'trial';
+
     userState.trialEnd = profile.trial_end;
+
   } else {
+
     userState.plan = 'trial';
+
     userState.charsUsed = 0;
+
     userState.isTrial = true;
+
     const trialEnd = new Date();
+
     trialEnd.setDate(trialEnd.getDate() + 5);
+
     userState.trialEnd = trialEnd.toISOString();
+
   }
+
   updateStats();
+
 }
+
+
 
 sb.auth.getSession().then(({ data: { session } }) => {
+
   if (session) userState.token = session.access_token;
+
   updateAuthUI(session ? session.user : null);
+
   if (session) {
+
     loadUserProfile(session.user);
+
     loadCustomVoices();
+
   }
+
 });
+
 sb.auth.onAuthStateChange((event, session) => {
+
   if (event === 'SIGNED_IN' && session) { userState.token = session.access_token; updateAuthUI(session.user); loadUserProfile(session.user); loadCustomVoices(); }
+
   else if (event === 'SIGNED_OUT') { updateAuthUI(null); }
+
 });
+
 renderVoices();
+
 updateStats();
+
 loadCustomVoices(); // Load community voices for everyone
 
+
+
 // Custom Voice Cloning
+
 let mediaRecorder = null;
+
 let audioChunks = [];
+
 let recordedBlob = null;
 
+
+
 function openCreateVoiceModal() {
+
   if (!userState.email) {
+
     openAuthModal();
+
     return;
+
   }
+
   document.getElementById('create-voice-section').style.display = 'block';
+
   document.getElementById('cv-name').value = '';
+
   document.getElementById('cv-accent').value = '';
+
   document.getElementById('cv-pitch').value = '';
+
   document.getElementById('cv-desc1').value = '';
+
   document.getElementById('cv-desc2').value = '';
+
   document.getElementById('cv-rec-status').textContent = 'Ready to record';
+
   document.getElementById('cv-rec-status').className = 'recorder-status';
+
   document.getElementById('cv-audio-preview').style.display = 'none';
+
   document.getElementById('cv-error-msg').style.display = 'none';
+
 }
+
+
 
 function closeCreateVoiceModal() {
+
   document.getElementById('create-voice-section').style.display = 'none';
+
   if (mediaRecorder && mediaRecorder.state === 'recording') {
+
     mediaRecorder.stop();
+
   }
+
   // Reset form state
+
   clearRecording();
+
   document.getElementById('cv-name').value = '';
+
   document.getElementById('cv-accent').value = '';
+
   document.getElementById('cv-pitch').value = '';
+
   document.getElementById('cv-desc1').value = '';
+
   document.getElementById('cv-desc2').value = '';
+
   document.getElementById('cv-error-msg').style.display = 'none';
+
 }
+
+
 
 async function toggleRecording() {
+
   if (mediaRecorder && mediaRecorder.state === 'recording') {
+
     mediaRecorder.stop();
+
     document.getElementById('cv-record-btn').textContent = 'Start Recording';
+
     document.getElementById('cv-rec-status').textContent = 'Recording stopped';
+
     document.getElementById('cv-rec-status').className = 'recorder-status';
+
     return;
+
   }
 
+
+
   try {
+
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
     mediaRecorder = new MediaRecorder(stream);
+
     audioChunks = [];
 
+
+
     mediaRecorder.ondataavailable = e => {
+
       if (e.data.size > 0) audioChunks.push(e.data);
+
     };
+
+
 
     mediaRecorder.onstop = () => {
+
       recordedBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
       const audioUrl = URL.createObjectURL(recordedBlob);
+
       document.getElementById('cv-preview-audio').src = audioUrl;
+
       document.getElementById('cv-audio-preview').style.display = 'block';
+
       document.getElementById('cv-rec-status').textContent = 'Recording ready - preview above';
+
       document.getElementById('cv-rec-status').className = 'recorder-status';
+
       document.getElementById('cv-reset-btn').style.display = 'inline-block';
+
       document.getElementById('cv-submit-choice').style.display = 'block';
+
       document.getElementById('cv-submit-original').style.display = 'none';
+
       stream.getTracks().forEach(t => t.stop());
+
     };
 
+
+
     mediaRecorder.start();
+
     document.getElementById('cv-record-btn').textContent = 'Stop Recording';
+
     document.getElementById('cv-rec-status').textContent = 'Recording...';
+
     document.getElementById('cv-rec-status').className = 'recorder-status recording';
+
   } catch (err) {
+
     showCvError('Microphone access denied. Please allow mic access.');
+
   }
+
 }
+
+
 
 function clearRecording() {
+
   recordedBlob = null;
+
   audioChunks = [];
+
   document.getElementById('cv-preview-audio').src = '';
+
   document.getElementById('cv-audio-preview').style.display = 'none';
+
   document.getElementById('cv-rec-status').textContent = 'Ready to record';
+
   document.getElementById('cv-rec-status').className = 'recorder-status';
+
   document.getElementById('cv-reset-btn').style.display = 'none';
+
   document.getElementById('cv-record-btn').textContent = 'Start Recording';
+
   document.getElementById('cv-submit-choice').style.display = 'none';
+
   document.getElementById('cv-submit-original').style.display = 'flex';
+
 }
+
+
 
 async function submitCommunityVoice() {
+
   const name = document.getElementById('cv-name').value.trim();
+
   const accent = document.getElementById('cv-accent').value.trim();
+
   const pitch = document.getElementById('cv-pitch').value;
+
   const desc1 = document.getElementById('cv-desc1').value.trim();
+
   const desc2 = document.getElementById('cv-desc2').value.trim();
+
   const submitBtn = document.getElementById('cv-submit-community-btn');
 
+
+
   if (!name) { showCvError('Please enter a name for your voice.'); return; }
+
   if (!recordedBlob || recordedBlob.size === 0) { showCvError('Please record a voice sample first.'); return; }
 
+
+
   submitBtn.disabled = true;
+
   submitBtn.textContent = 'Submitting...';
 
+
+
   try {
+
     const formData = new FormData();
+
     formData.append('name', name);
+
     formData.append('audio', recordedBlob, 'recording.webm');
+
     formData.append('public', true);
+
     formData.append('accent', accent);
+
     formData.append('pitch', pitch);
+
     formData.append('desc1', desc1);
+
     formData.append('desc2', desc2);
 
+
+
     const resp = await fetch('/api/clone-voice', {
+
       method: 'POST',
+
       headers: { 'Authorization': `Bearer ${userState.token}` },
+
       body: formData
+
     });
+
+
 
     const data = await resp.json();
+
     if (!resp.ok) throw new Error(data.error || 'Voice cloning failed');
 
+
+
     closeCreateVoiceModal();
+
     showGeneratorWithVoice(data.voiceId);
 
+
+
   } catch (err) {
+
     showCvError(err.message);
+
     submitBtn.disabled = false;
+
     submitBtn.textContent = 'Submit to Community (Free)';
+
   }
+
 }
+
+
 
 async function submitPrivateVoice() {
+
   const name = document.getElementById('cv-name').value.trim();
+
   const submitBtn = document.getElementById('cv-submit-private-btn');
 
+
+
   if (!name) { showCvError('Please enter a name for your voice.'); return; }
+
   if (!recordedBlob || recordedBlob.size === 0) { showCvError('Please record a voice sample first.'); return; }
+
   if (!userState.email) { showCvError('Please sign in first.'); return; }
 
+
+
   submitBtn.disabled = true;
+
   submitBtn.textContent = 'Processing...';
 
+
+
   try {
+
     // Convert recording to base64
+
     const arrayBuffer = await recordedBlob.arrayBuffer();
+
     const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
 
+
+
     // Create Stripe checkout for $29.99
+
     const resp = await fetch('/api/create-private-voice', {
+
       method: 'POST',
+
       headers: { 'Content-Type': 'application/json' },
+
       body: JSON.stringify({
+
         audioBase64,
+
         fileName: 'recording.webm',
+
         voiceName: name,
+
         userEmail: userState.email
+
       })
+
     });
 
+
+
     const result = await resp.json();
+
     if (result.error) throw new Error(result.error);
 
+
+
     if (result.checkoutUrl) {
+
       window.location.href = result.checkoutUrl;
+
       return;
+
     }
 
+
+
     closeCreateVoiceModal();
+
     alert('Private voice created! Check your email for your generated audio.');
 
+
+
   } catch (err) {
+
     showCvError(err.message);
+
     submitBtn.disabled = false;
+
     submitBtn.textContent = 'Use Privately ($29.99)';
+
   }
+
 }
 
+
+
 async function submitCustomVoice() {
+
   const name = document.getElementById('cv-name').value.trim();
+
   const accent = document.getElementById('cv-accent').value.trim();
+
   const pitch = document.getElementById('cv-pitch').value;
+
   const desc1 = document.getElementById('cv-desc1').value.trim();
+
   const desc2 = document.getElementById('cv-desc2').value.trim();
+
   const isPublic = true; // All voice samples go to community library
+
   const submitBtn = document.getElementById('cv-submit-btn');
+
   const errorDiv = document.getElementById('cv-error-msg');
+
   const errorText = document.getElementById('cv-error-text');
+
+
 
   errorDiv.style.display = 'none';
 
+
+
   if (!name) { showCvError('Please enter a name for your voice.'); return; }
+
   if (!recordedBlob || recordedBlob.size === 0) { showCvError('Please record a voice sample first.'); return; }
 
+
+
   submitBtn.disabled = true;
+
   submitBtn.textContent = 'Processing...';
 
+
+
   try {
+
     const formData = new FormData();
+
     formData.append('name', name);
+
     formData.append('audio', recordedBlob, 'recording.webm');
+
     formData.append('public', isPublic);
+
     formData.append('accent', accent);
+
     formData.append('pitch', pitch);
+
     formData.append('desc1', desc1);
+
     formData.append('desc2', desc2);
+
+
 
     console.log('Submitting voice clone:', { name, audioSize: recordedBlob.size, accent, pitch, desc1, desc2 });
 
+
+
     const resp = await fetch('/api/clone-voice', {
+
       method: 'POST',
+
       headers: { 'Authorization': `Bearer ${userState.token}` },
+
       body: formData
+
     });
+
+
 
     const data = await resp.json();
 
+
+
     if (!resp.ok) {
+
       throw new Error(data.error || 'Voice cloning failed');
+
     }
+
+
 
     // Success - reload voices or update UI
+
     closeCreateVoiceModal();
+
     alert('Your voice sample has been submitted to the community library!');
+
     location.reload();
 
+
+
   } catch (err) {
+
     showCvError(err.message);
+
     submitBtn.disabled = false;
+
     submitBtn.textContent = 'Clone My Voice';
+
   }
+
 }
+
+
 
 function showCvError(msg) {
+
   const errorDiv = document.getElementById('cv-error-msg');
+
   const errorText = document.getElementById('cv-error-text');
+
   errorText.textContent = msg;
+
   errorDiv.style.display = 'block';
+
 }
+
+
 
 // Load community voices
+
 async function loadCustomVoices() {
 
+
+
   // Load community voices from server
+
   try {
+
     const resp = await fetch('/api/community-voices');
+
     if (resp.ok) {
+
       const data = await resp.json();
+
       if (data.voices && data.voices.length > 0) {
+
         document.getElementById('community-voices-section').style.display = 'block';
+
         localStorage.setItem('community_voices', JSON.stringify(data.voices));
+
         renderCommunityVoices(data.voices);
+
       }
+
     }
+
   } catch (err) {
+
     console.log('Could not load community voices');
+
   }
+
 }
+
+
 
 function renderCommunityVoices(voices) {
+
   const grid = document.getElementById('community-voices-grid');
+
   grid.innerHTML = voices.map(v => `
+
     <div class="voice-card" data-type="community" onclick="selectVoice('${v.voice_id}', 'community')">
+
       <div style="width:80px;height:80px;background:var(--bg);border-radius:12px;display:flex;align-items:center;justify-content:center;margin:0 auto 8px;font-size:36px;">&#128101;</div>
+
       <div class="voice-name">${v.name}</div>
+
       <div class="voice-desc">${[v.accent, v.pitch].filter(Boolean).join(' | ') || 'Community'}</div>
+
       <div class="voice-qualities">${[v.describe1, v.describe2].filter(Boolean).join(', ')}</div>
+
     </div>
+
   `).join('');
 
+
+
   // Also normalize community voices for the TTS handler (add key = voice_id)
+
   const normalized = voices.map(v => ({ ...v, key: v.voice_id }));
+
   const existing = JSON.parse(localStorage.getItem('community_voices') || '[]');
+
   const normalizedExisting = existing.map(v => ({ ...v, key: v.voice_id }));
+
   localStorage.setItem('community_voices', JSON.stringify(normalizedExisting.length > 0 ? normalizedExisting : normalized));
+
 }
 
+
+
 function selectVoice(id, type) {
+
   // Find the voice from the appropriate array
+
   let voice = null;
+
   if (type === 'private') {
+
     const privateVoices = JSON.parse(localStorage.getItem('private_voices') || '[]');
+
     voice = privateVoices.find(v => v.id === id);
+
   } else if (type === 'community') {
+
     const communityVoices = JSON.parse(localStorage.getItem('community_voices') || '[]');
+
     voice = communityVoices.find(v => v.voice_id === id);
+
     if (voice) voice.key = id; // Normalize for TTS handler
+
   } else {
+
     voice = voices.find(v => v.id === id);
+
   }
+
+
 
   if (!voice) return;
 
+
+
   selectedVoice = voice;
+
   document.getElementById('selected-voice-name').textContent = voice.name;
+
   document.getElementById('selected-voice-desc').textContent = voice.desc || (type === 'private' ? 'My Voice' : 'Community Voice');
+
   document.getElementById('browse-section').style.display = 'none';
+
   document.getElementById('hero-section').style.display = 'none';
+
   document.getElementById('generator-section').classList.add('active');
+
 }
 
+
+
 // Community voices always visible at bottom of browse
+
 document.getElementById('community-voices-section').style.display = 'block';
+
+
 
 </script>
 
 
+
+
+
 </body>
+
 </html>
+
+
 
