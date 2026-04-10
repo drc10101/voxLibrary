@@ -1198,69 +1198,6 @@
   </div>
   <div class="voice-grid" id="voice-grid"></div>
 
-  <div class="section" id="create-voice-section" style="display:none;">
-    <div class="section-header">
-      <h2 style="font-size:20px;">Create Your Own Voice</h2>
-    </div>
-    <p style="color:var(--text-muted);font-size:14px;margin:0 0 16px 0;">Record yourself reading the script below, then save your voice clone.</p>
-    <div style="display:flex;gap:16px;margin-bottom:16px;align-items:flex-start;flex-wrap:wrap;flex-direction:row;">
-      <div class="form-group" style="flex:0 0 180px;">
-        <label>Voice Name</label>
-        <input type="text" id="cv-name" placeholder="e.g., Dave's Voice" maxlength="30">
-      </div>
-      <div class="form-group" style="flex:0 0 120px;">
-        <label>Accent</label>
-        <input type="text" id="cv-accent" placeholder="e.g., Southern" maxlength="30">
-      </div>
-      <div class="form-group" style="flex:0 0 120px;">
-        <label>Pitch</label>
-        <select id="cv-pitch" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:14px;">
-          <option value="">Select...</option>
-          <option value="Low">Low</option>
-          <option value="Mid">Mid</option>
-          <option value="High">High</option>
-        </select>
-      </div>
-      <div class="form-group" style="flex:0 0 140px;">
-        <label>Describe 1</label>
-        <input type="text" id="cv-desc1" placeholder="e.g., Warm" maxlength="30">
-      </div>
-      <div class="form-group" style="flex:0 0 140px;">
-        <label>Describe 2</label>
-        <input type="text" id="cv-desc2" placeholder="e.g., Friendly" maxlength="30">
-      </div>
-    </div>
-    <div class="form-group">
-      <label>Read This Script While Recording</label>
-      <p style="font-style:italic;font-size:16px;color:var(--text-muted);margin:0;line-height:1.5;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;white-space:pre-wrap;">"Hey there, how's it going today? I'm heading out to the car right now because the weather's turning pretty wild out here in the Midwest. The rain started pouring hard, and those dark clouds are really moving fast across the sky. Have you ever thought about what makes a good road trip so much fun? It's all about the open highway, good music blasting from the radio, and stopping at little diners for burgers and fries. Yesterday I drove through the mountains, where the trees were turning bright red and orange in the fall air. But watch out for those sharp curves -- better take it easy or you might end up in trouble. My friend always says, 'Don't forget the map, or you'll get totally lost!' Anyway, I'm grabbing some coffee and a snack before I hit the road again. What about you? Got any big plans this weekend? Life's too short not to enjoy the ride, right? See you later!"</p>
-    </div>
-    <div class="form-group">
-      <label>Recording</label>
-      <div class="recorder-container">
-        <button class="btn btn-primary" id="cv-record-btn" onclick="toggleRecording()">Start Recording</button>
-        <button class="btn btn-secondary" id="cv-reset-btn" onclick="clearRecording()" style="display:none;">Start Over</button>
-        <div class="recorder-status" id="cv-rec-status">Ready to record</div>
-        <div class="recorder-preview" id="cv-audio-preview" style="display:none;">
-          <audio id="cv-preview-audio" controls></audio>
-        </div>
-      </div>
-    </div>
-    <div class="form-group">
-      <p style="font-size:13px;color:var(--text-muted);margin:0;">
-        Your voice will be publicly available under the
-        <strong>Creative Commons Attribution (CC BY)</strong> license.
-      </p>
-    </div>
-
-    <div class="form-group" style="display:none;" id="cv-error-msg">
-      <div class="error-msg" id="cv-error-text"></div>
-    </div>
-    <div style="display:flex;gap:10px;margin-top:16px;">
-      <button class="btn btn-primary" id="cv-submit-btn" onclick="submitCustomVoice()">Submit Voice Sample</button>
-    </div>
-  </div>
-</div>
-
   <!-- My Private Voices -->
   <div class="section" id="my-voices-section" style="display:none;">
     <div class="section-title">My Voices</div>
@@ -1279,6 +1216,68 @@
   <a href="#" onclick="openCreateVoiceModal();return false;" style="color:#818cf8;font-size:18px;font-weight:600;text-decoration:none;display:inline-block;padding:12px 24px;border:2px solid rgba(99,102,241,0.4);border-radius:12px;background:rgba(99,102,241,0.1);transition:all 0.2s;">
     + Create your own voice clone
   </a>
+</div>
+
+<!-- Create Voice Modal (hidden until button clicked) -->
+<div class="section" id="create-voice-section" style="display:none;">
+  <div class="section-header">
+    <h2 style="font-size:20px;">Create Your Own Voice</h2>
+  </div>
+  <p style="color:var(--text-muted);font-size:14px;margin:0 0 16px 0;">Record yourself reading the script below, then save your voice clone.</p>
+  <div style="display:flex;gap:16px;margin-bottom:16px;align-items:flex-start;flex-wrap:wrap;flex-direction:row;">
+    <div class="form-group" style="flex:0 0 180px;">
+      <label>Voice Name</label>
+      <input type="text" id="cv-name" placeholder="e.g., Dave's Voice" maxlength="30">
+    </div>
+    <div class="form-group" style="flex:0 0 120px;">
+      <label>Accent</label>
+      <input type="text" id="cv-accent" placeholder="e.g., Southern" maxlength="30">
+    </div>
+    <div class="form-group" style="flex:0 0 120px;">
+      <label>Pitch</label>
+      <select id="cv-pitch" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-size:14px;">
+        <option value="">Select...</option>
+        <option value="Low">Low</option>
+        <option value="Mid">Mid</option>
+        <option value="High">High</option>
+      </select>
+    </div>
+    <div class="form-group" style="flex:0 0 140px;">
+      <label>Describe 1</label>
+      <input type="text" id="cv-desc1" placeholder="e.g., Warm" maxlength="30">
+    </div>
+    <div class="form-group" style="flex:0 0 140px;">
+      <label>Describe 2</label>
+      <input type="text" id="cv-desc2" placeholder="e.g., Friendly" maxlength="30">
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Read This Script While Recording</label>
+    <p style="font-style:italic;font-size:16px;color:var(--text-muted);margin:0;line-height:1.5;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;white-space:pre-wrap;">"Hey there, how's it going today? I'm heading out to the car right now because the weather's turning pretty wild out here in the Midwest. The rain started pouring hard, and those dark clouds are really moving fast across the sky. Have you ever thought about what makes a good road trip so much fun? It's all about the open highway, good music blasting from the radio, and stopping at little diners for burgers and fries. Yesterday I drove through the mountains, where the trees were turning bright red and orange in the fall air. But watch out for those sharp curves -- better take it easy or you might end up in trouble. My friend always says, 'Don't forget the map, or you'll get totally lost!' Anyway, I'm grabbing some coffee and a snack before I hit the road again. What about you? Got any big plans this weekend? Life's too short not to enjoy the ride, right? See you later!"</p>
+  </div>
+  <div class="form-group">
+    <label>Recording</label>
+    <div class="recorder-container">
+      <button class="btn btn-primary" id="cv-record-btn" onclick="toggleRecording()">Start Recording</button>
+      <button class="btn btn-secondary" id="cv-reset-btn" onclick="clearRecording()" style="display:none;">Start Over</button>
+      <div class="recorder-status" id="cv-rec-status">Ready to record</div>
+      <div class="recorder-preview" id="cv-audio-preview" style="display:none;">
+        <audio id="cv-preview-audio" controls></audio>
+      </div>
+    </div>
+  </div>
+  <div class="form-group">
+    <p style="font-size:13px;color:var(--text-muted);margin:0;">
+      Your voice will be publicly available under the
+      <strong>Creative Commons Attribution (CC BY)</strong> license.
+    </p>
+  </div>
+  <div class="form-group" style="display:none;" id="cv-error-msg">
+    <div class="error-msg" id="cv-error-text"></div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:16px;">
+    <button class="btn btn-primary" id="cv-submit-btn" onclick="submitCustomVoice()">Submit Voice Sample</button>
+  </div>
 </div>
 
 <!-- Generator -->
