@@ -395,6 +395,211 @@ const server = http.createServer((incomingReq, serverRes) => {
     return;
   }
 
+  // API: Create gift code
+  if (incomingReq.method === 'POST' && incomingReq.url === '/api/create-gift') {
+    let body = '';
+    incomingReq.on('data', chunk => body += chunk);
+    incomingReq.on('end', async () => {
+      try {
+        const { plan, price, recipientName, recipientEmail, purchaserEmail } = JSON.parse(body);
+
+        // Generate gift code
+        const code = 'VOX-' + Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+        const chars = plan === 'chars_10k' ? 10000 : 0;
+
+        // Save to database
+        if (SUPABASE_SERVICE_KEY) {
+          const planMonths = { starter: 3, creator: 6, studio: 3, pro: 12, business: 12 };
+          await fetch(`${SUPABASE_URL}/rest/v1/gift_codes`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({
+              code,
+              plan,
+              characters: chars,
+              months: planMonths[plan] || 1,
+              price_paid: price,
+              purchaser_email: purchaserEmail,
+              recipient_email: recipientEmail,
+              recipient_name: recipientName
+            })
+          });
+        }
+
+        // Send email with gift code
+        if (emailTransporter) {
+          await emailTransporter.sendMail({
+            from: EMAIL_FROM,
+            to: recipientEmail,
+            subject: `You've received a VoxLibrary gift from ${recipientName || 'a friend'}!`,
+            text: `Hi!\n\n${recipientName || purchaserEmail || 'Someone'} sent you a VoxLibrary gift!\n\nYour gift code: ${code}\nPlan: ${plan}\n\nVisit https://jedsvoxlibrary.com to redeem it.\n\nPowered by VoxLibrary`
+          });
+        }
+
+        // Create Stripe checkout for the payment
+        if (stripe && price > 0) {
+          const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+              price_data: {
+                currency: 'usd',
+                product_data: {
+                  name: `VoxLibrary Gift - ${plan}`,
+                  description: `Gift code: ${code}`
+                },
+                unit_amount: Math.round(price * 100)
+              },
+              quantity: 1
+            }],
+            mode: 'payment',
+            success_url: `https://jedsvoxlibrary.com?gift_redeemed=${code}`,
+            cancel_url: `https://jedsvoxlibrary.com?gift_cancelled=true`
+          });
+          serverRes.writeHead(200, { 'Content-Type': 'application/json' });
+          serverRes.end(JSON.stringify({ success: true, checkoutUrl: session.url }));
+          return;
+        }
+
+        serverRes.writeHead(200, { 'Content-Type': 'application/json' });
+        serverRes.end(JSON.stringify({ success: true, code });
+
+      } catch (err) {
+        console.error('Create gift error:', err);
+        serverRes.writeHead(500, { 'Content-Type': 'application/json' });
+        serverRes.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
+  // API: Redeem gift code
+  if (incomingReq.method === 'POST' && incomingReq.url === '/api/redeem-gift') {
+    let body = '';
+    incomingReq.on('data', chunk => body += chunk);
+    incomingReq.on('end', async () => {
+      try {
+        const { code } = JSON.parse(body);
+        const normalizedCode = code.trim().toUpperCase();
+
+        let userId = null;
+        const authHeader = incomingReq.headers.authorization;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+          try {
+            const token = authHeader.split(' ')[1];
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+            userId = payload.sub;
+          } catch (e) { /* ignore */ }
+        }
+
+        if (!userId) {
+          serverRes.writeHead(401, { 'Content-Type': 'application/json' });
+          serverRes.end(JSON.stringify({ error: 'Please sign in to redeem a gift code' }));
+          return;
+        }
+
+        if (!SUPABASE_SERVICE_KEY) {
+          serverRes.writeHead(500, { 'Content-Type': 'application/json' });
+          serverRes.end(JSON.stringify({ error: 'Service not available' }));
+          return;
+        }
+
+        // Fetch gift code
+        const giftResp = await fetch(
+          `${SUPABASE_URL}/rest/v1/gift_codes?code=eq.${normalizedCode}&redeemed_by=is.null&select=*`,
+          {
+            headers: {
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+            }
+          }
+        );
+        const gifts = await giftResp.json();
+        if (!gifts || gifts.length === 0) {
+          throw new Error('Invalid or already redeemed gift code');
+        }
+
+        const gift = gifts[0];
+
+        // Update gift code
+        await fetch(
+          `${SUPABASE_URL}/rest/v1/gift_codes?code=eq.${normalizedCode}`,
+          {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+            },
+            body: JSON.stringify({
+              redeemed_by: userId,
+              redeemed_at: new Date().toISOString()
+            })
+          }
+        );
+
+        // Apply to user profile
+        let newChars = gift.characters || 0;
+        let newPlan = gift.plan;
+
+        // Fetch current profile
+        const profileResp = await fetch(
+          `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}&select=*`,
+          {
+            headers: {
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+            }
+          }
+        );
+        const profiles = await profileResp.json();
+        const profile = profiles?.[0];
+
+        if (profile) {
+          newChars += profile.bonus_chars || 0;
+          // Set plan if it's a subscription gift
+          if (['starter', 'creator', 'studio', 'pro', 'business'].includes(gift.plan)) {
+            newPlan = gift.plan;
+          }
+          await fetch(
+            `${SUPABASE_URL}/rest/v1/profiles?id=eq.${userId}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': SUPABASE_SERVICE_KEY,
+                'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`
+              },
+              body: JSON.stringify({
+                plan: newPlan,
+                bonus_chars: newChars,
+                plan_started: new Date().toISOString()
+              })
+            }
+          );
+        }
+
+        const planNames = { starter: 'Starter', creator: 'Creator', studio: 'Studio', pro: 'Pro', business: 'Business' };
+        const msg = gift.characters
+          ? `You received ${gift.characters.toLocaleString()} bonus characters!`
+          : `You received the ${planNames[gift.plan] || gift.plan} plan!`;
+
+        serverRes.writeHead(200, { 'Content-Type': 'application/json' });
+        serverRes.end(JSON.stringify({ success: true, message: msg }));
+
+      } catch (err) {
+        console.error('Redeem gift error:', err);
+        serverRes.writeHead(500, { 'Content-Type': 'application/json' });
+        serverRes.end(JSON.stringify({ error: err.message }));
+      }
+    });
+    return;
+  }
+
   // API: TTS
   if (incomingReq.method === 'POST' && incomingReq.url === '/api/tts') {
     let body = '';

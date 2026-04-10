@@ -1481,6 +1481,52 @@
     </div>
   </div>
 
+  <!-- Gift Cards -->
+  <div class="billing-card" style="grid-column: 1 / -1;">
+    <h3>Gift VoxLibrary</h3>
+    <p style="color: var(--text-muted); font-size: 14px; margin: 0 0 16px 0;">Send VoxLibrary to someone special. They'll get a code via email.</p>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 16px;">
+      <div class="gift-option" onclick="selectGiftOption('chars_10k', 4.99)" style="padding: 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: border-color 0.2s;">
+        <div style="font-size: 20px; font-weight: 700;">10,000 Characters</div>
+        <div style="font-size: 24px; color: var(--accent); font-weight: 700;">$4.99</div>
+        <div style="font-size: 12px; color: var(--text-muted);">One-time</div>
+      </div>
+      <div class="gift-option" onclick="selectGiftOption('starter', 19.99)" style="padding: 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: border-color 0.2s;">
+        <div style="font-size: 20px; font-weight: 700;">Starter Plan</div>
+        <div style="font-size: 24px; color: var(--accent); font-weight: 700;">$19.99</div>
+        <div style="font-size: 12px; color: var(--text-muted);">3 months included</div>
+      </div>
+      <div class="gift-option" onclick="selectGiftOption('creator', 49.99)" style="padding: 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: border-color 0.2s;">
+        <div style="font-size: 20px; font-weight: 700;">Creator Plan</div>
+        <div style="font-size: 24px; color: var(--accent); font-weight: 700;">$49.99</div>
+        <div style="font-size: 12px; color: var(--text-muted);">6 months included</div>
+      </div>
+      <div class="gift-option" onclick="selectGiftOption('studio', 149.99)" style="padding: 16px; background: var(--bg); border: 2px solid var(--border); border-radius: 12px; cursor: pointer; text-align: center; transition: border-color 0.2s;">
+        <div style="font-size: 20px; font-weight: 700;">Studio Plan</div>
+        <div style="font-size: 24px; color: var(--accent); font-weight: 700;">$149.99</div>
+        <div style="font-size: 12px; color: var(--text-muted);">3 months included</div>
+      </div>
+    </div>
+    <div id="gift-form" style="display: none; margin-top: 16px; padding: 16px; background: rgba(99,102,241,0.1); border-radius: 12px;">
+      <div style="font-weight: 700; margin-bottom: 12px;">Send Gift</div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+        <input type="text" id="gift-recipient-name" placeholder="Recipient name" style="flex: 1; min-width: 120px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
+        <input type="email" id="gift-recipient-email" placeholder="Recipient email" style="flex: 1; min-width: 160px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <button class="btn btn-primary" id="gift-checkout-btn" onclick="checkoutGift()">Buy Gift - <span id="gift-price-display"></span></button>
+        <button class="btn btn-ghost" onclick="cancelGift()">Cancel</button>
+      </div>
+      <div id="gift-error" style="color: #ef4444; font-size: 13px; margin-top: 8px;"></div>
+    </div>
+    <div id="gift-success" style="display: none; margin-top: 16px; padding: 16px; background: rgba(34,197,94,0.1); border-radius: 12px; color: #22c55e; font-weight: 600; text-align: center;">
+      Gift sent! Check your email for confirmation.
+    </div>
+    <div style="margin-top: 12px;">
+      <button class="btn btn-ghost" onclick="showRedeemModal()" style="font-size: 13px;">Have a gift code? Redeem here</button>
+    </div>
+  </div>
+
   <div class="billing-card">
     <h3>Monthly Plans</h3>
     <div class="plans-grid">
@@ -1527,6 +1573,19 @@
     <input type="password" class="input" id="auth-password" placeholder="Password">
     <button class="modal-btn primary" id="auth-submit" onclick="handleAuth()">Sign Up</button>
     <div class="modal-switch" id="auth-switch">Already have an account? <a onclick="toggleAuthMode()">Sign In</a></div>
+  </div>
+</div>
+
+<!-- Redeem Gift Modal -->
+<div class="modal-overlay" id="redeem-modal">
+  <div class="modal">
+    <h2>Redeem Gift Code</h2>
+    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 16px;">Enter your gift code below to claim your VoxLibrary credits.</p>
+    <input type="text" class="input" id="redeem-code-input" placeholder="e.g. VOX-GIFT-XXXX-XXXX" style="text-transform: uppercase; letter-spacing: 1px; font-size: 16px; text-align: center;">
+    <button class="modal-btn primary" onclick="redeemGiftCode()" style="margin-top: 12px;">Redeem Code</button>
+    <button class="modal-btn" onclick="closeRedeemModal()" style="margin-top: 8px; background: transparent; border: 1px solid var(--border); color: var(--text-muted);">Cancel</button>
+    <div id="redeem-error" style="color: #ef4444; font-size: 13px; margin-top: 8px; display: none;"></div>
+    <div id="redeem-success" style="color: #22c55e; font-size: 14px; margin-top: 8px; font-weight: 600; display: none;"></div>
   </div>
 </div>
 
@@ -2054,6 +2113,127 @@ async function emailAudioFile() {
     status.textContent = 'Error: ' + err.message;
     btn.disabled = false;
     btn.textContent = 'Send Email';
+  }
+}
+
+let selectedGiftOption = null;
+
+function selectGiftOption(plan, price) {
+  selectedGiftOption = { plan, price };
+
+  // Highlight selected option
+  document.querySelectorAll('.gift-option').forEach(el => {
+    el.style.borderColor = 'var(--border)';
+  });
+  event.currentTarget.style.borderColor = 'var(--accent)';
+
+  // Show gift form
+  document.getElementById('gift-form').style.display = 'block';
+  document.getElementById('gift-price-display').textContent = '$' + price.toFixed(2);
+  document.getElementById('gift-success').style.display = 'none';
+  document.getElementById('gift-error').textContent = '';
+}
+
+function cancelGift() {
+  document.getElementById('gift-form').style.display = 'none';
+  selectedGiftOption = null;
+  document.querySelectorAll('.gift-option').forEach(el => {
+    el.style.borderColor = 'var(--border)';
+  });
+}
+
+async function checkoutGift() {
+  const name = document.getElementById('gift-recipient-name').value.trim();
+  const email = document.getElementById('gift-recipient-email').value.trim();
+  const btn = document.getElementById('gift-checkout-btn');
+  const error = document.getElementById('gift-error');
+
+  if (!name) { error.textContent = 'Please enter recipient name'; return; }
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { error.textContent = 'Please enter a valid email'; return; }
+  if (!selectedGiftOption) { error.textContent = 'Please select a gift option'; return; }
+
+  btn.disabled = true;
+  btn.textContent = 'Processing...';
+  error.textContent = '';
+
+  try {
+    const resp = await fetch('/api/create-gift', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        plan: selectedGiftOption.plan,
+        price: selectedGiftOption.price,
+        recipientName: name,
+        recipientEmail: email,
+        purchaserEmail: userState.email || ''
+      })
+    });
+
+    const result = await resp.json();
+    if (result.error) throw new Error(result.error);
+
+    // Stripe checkout
+    if (result.checkoutUrl) {
+      window.location.href = result.checkoutUrl;
+      return;
+    }
+
+    document.getElementById('gift-form').style.display = 'none';
+    document.getElementById('gift-success').style.display = 'block';
+    document.getElementById('gift-recipient-name').value = '';
+    document.getElementById('gift-recipient-email').value = '';
+    cancelGift();
+
+  } catch (err) {
+    error.textContent = err.message;
+    btn.disabled = false;
+    btn.textContent = 'Buy Gift - $' + selectedGiftOption.price.toFixed(2);
+  }
+}
+
+function showRedeemModal() {
+  document.getElementById('redeem-modal').classList.add('active');
+  document.getElementById('redeem-code-input').value = '';
+  document.getElementById('redeem-error').style.display = 'none';
+  document.getElementById('redeem-success').style.display = 'none';
+}
+
+function closeRedeemModal() {
+  document.getElementById('redeem-modal').classList.remove('active');
+}
+
+async function redeemGiftCode() {
+  const code = document.getElementById('redeem-code-input').value.trim().toUpperCase();
+  const error = document.getElementById('redeem-error');
+  const success = document.getElementById('redeem-success');
+
+  if (!code) { error.textContent = 'Please enter a gift code'; error.style.display = 'block'; return; }
+
+  try {
+    const resp = await fetch('/api/redeem-gift', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code })
+    });
+    const result = await resp.json();
+    if (result.error) throw new Error(result.error);
+
+    success.textContent = 'Gift redeemed! ' + result.message;
+    success.style.display = 'block';
+    error.style.display = 'none';
+
+    // Refresh user data
+    if (userState.email) {
+      await loadUserProfile(supabase.auth.user());
+      updateStats();
+    }
+
+    setTimeout(closeRedeemModal, 2500);
+
+  } catch (err) {
+    error.textContent = err.message;
+    error.style.display = 'block';
+    success.style.display = 'none';
   }
 }
 
