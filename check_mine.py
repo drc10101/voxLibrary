@@ -1,0 +1,8 @@
+html = open('index.html', 'rb').read()
+browse_start = html.find(b'id="browse-section"')
+vg = html.find(b'id="voice-grid"')
+print('browse_start:', browse_start)
+print('voice-grid at:', vg)
+print()
+print('After voice-grid (next 200 bytes):')
+print(repr(html[vg:vg+200]))
