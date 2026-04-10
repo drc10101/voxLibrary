@@ -1416,16 +1416,26 @@
 <div class="download-screen" id="download-section">
   <div class="success-icon">✓</div>
   <h2>Generation Complete!</h2>
-  <p style="color: var(--text-muted); margin-bottom: 30px;">Your audio is ready to download</p>
+  <p style="color: var(--text-muted); margin-bottom: 30px;">Your audio is ready</p>
   <div class="download-card">
     <div id="download-voice-name" style="color: var(--text-muted); font-size: 13px; margin-bottom: 8px;"></div>
     <div id="download-text-preview" style="color: var(--accent); font-size: 14px; margin-bottom: 16px;"></div>
     <audio controls id="audio-player"></audio>
-    <div style="font-size: 12px; color: var(--text-muted);" id="download-info"></div>
+    <div style="font-size: 12px; color: var(--text-muted); margin-top: 8px;" id="download-info"></div>
   </div>
-  <div class="download-btns">
-    <button class="btn btn-primary" onclick="downloadFile()">📥 Download</button>
-    <button class="btn btn-ghost" onclick="showBrowse()">← Generate Another</button>
+
+  <div style="margin-top: 20px; padding: 16px; background: rgba(99,102,241,0.1); border-radius: 12px; border: 1px solid rgba(99,102,241,0.3);">
+    <p style="color: var(--text); font-size: 14px; margin: 0 0 10px 0; font-weight: 600;">Email your audio instead</p>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+      <input type="email" id="email-audio-input" placeholder="your@email.com" style="flex: 1; min-width: 160px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
+      <button class="btn btn-primary" id="email-audio-btn" onclick="emailAudioFile()">Send Email</button>
+    </div>
+    <div id="email-audio-status" style="font-size: 13px; margin-top: 8px; color: var(--text-muted);"></div>
+  </div>
+
+  <div class="download-btns" style="margin-top: 20px;">
+    <button class="btn btn-primary" onclick="downloadFile()">Download</button>
+    <button class="btn btn-ghost" onclick="showBrowse()">Generate Another</button>
   </div>
 </div>
 
@@ -1945,9 +1955,17 @@ async function generateAudio() {
     document.getElementById('download-info').textContent = 'Format: WAV | Size: ' + (audioBlob.size / 1024).toFixed(1) + ' KB';
     window.generatedAudioUrl = audioUrl;
     window.generatedAudioFilename = selectedVoice.name + '_' + selectedVoice.key + '_' + Date.now() + '.wav';
+    window.generatedAudioVoiceName = selectedVoice.name;
+    window.generatedAudioText = text;
+    window.generatedAudioFormat = format;
 
     document.getElementById('generator-section').classList.remove('active');
     document.getElementById('download-section').classList.add('active');
+
+    // Pre-fill email if logged in
+    if (userState.email) {
+      document.getElementById('email-audio-input').value = userState.email;
+    }
 
     document.getElementById('char-count').textContent = text.length;
     userState.charsUsed += text.length;
@@ -1969,6 +1987,73 @@ function downloadFile() {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+  }
+}
+
+async function emailAudioFile() {
+  const btn = document.getElementById('email-audio-btn');
+  const status = document.getElementById('email-audio-status');
+  const emailInput = document.getElementById('email-audio-input');
+  const email = emailInput.value.trim();
+
+  if (!email) {
+    status.style.color = '#ef4444';
+    status.textContent = 'Please enter an email address';
+    return;
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    status.style.color = '#ef4444';
+    status.textContent = 'Please enter a valid email address';
+    return;
+  }
+
+  if (!window.generatedAudioUrl) {
+    status.style.color = '#ef4444';
+    status.textContent = 'No audio to send';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Sending...';
+  status.style.color = 'var(--text-muted)';
+  status.textContent = 'Fetching audio...';
+
+  try {
+    // Fetch the audio blob and convert to base64
+    const audioResp = await fetch(window.generatedAudioUrl);
+    const audioBlob = await audioResp.blob();
+    const arrayBuffer = await audioBlob.arrayBuffer();
+    const audioBase64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+
+    status.textContent = 'Sending email...';
+
+    const resp = await fetch('/api/send-audio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        audioBase64,
+        voiceName: window.generatedAudioVoiceName || '',
+        text: window.generatedAudioText || '',
+        format: window.generatedAudioFormat || 'wav_44100_16bit'
+      })
+    });
+
+    const result = await resp.json();
+
+    if (result.success) {
+      status.style.color = '#22c55e';
+      status.textContent = 'Audio sent to ' + email + '!';
+      emailInput.value = '';
+    } else {
+      throw new Error(result.error || 'Failed to send email');
+    }
+  } catch (err) {
+    status.style.color = '#ef4444';
+    status.textContent = 'Error: ' + err.message;
+    btn.disabled = false;
+    btn.textContent = 'Send Email';
   }
 }
 

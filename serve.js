@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const Stripe = require('stripe');
+const nodemailer = require('nodemailer');
 
 const PORT = process.env.PORT || 8080;
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kxnqwpavjhiphgvkevvj.supabase.co';
@@ -12,6 +13,26 @@ const RUNPOD_FISH_SPEECH = process.env.RUNPOD_FISH_SPEECH;
 const RUNPOD_FISH_ENDPOINT_ID = process.env.RUNPOD_FISH_ENDPOINT_ID || '53xyuo8cif3b4k';
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY;
 const stripe = STRIPE_SECRET_KEY ? Stripe(STRIPE_SECRET_KEY) : null;
+
+// Email config
+const EMAIL_HOST = process.env.EMAIL_HOST || 'smtp.gmail.com';
+const EMAIL_PORT = process.env.EMAIL_PORT || 587;
+const EMAIL_USER = process.env.EMAIL_USER || 'dobilly.ai@gmail.com';
+const EMAIL_PASS = process.env.EMAIL_PASS;
+const EMAIL_FROM = process.env.EMAIL_FROM || 'VoxLibrary <dobilly.ai@gmail.com>';
+
+let emailTransporter = null;
+if (EMAIL_PASS) {
+  emailTransporter = nodemailer.createTransport({
+    host: EMAIL_HOST,
+    port: EMAIL_PORT,
+    secure: EMAIL_PORT === 465,
+    auth: { user: EMAIL_USER, pass: EMAIL_PASS }
+  });
+  console.log('Email transporter: ready');
+} else {
+  console.log('Email transporter: no credentials (EMAIL_PASS not set)');
+}
 
 console.log('=== VOXLIBRARY SERVER ===');
 console.log('PORT:', PORT);
@@ -322,6 +343,53 @@ const server = http.createServer((incomingReq, serverRes) => {
         console.error('Clone voice error:', err.message, err.stack);
         serverRes.writeHead(500, { 'Content-Type': 'application/json' });
         serverRes.end(JSON.stringify({ error: 'Internal error: ' + err.message }));
+      }
+    });
+    return;
+  }
+
+  // API: Send audio via email
+  if (incomingReq.method === 'POST' && incomingReq.url === '/api/send-audio') {
+    let body = '';
+    incomingReq.on('data', chunk => body += chunk);
+    incomingReq.on('end', async () => {
+      try {
+        const { email, audioBase64, voiceName, text, format } = JSON.parse(body);
+
+        if (!email || !audioBase64) {
+          serverRes.writeHead(400, { 'Content-Type': 'application/json' });
+          serverRes.end(JSON.stringify({ error: 'email and audioBase64 required' }));
+          return;
+        }
+
+        if (!emailTransporter) {
+          serverRes.writeHead(503, { 'Content-Type': 'application/json' });
+          serverRes.end(JSON.stringify({ error: 'Email service not configured' }));
+          return;
+        }
+
+        const ext = format === 'flac_44100_16bit' ? 'flac' : 'wav';
+        const filename = `voxlibrary-${voiceName || 'audio'}-${Date.now()}.${ext}`;
+
+        await emailTransporter.sendMail({
+          from: EMAIL_FROM,
+          to: email,
+          subject: 'Your VoxLibrary Audio',
+          text: `Your generated audio is attached.\n\nVoice: ${voiceName || 'Unknown'}\nText: ${text ? text.slice(0, 200) + '...' : 'N/A'}\n\nPowered by VoxLibrary`,
+          attachments: [{
+            filename,
+            content: Buffer.from(audioBase64, 'base64')
+          }]
+        });
+
+        console.log('Audio email sent to:', email);
+        serverRes.writeHead(200, { 'Content-Type': 'application/json' });
+        serverRes.end(JSON.stringify({ success: true }));
+
+      } catch (err) {
+        console.error('Send audio error:', err);
+        serverRes.writeHead(500, { 'Content-Type': 'application/json' });
+        serverRes.end(JSON.stringify({ error: err.message }));
       }
     });
     return;
