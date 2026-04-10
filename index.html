@@ -1331,6 +1331,15 @@
       </div>
     </div>
 
+    <div class="tips-box">
+      <h4>TIPS for Best Results</h4>
+      <ol>
+        <li><strong>Quiet space:</strong> Sit in a quiet space, not a bathroom but somewhere out of the way with furniture, cabinetry, or carpet. It will sound more natural. Keep the microphone 6-10 inches from your mouth with a pop filter if you have one.</li>
+        <li><strong>Listen:</strong> What do you hear? Try to eliminate strange sounds like road traffic, TV programs, radio, or loud conversations.</li>
+        <li><strong>Warm up:</strong> Read the training script several times so you already feel the vibe of the conversation.</li>
+      </ol>
+    </div>
+
     <button class="generate-btn" id="generate-btn" onclick="generateAudio()">🎵 Generate Audio</button>
   </div>
 </div>
@@ -2070,12 +2079,9 @@ function showCvError(msg) {
   errorDiv.style.display = 'block';
 }
 
-// Load private and community voices when logged in
+// Load community voices when logged in
 async function loadCustomVoices() {
   if (!userState.email) return;
-
-  // Show Community button and load community voices
-  document.getElementById('cat-community').style.display = '';
 
   // Load community voices from server
   try {
@@ -2083,7 +2089,6 @@ async function loadCustomVoices() {
     if (resp.ok) {
       const data = await resp.json();
       if (data.voices && data.voices.length > 0) {
-        document.getElementById('cat-community').style.display = '';
         document.getElementById('community-voices-section').style.display = 'block';
         localStorage.setItem('community_voices', JSON.stringify(data.voices));
         renderCommunityVoices(data.voices);
@@ -2136,34 +2141,8 @@ function selectVoice(id, type) {
   document.getElementById('generator-section').classList.add('active');
 }
 
-// Update filterVoices to handle 'my' and 'community'
-const originalFilterVoices = filterVoices;
-filterVoices = function(category) {
-  document.querySelectorAll('.cat-btn').forEach(btn => btn.classList.remove('active'));
-  event.target.classList.add('active');
-
-  // Hide all special sections first
-  document.getElementById('my-voices-section').style.display = 'none';
-  document.getElementById('community-voices-section').style.display = 'none';
-
-  if (category === 'my') {
-    document.getElementById('browse-section').style.display = 'block';
-    document.getElementById('voice-grid').style.display = 'none';
-    document.getElementById('my-voices-section').style.display = 'block';
-    return;
-  }
-
-  if (category === 'community') {
-    document.getElementById('browse-section').style.display = 'block';
-    document.getElementById('voice-grid').style.display = 'none';
-    document.getElementById('community-voices-section').style.display = 'block';
-    return;
-  }
-
-  // Normal category
-  document.getElementById('voice-grid').style.display = '';
-  renderVoices(category);
-};
+// Community voices always visible at bottom of browse
+document.getElementById('community-voices-section').style.display = 'block';
 
 </script>
 
