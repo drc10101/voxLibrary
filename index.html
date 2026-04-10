@@ -376,8 +376,7 @@
       font-weight: 500;
     }
 
-    /* My Voices and Community Voices Sections */
-    #my-voices-section,
+    /* Community Voices Section */
     #community-voices-section {
       margin-top: 24px;
     }
@@ -389,7 +388,6 @@
       margin-bottom: 12px;
     }
 
-    #my-voices-grid,
     #community-voices-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
@@ -1193,16 +1191,9 @@
     <button class="cat-btn" onclick="filterVoices('social')">Social</button>
     <button class="cat-btn" onclick="filterVoices('everyman')">Everyday</button>
     <button class="cat-btn" onclick="filterVoices('character')">Character</button>
-    <button class="cat-btn" id="cat-my-voices" onclick="filterVoices('my')" style="display:none;">My Voices</button>
-    <button class="cat-btn" id="cat-community" onclick="filterVoices('community')" style="display:none;">Community</button>
   </div>
   <div class="voice-grid" id="voice-grid"></div>
 
-  <!-- My Private Voices -->
-  <div class="section" id="my-voices-section" style="display:none;">
-    <div class="section-title">My Voices</div>
-    <div class="voice-grid" id="my-voices-grid"></div>
-  </div>
 </div>
 
 <!-- Community Voices -->
@@ -2086,12 +2077,6 @@ async function loadCustomVoices() {
   document.getElementById('cat-my-voices').style.display = '';
 
   // Load private voices (stored in localStorage for now, synced from Supabase)
-  const privateVoices = JSON.parse(localStorage.getItem('private_voices') || '[]');
-  if (privateVoices.length > 0) {
-    document.getElementById('my-voices-section').style.display = 'block';
-    renderPrivateVoices(privateVoices);
-  }
-
   // Load community voices from server
   try {
     const resp = await fetch('/api/community-voices');
@@ -2107,17 +2092,6 @@ async function loadCustomVoices() {
   } catch (err) {
     console.log('Could not load community voices');
   }
-}
-
-function renderPrivateVoices(voices) {
-  const grid = document.getElementById('my-voices-grid');
-  grid.innerHTML = voices.map(v => `
-    <div class="voice-card" data-type="private" onclick="selectVoice(${v.id}, 'private')">
-      <img class="voice-icon" src="${v.img || 'images/default-voice.png'}" alt="${v.name}">
-      <div class="voice-name">${v.name}</div>
-      <div class="voice-desc">Private</div>
-    </div>
-  `).join('');
 }
 
 function renderCommunityVoices(voices) {
