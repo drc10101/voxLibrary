@@ -1091,7 +1091,7 @@
       margin-top: 5px;
     }
     .plan-option.current .plan-option-name::after {
-      content: ' âœ“';
+      content: ' -';
     }
 
     .tips-box {
@@ -1364,7 +1364,7 @@
 <div class="section generator" id="generator-section">
   <div class="generator-main">
     <div class="generator-header">
-      <button class="back-btn" onclick="showBrowse()">â†</button>
+      <button class="back-btn" onclick="showBrowse()"></button>
       <div class="selected-voice-info">
         <h3 id="selected-voice-name">Select a voice</h3>
         <p id="selected-voice-desc">Ready to generate</p>
@@ -1416,7 +1416,7 @@
 
 <!-- Download Screen -->
 <div class="download-screen" id="download-section">
-  <div class="success-icon">âœ“</div>
+  <div class="success-icon">V</div>
   <h2>Generation Complete!</h2>
   <p style="color: var(--text-muted); margin-bottom: 30px;">Your audio is ready</p>
   <div class="download-card">
@@ -1612,7 +1612,7 @@
   </div>
 
   <div style="text-align: center; margin-top: 30px;">
-    <button class="btn btn-ghost" onclick="showBrowse()">â† Back to Voices</button>
+    <button class="btn btn-ghost" onclick="showBrowse()">Back to Voices</button>
   </div>
 </div>
 
@@ -1943,7 +1943,7 @@ function renderVoices(filter = 'all') {
   const filtered = filter === 'all' ? voices : voices.filter(v => v.category === filter);
   grid.innerHTML = filtered.map(voice => `
     <div class="voice-card ${selectedVoice?.id === voice.id ? 'selected' : ''}" onclick="selectVoice(${voice.id})">
-      ${selectedVoice?.id === voice.id ? '<span class="selected-badge">âœ“ Selected</span>' : ''}
+      ${selectedVoice?.id === voice.id ? '<span class="selected-badge" style="color:var(--accent);font-size:11px;">&#10003; Selected</span>' : ''}
       <img class="voice-icon" src="${voice.img}" alt="${voice.name}">
       <div class="voice-name">${voice.name}</div>
       <div class="voice-desc">${voice.accent}${voice.pitch ? ' | ' + voice.pitch : ''}</div>
@@ -2035,19 +2035,19 @@ async function generateAudio() {
     const remaining = Math.max(0, trialChars - userState.charsUsed);
 
     if (daysLeft <= 0) {
-      alert('Your free trial has ended! Upgrade now â€” paid plans start at just $3.99/month and give you 3x more characters to keep creating.');
+      alert('Your free trial has ended! Upgrade now " paid plans start at just $3.99/month and give you 3x more characters to keep creating.');
       showBilling();
       return;
     }
     if (userState.charsUsed >= trialChars) {
-      alert('You\'ve hit your free trial limit! Upgrade for just $3.99/month and get 3x more characters â€” keep your voiceå…‹éš† going.');
+      alert('You\'ve hit your free trial limit! Upgrade for just $3.99/month and get 3x more characters " keep your voiceå…‹éš† going.');
       showBilling();
       return;
     }
   }
 
   const btn = document.getElementById('generate-btn');
-  btn.textContent = 'â³ Generating... (may take 5-10 sec)';
+  btn.textContent = 'Generating... (may take 5-10 sec)';
   btn.disabled = true;
 
   try {
