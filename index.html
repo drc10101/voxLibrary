@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>VoxLibrary 🎙️ - Professional AI Voices</title>
+  <title>VoxLibrary - Professional AI Voices</title>
   <meta name="description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
   <meta name="keywords" content="AI voice generator, text to speech, TTS, voiceover, AI voice, ElevenLabs alternative, free voice generator, professional voice AI, audio generation, AI voice cloning">
   <meta name="robots" content="index, follow">
@@ -12,21 +12,21 @@
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://jedsvoxlibrary.com/">
-  <meta property="og:title" content="VoxLibrary 🎙️ - Professional AI Voices">
+  <meta property="og:url" content="https://jedsVoxLibrary.com/">
+  <meta property="og:title" content="VoxLibrary - Professional AI Voices">
   <meta property="og:description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
   <meta property="og:image" content="og-image.png">
   <meta property="og:site_name" content="VoxLibrary">
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:url" content="https://jedsvoxlibrary.com/">
-  <meta name="twitter:title" content="VoxLibrary 🎙️ - Professional AI Voices">
+  <meta name="twitter:url" content="https://jedsVoxLibrary.com/">
+  <meta name="twitter:title" content="VoxLibrary - Professional AI Voices">
   <meta name="twitter:description" content="Professional AI voice generator with 20+ premium voices. Adjust speed, stability, and style. Download studio-quality WAV/FLAC audio instantly.">
   <meta name="twitter:image" content="og-image.png">
 
   <!-- Canonical -->
-  <link rel="canonical" href="https://jedsvoxlibrary.com/">
+  <link rel="canonical" href="https://jedsVoxLibrary.com/">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
   <link rel="apple-touch-icon" href="favicon-256.png">
@@ -1091,7 +1091,7 @@
       margin-top: 5px;
     }
     .plan-option.current .plan-option-name::after {
-      content: ' ✓';
+      content: ' âœ“';
     }
 
     .tips-box {
@@ -1206,9 +1206,9 @@
 <body>
 
 <header>
-  <div class="logo" onclick="showBrowse()">🎙️ VoxLibrary</div>
+  <div class="logo" onclick="showBrowse()">VoxLibrary</div>
   <div class="header-right">
-    <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">💳 Billing</button>
+    <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">ðŸ’³ Billing</button>
     <div id="header-auth">
       <button class="btn btn-ghost" onclick="openAuthModal()">Sign In</button>
     </div>
@@ -1364,7 +1364,7 @@
 <div class="section generator" id="generator-section">
   <div class="generator-main">
     <div class="generator-header">
-      <button class="back-btn" onclick="showBrowse()">←</button>
+      <button class="back-btn" onclick="showBrowse()">â†</button>
       <div class="selected-voice-info">
         <h3 id="selected-voice-name">Select a voice</h3>
         <p id="selected-voice-desc">Ready to generate</p>
@@ -1410,13 +1410,13 @@
       </div>
     </div>
 
-    <button class="generate-btn" id="generate-btn" onclick="generateAudio()">🎵 Generate Audio</button>
+    <button class="generate-btn" id="generate-btn" onclick="generateAudio()">ðŸŽµ Generate Audio</button>
   </div>
 </div>
 
 <!-- Download Screen -->
 <div class="download-screen" id="download-section">
-  <div class="success-icon">✓</div>
+  <div class="success-icon">âœ“</div>
   <h2>Generation Complete!</h2>
   <p style="color: var(--text-muted); margin-bottom: 30px;">Your audio is ready</p>
   <div class="download-card">
@@ -1444,7 +1444,7 @@
 <!-- Billing Screen -->
 <div class="billing-screen" id="billing-section">
   <div class="billing-header">
-    <h2>💳 Billing</h2>
+    <h2>ðŸ’³ Billing</h2>
     <p>Manage your subscription and payment details</p>
   </div>
 
@@ -1612,7 +1612,7 @@
   </div>
 
   <div style="text-align: center; margin-top: 30px;">
-    <button class="btn btn-ghost" onclick="showBrowse()">← Back to Voices</button>
+    <button class="btn btn-ghost" onclick="showBrowse()">â† Back to Voices</button>
   </div>
 </div>
 
@@ -1943,7 +1943,7 @@ function renderVoices(filter = 'all') {
   const filtered = filter === 'all' ? voices : voices.filter(v => v.category === filter);
   grid.innerHTML = filtered.map(voice => `
     <div class="voice-card ${selectedVoice?.id === voice.id ? 'selected' : ''}" onclick="selectVoice(${voice.id})">
-      ${selectedVoice?.id === voice.id ? '<span class="selected-badge">✓ Selected</span>' : ''}
+      ${selectedVoice?.id === voice.id ? '<span class="selected-badge">âœ“ Selected</span>' : ''}
       <img class="voice-icon" src="${voice.img}" alt="${voice.name}">
       <div class="voice-name">${voice.name}</div>
       <div class="voice-desc">${voice.accent}${voice.pitch ? ' | ' + voice.pitch : ''}</div>
@@ -2035,19 +2035,19 @@ async function generateAudio() {
     const remaining = Math.max(0, trialChars - userState.charsUsed);
 
     if (daysLeft <= 0) {
-      alert('Your free trial has ended! Upgrade now — paid plans start at just $3.99/month and give you 3x more characters to keep creating.');
+      alert('Your free trial has ended! Upgrade now â€” paid plans start at just $3.99/month and give you 3x more characters to keep creating.');
       showBilling();
       return;
     }
     if (userState.charsUsed >= trialChars) {
-      alert('You\'ve hit your free trial limit! Upgrade for just $3.99/month and get 3x more characters — keep your voice克隆 going.');
+      alert('You\'ve hit your free trial limit! Upgrade for just $3.99/month and get 3x more characters â€” keep your voiceå…‹éš† going.');
       showBilling();
       return;
     }
   }
 
   const btn = document.getElementById('generate-btn');
-  btn.textContent = '⏳ Generating... (may take 5-10 sec)';
+  btn.textContent = 'â³ Generating... (may take 5-10 sec)';
   btn.disabled = true;
 
   try {
@@ -2113,7 +2113,7 @@ async function generateAudio() {
   } catch (error) {
     alert('Generation failed: ' + error.message);
   } finally {
-    btn.textContent = '🎵 Generate Audio';
+    btn.textContent = 'ðŸŽµ Generate Audio';
     btn.disabled = false;
   }
 }
