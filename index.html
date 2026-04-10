@@ -2008,6 +2008,7 @@ function selectVoice(id) {
   document.getElementById('browse-section').style.display = 'none';
   document.getElementById('hero-section').style.display = 'none';
   document.getElementById('generator-section').classList.add('active');
+  document.getElementById('generator-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function showGeneratorWithVoice(voiceId) {
@@ -2034,6 +2035,7 @@ function openGeneratorWithCommunityVoice(voice) {
   document.getElementById('browse-section').style.display = 'none';
   document.getElementById('hero-section').style.display = 'none';
   document.getElementById('generator-section').classList.add('active');
+  document.getElementById('generator-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
   document.getElementById('text-input').focus();
 }
 
@@ -2919,6 +2921,7 @@ function selectVoice(id, type) {
   document.getElementById('browse-section').style.display = 'none';
   document.getElementById('hero-section').style.display = 'none';
   document.getElementById('generator-section').classList.add('active');
+  document.getElementById('generator-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 // Community voices always visible at bottom of browse
