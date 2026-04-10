@@ -466,7 +466,7 @@ const server = http.createServer((incomingReq, serverRes) => {
         }
 
         serverRes.writeHead(200, { 'Content-Type': 'application/json' });
-        serverRes.end(JSON.stringify({ success: true, code });
+        serverRes.end(JSON.stringify({ success: true, code }));
 
       } catch (err) {
         console.error('Create gift error:', err);
