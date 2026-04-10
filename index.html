@@ -2089,7 +2089,7 @@ async function generateAudio() {
   }
 
   const btn = document.getElementById('generate-btn');
-  btn.textContent = 'Generating... (may take 5-10 sec)';
+  btn.textContent = 'This may take a minute...';
   btn.disabled = true;
 
   try {
@@ -2564,9 +2564,26 @@ function saveBringVoice() {
     body: formData
   }).then(function(r){ return r.json(); }).then(function(data) {
     if (data.error) throw new Error(data.error);
-    closeBringVoiceModal();
-    loadPrivateVoices();
-    alert('Voice uploaded! Select it from "My Voices" to use it.');
+    // Reload private voices and open generator with this voice
+    return fetch('/api/my-voices', {
+      headers: { 'Authorization': 'Bearer ' + userState.token }
+    }).then(function(r){ return r.json(); }).then(function(voices) {
+      if (Array.isArray(voices) && voices.length > 0) {
+        var newVoice = voices.find(function(v){ return v.name === name; }) || voices[voices.length - 1];
+        closeBringVoiceModal();
+        // Navigate to generator with this private voice
+        selectedVoice = Object.assign({}, newVoice, { key: 'private_' + newVoice.id, type: 'private' });
+        document.getElementById('selected-voice-name').textContent = newVoice.name;
+        document.getElementById('selected-voice-desc').textContent = (newVoice.accent || '') + (newVoice.pitch ? ' | ' + newVoice.pitch : '');
+        document.getElementById('browse-section').style.display = 'none';
+        document.getElementById('hero-section').style.display = 'none';
+        document.getElementById('generator-section').classList.add('active');
+        document.getElementById('text-input').focus();
+      } else {
+        closeBringVoiceModal();
+        alert('Voice uploaded! Select it from "My Voices" to use it.');
+      }
+    });
   }).catch(function(err) {
     error.textContent = err.message || 'Upload failed. Please try again.';
     error.style.display = 'block';
@@ -2612,20 +2629,16 @@ function toggleEmailPrivate() {
 
 
 function openCreateVoiceModal() {
-  if (!userState.email) {
-    openAuthModal();
-    return;
-  }
-  document.getElementById('create-voice-section').style.display = 'block';
-  document.getElementById('cv-name').value = '';
-  document.getElementById('cv-accent').value = '';
-  document.getElementById('cv-pitch').value = '';
-  document.getElementById('cv-desc1').value = '';
-  document.getElementById('cv-desc2').value = '';
-  document.getElementById('cv-rec-status').textContent = 'Ready to record';
-  document.getElementById('cv-rec-status').className = 'recorder-status';
-  document.getElementById('cv-audio-preview').style.display = 'none';
-  document.getElementById('cv-error-msg').style.display = 'none';
+  if (!userState.email) { openAuthModal(); return; }
+  // Create your own = $9.99 Stripe checkout -> records after payment
+  fetch('/api/create-private-voice', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + userState.token },
+    body: JSON.stringify({ email: userState.email, isCreateYourOwn: true })
+  }).then(function(r){ return r.json(); }).then(function(data) {
+    if (data.url) { window.location.href = data.url; }
+    else { alert('Could not create checkout. Please try again.'); }
+  }).catch(function() { alert('Could not create checkout. Please try again.'); });
 }
 
 function closeCreateVoiceModal() {
