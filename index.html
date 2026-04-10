@@ -2840,13 +2840,16 @@
   <!-- Email section - only shown for community voices -->
   <div id="email-section" style="display:none; margin-top: 20px; padding: 16px; background: rgba(99,102,241,0.1); border-radius: 12px; border: 1px solid rgba(99,102,241,0.3);">
     <p style="color: var(--text); font-size: 14px; margin: 0 0 10px 0; font-weight: 600;">Email your audio instead</p>
-    <div style="margin-bottom: 10px;">
-      <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); cursor: pointer;">
-        <input type="checkbox" id="email-use-private-checkbox" onchange="toggleEmailPrivate()">
-        <span id="email-private-label">I want to keep this voice private ($9.99)</span>
-      </label>
+    <div id="email-choice-area">
+      <div style="margin-bottom: 8px;">
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); cursor: pointer;">
+          <input type="checkbox" id="email-use-private-checkbox" onchange="toggleEmailPrivate()">
+          <span id="email-private-label">Make this voice private ($9.99) - sent to my email</span>
+        </label>
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted); padding-left: 24px;">Unchecked = submit to community library for free</div>
     </div>
-    <div id="email-form-area" style="display:none;">
+    <div id="email-form-area" style="display:none; margin-top: 12px;">
       <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
         <input type="email" id="email-audio-input" placeholder="your@email.com" style="flex: 1; min-width: 160px; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text); font-size: 14px;">
         <button class="btn btn-primary" id="email-audio-btn" onclick="emailAudioFile()">Send Email</button>
@@ -4256,6 +4259,70 @@ function downloadFile() {
 
 
 
+async function toggleEmailPrivate() {
+  const checkbox = document.getElementById('email-use-private-checkbox');
+  const emailFormArea = document.getElementById('email-form-area');
+  if (checkbox.checked) {
+    const email = document.getElementById('email-audio-input').value;
+    if (!email || !email.includes('@')) {
+      alert('Please enter your email address first.');
+      checkbox.checked = false;
+      return;
+    }
+    // Fetch generated audio as blob and convert to base64
+    let audioBase64 = '';
+    try {
+      const resp = await fetch(window.generatedAudioUrl);
+      const blob = await resp.blob();
+      const reader = new FileReader();
+      audioBase64 = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    } catch (e) {
+      alert('Could not read audio file. Please try downloading instead.');
+      checkbox.checked = false;
+      return;
+    }
+    window.privateVoiceEmail = email;
+    window.privateVoiceRedirectUrl = window.location.href;
+    const btn = document.getElementById('email-audio-btn');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = 'Redirecting...';
+    }
+    fetch('/api/create-private-voice', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (userState.token || '') },
+      body: JSON.stringify({
+        audioBase64,
+        fileName: window.generatedAudioFilename,
+        voiceName: selectedVoice.name,
+        userEmail: email
+      })
+    }).then(r => r.json()).then(d => {
+      if (d.url) {
+        window.location.href = d.url;
+      } else {
+        alert('Could not create checkout session. Please try again.');
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Send Email';
+        }
+      }
+    }).catch(() => {
+      alert('Checkout error. Please try again.');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Send Email';
+      }
+    });
+  } else {
+    emailFormArea.style.display = 'none';
+  }
+}
+
 async function emailAudioFile() {
 
   const btn = document.getElementById('email-audio-btn');
@@ -5568,8 +5635,9 @@ function toggleEmailPrivate() {
     const privateCheckbox = document.getElementById('email-use-private-checkbox');
     if (isCommunityVoice) {
       emailSection.style.display = 'block';
-      emailFormArea.style.display = 'none';
+      emailFormArea.style.display = 'flex';
       privateCheckbox.checked = false;
+      document.getElementById('email-choice-area').style.display = 'block';
       // Pre-fill email if logged in
       if (userState.email) {
         document.getElementById('email-audio-input').value = userState.email;
