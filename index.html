@@ -1206,7 +1206,7 @@
 <body>
 
 <header>
-  <div class="logo" onclick="showBrowse()">VoxLibrary</div>
+  <div class="logo" onclick="showBrowse()"><img src="images/microphone_icon.png" alt="VoxLibrary" style="height:32px;vertical-align:middle;margin-right:8px;">VoxLibrary</div>
   <div class="header-right">
     <button class="btn btn-ghost" id="billing-btn" onclick="showBilling()" style="display:none;">Billing</button>
     <div id="header-auth">
@@ -1407,7 +1407,7 @@
       </div>
     </div>
 
-    <button class="generate-btn" id="generate-btn" onclick="generateAudio()">ðŸŽµ Generate Audio</button>
+    <button class="generate-btn" id="generate-btn" onclick="generateAudio()">Generate Audio</button>
   </div>
 </div>
 
@@ -2110,7 +2110,7 @@ async function generateAudio() {
   } catch (error) {
     alert('Generation failed: ' + error.message);
   } finally {
-    btn.textContent = 'ðŸŽµ Generate Audio';
+    btn.textContent = 'Generate Audio';
     btn.disabled = false;
   }
 }
