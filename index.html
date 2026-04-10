@@ -2074,10 +2074,9 @@ function showCvError(msg) {
 async function loadCustomVoices() {
   if (!userState.email) return;
 
-  // Show My Voices button and category
-  document.getElementById('cat-my-voices').style.display = '';
+  // Show Community button and load community voices
+  document.getElementById('cat-community').style.display = '';
 
-  // Load private voices (stored in localStorage for now, synced from Supabase)
   // Load community voices from server
   try {
     const resp = await fetch('/api/community-voices');
