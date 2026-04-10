@@ -1980,9 +1980,7 @@ function updateStats() {
 // Voices
 function renderVoices(filter = 'all') {
   const grid = document.getElementById('voice-grid');
-  if (!grid) { console.error('renderVoices: voice-grid not found!'); return; }
   const filtered = filter === 'all' ? voices : voices.filter(v => v.category === filter);
-  if (!filtered.length) { console.warn('renderVoices: no voices found, total voices:', voices.length); }
   grid.innerHTML = filtered.map(voice => `
     <div class="voice-card ${selectedVoice?.id === voice.id ? 'selected' : ''}" onclick="selectVoice(${voice.id})">
       ${selectedVoice?.id === voice.id ? '<span class="selected-badge" style="color:var(--accent);font-size:11px;">&#10003; Selected</span>' : ''}
@@ -2510,7 +2508,6 @@ sb.auth.onAuthStateChange((event, session) => {
   else if (event === 'SIGNED_OUT') { updateAuthUI(null); }
 });
 renderVoices();
-console.log('renderVoices called, voices count:', voices.length);
 updateStats();
 loadCustomVoices(); // Load community voices for everyone
 
