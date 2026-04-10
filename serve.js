@@ -951,6 +951,91 @@ const server = http.createServer((incomingReq, serverRes) => {
     return;
   }
 
+  // API: Upload voice (Bring Your Own Voice)
+  if (incomingReq.method === 'POST' && incomingReq.url === '/api/upload-voice') {
+    var authHeader = incomingReq.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) { serverRes.writeHead(401); serverRes.end(JSON.stringify({error:'Unauthorized'})); return; }
+    var token = authHeader.split(' ')[1];
+    var chunks = [];
+    incomingReq.on('data', function(c) { chunks.push(c); });
+    incomingReq.on('end', function() {
+      var body = Buffer.concat(chunks);
+      fetch('${SUPABASE_URL}/auth/v1/user', {
+        headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_SERVICE_KEY }
+      }).then(function(userRes) {
+        if (!userRes.ok) throw new Error('Invalid token');
+        return userRes.json();
+      }).then(function(userData) {
+        var email = userData.email;
+        if (!email) throw new Error('No email found');
+        var boundary = ((incomingReq.headers['content-type'] || '').split('boundary=')[1] || '');
+        var parts = parseMultipart(body, boundary);
+        var filePart = null, namePart = null;
+        for (var k in parts) {
+          if (parts[k].filename && parts[k].name === 'audio') filePart = parts[k];
+          if (parts[k].name === 'name') namePart = parts[k];
+        }
+        if (!filePart || !namePart) throw new Error('Missing audio or name');
+        var ext = (filePart.filename || 'wav').split('.').pop() || 'wav';
+        var storagePath = 'private/' + email.replace(/[^a-zA-Z0-9]/g,'_') + '/' + Date.now() + '.' + ext;
+        return fetch(SUPABASE_URL + '/storage/v1/object/voices/' + storagePath, {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'Content-Type': filePart.type || 'audio/wav', 'x-upsert': 'true' },
+          body: filePart.data
+        }).then(function(r) {
+          if (!r.ok) throw new Error('Storage upload failed');
+          return fetch(SUPABASE_URL + '/rest/v1/private_voices', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'apikey': SUPABASE_SERVICE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+            body: JSON.stringify({ user_id: email, name: namePart.data.toString(), audio_url: SUPABASE_URL + '/storage/v1/object/public/voices/' + storagePath, uses: 0 })
+          });
+        }).then(function(r) {
+          if (!r.ok) throw new Error('Database insert failed');
+          serverRes.writeHead(200, { 'Content-Type': 'application/json' });
+          serverRes.end(JSON.stringify({ success: true }));
+        });
+      }).catch(function(e) {
+        console.error('Upload error:', e);
+        serverRes.writeHead(500, { 'Content-Type': 'application/json' });
+        serverRes.end(JSON.stringify({ error: e.message }));
+      });
+    });
+    return;
+  }
+
+  // API: Get my private voices
+  if (incomingReq.method === 'GET' && incomingReq.url === '/api/my-voices') {
+    var authHeader = incomingReq.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) { serverRes.writeHead(401); serverRes.end(JSON.stringify({error:'Unauthorized'})); return; }
+    var token = authHeader.split(' ')[1];
+    fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: { 'Authorization': 'Bearer ' + token, 'apikey': SUPABASE_SERVICE_KEY }
+    }).then(function(r) {
+      if (!r.ok) throw new Error('Invalid token');
+      return r.json();
+    }).then(function(userData) {
+      var email = userData.email;
+      var req = https.request({
+        hostname: 'kxnqwpavjhiphgvkevvj.supabase.co',
+        path: '/rest/v1/private_voices?user_id=eq.' + encodeURIComponent(email) + '&select=*',
+        method: 'GET',
+        headers: { 'Authorization': 'Bearer ' + SUPABASE_SERVICE_KEY, 'apikey': SUPABASE_SERVICE_KEY }
+      }, function(res) {
+        var d = ''; res.on('data', function(c) { d += c; });
+        res.on('end', function() {
+          try { serverRes.writeHead(200, { 'Content-Type': 'application/json' }); serverRes.end(d); }
+          catch(e) { serverRes.writeHead(200, { 'Content-Type': 'application/json' }); serverRes.end('[]'); }
+        });
+      });
+      req.on('error', function() { serverRes.writeHead(200, { 'Content-Type': 'application/json' }); serverRes.end('[]'); });
+      req.end();
+    }).catch(function() {
+      serverRes.writeHead(401, { 'Content-Type': 'application/json' });
+      serverRes.end(JSON.stringify({error:'Unauthorized'}));
+    });
+    return;
+  }
+
   // Serve static files
   let filePath = path.join(__dirname, incomingReq.url === '/' ? 'index.html' : incomingReq.url);
 

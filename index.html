@@ -2531,7 +2531,7 @@
   <div id="community-voices-section" style="margin-top: 24px;">
     <div class="section-title" style="font-size:18px;background:linear-gradient(135deg,#818cf8,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">Community Voices</div>
     <div style="text-align:center;padding:0 0 12px 0;">
-      <a href="#" onclick="window.openBringVoiceModal();return false;" style="color:#818cf8;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;padding:8px 16px;border:1px solid rgba(99,102,241,0.4);border-radius:8px;background:rgba(99,102,241,0.1);">Bring your own voice file</a>
+      <a href="#" onclick="openBringVoiceModal();return false;" style="color:#818cf8;font-size:14px;font-weight:600;text-decoration:none;display:inline-block;padding:8px 16px;border:1px solid rgba(99,102,241,0.4);border-radius:8px;background:rgba(99,102,241,0.1);">Bring your own voice file</a>
     </div>
     <div class="voice-grid" id="community-voices-grid"></div>
   </div>
@@ -2871,6 +2871,30 @@
 
 
 
+<!-- Bring Your Own Voice Modal -->
+<div id="bring-voice-modal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--bg-card);border-radius:16px;padding:32px;max-width:480px;width:90%;border:1px solid var(--border);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h3 style="margin:0;font-size:18px;color:var(--text);">Bring Your Own Voice</h3>
+      <span onclick="closeBringVoiceModal()" style="cursor:pointer;font-size:24px;color:var(--text-muted);line-height:1;">&times;</span>
+    </div>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:16px;">Upload a voice recording (WAV, MP3, or FLAC, max 10MB).</p>
+    <div style="margin-bottom:16px;">
+      <input type="file" id="bring-voice-file" accept=".wav,.mp3,.flac,audio/*" onchange="handleBringVoiceFile(this)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;box-sizing:border-box;">
+    </div>
+    <div id="bring-voice-preview" style="display:none;margin-bottom:16px;">
+      <audio id="bring-voice-audio" controls style="width:100%;height:40px;"></audio>
+    </div>
+    <div style="margin-bottom:16px;">
+      <input type="text" id="bring-voice-name-input" placeholder="Voice name (e.g. My Voice)" style="width:100%;padding:10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--text);font-size:14px;box-sizing:border-box;">
+    </div>
+    <div id="bring-voice-error" style="display:none;color:#e74c3c;font-size:13px;margin-bottom:12px;"></div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="closeBringVoiceModal()" style="flex:1;padding:12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);font-size:14px;cursor:pointer;">Cancel</button>
+      <button id="bring-voice-save-btn" onclick="saveBringVoice()" style="flex:1;padding:12px;border:none;border-radius:8px;background:var(--primary);color:white;font-size:14px;cursor:pointer;font-weight:600;">Save Voice</button>
+    </div>
+  </div>
+</div>
 <!-- Billing Screen -->
 
 <div class="billing-screen" id="billing-section">
@@ -4843,7 +4867,74 @@ async function checkoutPrivateVoice() {
 
       method: 'POST',
 
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/jfunction openBringVoiceModal() {
+  if (!userState.email) { openAuthModal(); return; }
+  document.getElementById('bring-voice-modal').style.display = 'flex';
+  document.getElementById('bring-voice-file').value = '';
+  document.getElementById('bring-voice-preview').style.display = 'none';
+  document.getElementById('bring-voice-name-input').value = '';
+  document.getElementById('bring-voice-error').style.display = 'none';
+}
+
+function closeBringVoiceModal() {
+  document.getElementById('bring-voice-modal').style.display = 'none';
+}
+
+function handleBringVoiceFile(input) {
+  var file = input.files[0];
+  if (!file) return;
+  if (file.size > 10 * 1024 * 1024) {
+    document.getElementById('bring-voice-error').textContent = 'File too large. Max 10MB.';
+    document.getElementById('bring-voice-error').style.display = 'block';
+    input.value = '';
+    return;
+  }
+  document.getElementById('bring-voice-error').style.display = 'none';
+  var audio = document.getElementById('bring-voice-audio');
+  audio.src = URL.createObjectURL(file);
+  document.getElementById('bring-voice-preview').style.display = 'block';
+}
+
+function saveBringVoice() {
+  var file = document.getElementById('bring-voice-file').files[0];
+  var name = document.getElementById('bring-voice-name-input').value.trim();
+  var error = document.getElementById('bring-voice-error');
+  var btn = document.getElementById('bring-voice-save-btn');
+  if (!file) { error.textContent = 'Please select an audio file.'; error.style.display = 'block'; return; }
+  if (!name) { error.textContent = 'Please enter a voice name.'; error.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.textContent = 'Uploading...';
+  var formData = new FormData();
+  formData.append('audio', file);
+  formData.append('name', name);
+  fetch('/api/upload-voice', {
+    method: 'POST',
+    headers: { 'Authorization': 'Bearer ' + userState.token },
+    body: formData
+  }).then(function(r) { return r.json(); }).then(function(data) {
+    if (data.error) throw new Error(data.error);
+    closeBringVoiceModal();
+    loadPrivateVoices();
+    alert('Voice uploaded! Select it from "My Voices" to use it.');
+  }).catch(function(err) {
+    error.textContent = err.message || 'Upload failed. Please try again.';
+    error.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Save Voice';
+  });
+}
+
+function loadPrivateVoices() {
+  if (!userState.token) return;
+  fetch('/api/my-voices', {
+    headers: { 'Authorization': 'Bearer ' + userState.token }
+  }).then(function(r) { return r.json(); }).then(function(voices) {
+    if (!Array.isArray(voices)) return;
+    localStorage.setItem('private_voices', JSON.stringify(voices.map(function(v) { return Object.assign({}, v, { key: 'private_' + v.id }); })));
+  }).catch(function() {});
+}
+
+son' },
 
       body: JSON.stringify({
 
