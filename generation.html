@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoxLibrary - Voice Generation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://js.stripe.com/v3/"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --deep-space: #1E1E24;
+      --surface-1: #26262D;
+      --surface-2: #2E2E36;
+      --surface-3: #36363F;
+      --accent: #FF6B6B;
+      --accent-light: #FF9B9B;
+      --accent-glow: rgba(255, 107, 107, 0.35);
+      --accent-soft: rgba(255, 107, 107, 0.08);
+      --accent-border: rgba(255, 107, 107, 0.25);
+      --text-primary: #EEEEF0;
+      --text-secondary: #8A8B9E;
+      --text-muted: #55566A;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --green: #22C55E;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-xs: 6px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background-color: var(--deep-space);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* TOP BAR - Plan & Stats */
+    .top-bar {
+      background: var(--surface-1);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .top-bar-content {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .plan-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .plan-badge {
+      padding: 6px 14px;
+      background: var(--accent-soft);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-xs);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .plan-stat {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .plan-stat strong {
+      color: var(--text-primary);
+    }
+
+    .upgrade-btns {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .upgrade-btn {
+      padding: 8px 14px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xs);
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .upgrade-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .stats {
+      display: flex;
+      gap: 24px;
+    }
+
+    .stat {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 60px 0 40px;
+    }
+
+    .hero h1 {
+      font-size: 48px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* NAV LINKS */
+    .nav-links {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--border-subtle);
+      margin-bottom: 40px;
+    }
+
+    .nav-link {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      border-radius: var(--radius-xs);
+      transition: all 0.2s;
+    }
+
+    .nav-link:hover, .nav-link.active {
+      color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    /* CATEGORIES */
+    .categories {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .cat-btn {
+      padding: 8px 16px;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xs);
+      color: var(--text-secondary);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .cat-btn:hover, .cat-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* VOICE GRID - Narrow Cards */
+    .voice-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+
+    .voice-card {
+      background: var(--surface-1);
+      border: 2px solid transparent;
+      border-radius: var(--radius-sm);
+      padding: 16px 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .voice-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-light));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .voice-card:hover {
+      background: var(--surface-2);
+      transform: translateY(-4px);
+    }
+
+    .voice-card:hover::before {
+      opacity: 1;
+    }
+
+    .voice-card.selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .voice-card.selected::before {
+      opacity: 1;
+    }
+
+    .voice-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--surface-3);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin: 0 auto 10px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .voice-name {
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .voice-accent {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .voice-qualities {
+      font-size: 10px;
+      color: var(--text-secondary);
+      line-height: 1.3;
+    }
+
+    /* COMMUNITY VOICES */
+    .community-section {
+      margin-top: 40px;
+      padding-top: 40px;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .section-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+
+    .section-title span {
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* ACTION BUTTONS */
+    .action-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin: 32px 0;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 12px 24px;
+      background: var(--surface-2);
+      border: 1px solid var(--accent-border);
+      border-radius: var(--radius-sm);
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    /* GENERATOR SECTION */
+    .generator-section {
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 32px;
+      margin-top: 40px;
+    }
+
+    .generator-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .selected-voice {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .selected-voice-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .selected-voice-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .char-count {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .char-count strong {
+      color: var(--text-primary);
+    }
+
+    .text-input {
+      width: 100%;
+      min-height: 150px;
+      background: var(--deep-space);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-size: 15px;
+      font-family: inherit;
+      color: var(--text-primary);
+      resize: vertical;
+      transition: border-color 0.2s;
+    }
+
+    .text-input:focus {
+      outline: none;
+      border-color: var(--accent-border);
+    }
+
+    .text-input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      margin-top: 16px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .generate-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px var(--accent-glow);
+    }
+
+    .generate-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* RESULT */
+    .result-section {
+      margin-top: 24px;
+      padding: 24px;
+      background: var(--surface-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      display: none;
+    }
+
+    .result-section.visible {
+      display: block;
+    }
+
+    .result-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .result-title span {
+      color: var(--green);
+    }
+
+    audio {
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .result-actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: var(--radius-xs);
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-light);
+    }
+
+    .btn-secondary {
+      background: var(--surface-3);
+      color: var(--text-primary);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent-border);
+    }
+
+    .error-message {
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      border-radius: var(--radius-xs);
+      color: #F43F5E;
+      font-size: 14px;
+      display: none;
+    }
+
+    .error-message.visible {
+      display: block;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 36px; }
+      .voice-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+      .top-bar-content { flex-direction: column; text-align: center; }
+      .stats { width: 100%; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP BAR -->
+  <div class="top-bar">
+    <div class="container">
+      <div class="top-bar-content">
+        <div class="plan-info">
+          <span class="plan-badge" id="planBadge">Trial</span>
+          <span class="plan-stat"><strong id="charsRemaining">2,000</strong> chars remaining</span>
+          <span class="plan-stat" id="daysLeftStat"><strong id="daysLeft">5</strong> days left</span>
+        </div>
+        
+        <div class="upgrade-btns">
+          <button class="upgrade-btn" onclick="upgradePlan('starter')">Starter $3.99</button>
+          <button class="upgrade-btn" onclick="upgradePlan('creator')">Creator $9.99</button>
+          <button class="upgrade-btn" onclick="upgradePlan('studio')">Studio $59.99</button>
+          <button class="upgrade-btn" onclick="upgradePlan('pro')">Pro $79.99</button>
+          <button class="upgrade-btn" onclick="upgradePlan('business')">Business $129.99</button>
+        </div>
+        
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-value" id="statChars">2,000</div>
+            <div class="stat-label">Chars Left</div>
+          </div>
+          <div class="stat" id="statDays">
+            <div class="stat-value" id="statDaysVal">5</div>
+            <div class="stat-label">Days Left</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <!-- HERO -->
+      <div class="hero">
+        <h1>Professional AI Voices<br><span>in Seconds</span></h1>
+        <p>Choose from 20 premium voices. Adjust speed, stability, and style. Download studio-quality audio instantly.</p>
+      </div>
+
+      <!-- NAV LINKS -->
+      <div class="nav-links">
+        <a href="/" class="nav-link">← Back to Splash</a>
+        <a href="studio.html" class="nav-link">🎚️ Studio</a>
+        <a href="developer.html" class="nav-link">🔧 Developer API</a>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="categories">
+        <button class="cat-btn active" onclick="filterVoices('all')">All</button>
+        <button class="cat-btn" onclick="filterVoices('professional')">Professional</button>
+        <button class="cat-btn" onclick="filterVoices('story')">Storytelling</button>
+        <button class="cat-btn" onclick="filterVoices('social')">Social</button>
+        <button class="cat-btn" onclick="filterVoices('everyman')">Everyday</button>
+        <button class="cat-btn" onclick="filterVoices('character')">Character</button>
+      </div>
+
+      <!-- VOICE GRID -->
+      <div class="voice-grid" id="voiceGrid"></div>
+
+      <!-- ACTION BUTTONS -->
+      <div class="action-row">
+        <button class="action-btn" onclick="openBringVoiceModal()">📁 Bring your own voice file</button>
+        <button class="action-btn" onclick="openCreateVoiceModal()">➕ Create your own voice clone</button>
+      </div>
+
+      <!-- COMMUNITY VOICES -->
+      <div class="community-section">
+        <div class="section-header">
+          <h2 class="section-title"><span>Community</span> Voices</h2>
+        </div>
+        <div class="voice-grid" id="communityVoiceGrid">
+          <!-- Community voices loaded dynamically -->
+        </div>
+      </div>
+
+      <!-- GENERATOR -->
+      <div class="generator-section">
+        <div class="generator-header">
+          <div class="selected-voice">
+            <span class="selected-voice-label">Selected:</span>
+            <span class="selected-voice-name" id="selectedVoiceName">None</span>
+          </div>
+          <div class="char-count"><strong id="charCount">0</strong> / 2,000 chars</div>
+        </div>
+
+        <textarea class="text-input" id="textInput" placeholder="Type or paste your script here..." maxlength="2000"></textarea>
+
+        <button class="generate-btn" id="generateBtn" onclick="generateAudio()" disabled>
+          <span id="btnText">Generate Audio</span>
+        </button>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="result-section" id="resultSection">
+          <div class="result-title"><span>✓</span> Generation Complete!</div>
+          <audio id="audioPlayer" controls></audio>
+          <div class="result-actions">
+            <a id="downloadBtn" class="btn btn-primary" download>⬇ Download</a>
+            <button class="btn btn-secondary" onclick="startOver()">↻ New Generation</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Voice data (20 voices)
+    const voices = [
+      { id: 1, key: 'andy', name: 'Andy', accent: 'American', pitch: 'Low', qualities: 'Warm & Clear', category: 'everyman', emoji: '👨' },
+      { id: 2, key: 'brian', name: 'Brian', accent: 'American', pitch: 'High', qualities: 'Clear & Energetic', category: 'professional', emoji: '👨‍💼' },
+      { id: 3, key: 'archer', name: 'Archer', accent: 'American', pitch: 'Mid', qualities: 'Slow & Relaxed', category: 'professional', emoji: '🧔' },
+      { id: 4, key: 'madison', name: 'Madison', accent: 'American', pitch: 'Mid', qualities: 'Warm & Sultry', category: 'social', emoji: '👩' },
+      { id: 5, key: 'walter', name: 'Walter', accent: 'Southern', pitch: 'Low', qualities: 'Mature & Paced', category: 'professional', emoji: '👴' },
+      { id: 6, key: 'gavin', name: 'Gavin', accent: 'British', pitch: 'Mid', qualities: 'Upbeat & Clear', category: 'professional', emoji: '🇬🇧' },
+      { id: 7, key: 'aaron', name: 'Aaron', accent: 'American', pitch: 'Mid', qualities: 'Settled & Informative', category: 'everyman', emoji: '👨‍🏫' },
+      { id: 8, key: 'emmanuel', name: 'Emmanuel', accent: 'American', pitch: 'High', qualities: 'Young & Eager', category: 'professional', emoji: '🧑‍💻' },
+      { id: 9, key: 'abigail', name: 'Abigail', accent: 'British', pitch: 'Mid', qualities: 'Relaxed & Educated', category: 'professional', emoji: '👩‍🎓' },
+      { id: 10, key: 'anaya', name: 'Anaya', accent: 'Indian', pitch: 'High', qualities: 'Fast & Tidy', category: 'social', emoji: '👩‍💼' },
+      { id: 11, key: 'chloe', name: 'Chloe', accent: 'American', pitch: 'Low', qualities: 'Mature & Serious', category: 'social', emoji: '👩‍⚖️' },
+      { id: 12, key: 'dylan', name: 'Dylan', accent: 'American', pitch: 'Low', qualities: 'Relaxed & Cool', category: 'everyman', emoji: '🧑‍🎤' },
+      { id: 13, key: 'ethan', name: 'Ethan', accent: 'American', pitch: 'Mid', qualities: 'Learned & Trustworthy', category: 'professional', emoji: '👨‍🔬' },
+      { id: 14, key: 'marisol', name: 'Marisol', accent: 'American', pitch: 'Low', qualities: 'Tough & Well-Spoken', category: 'everyman', emoji: '💪' },
+      { id: 15, key: 'evelyn', name: 'Evelyn', accent: 'American', pitch: 'High', qualities: 'Plain & Youthful', category: 'story', emoji: '📖' },
+      { id: 16, key: 'ivan', name: 'Ivan', accent: 'American', pitch: 'Mid', qualities: 'Deep & Reliable', category: 'professional', emoji: '🧔‍♂️' },
+      { id: 17, key: 'laura', name: 'Laura', accent: 'American', pitch: 'Low', qualities: 'Flat & Direct', category: 'everyman', emoji: '👩‍🔧' },
+      { id: 18, key: 'matilda', name: 'Matilda', accent: 'Indian', pitch: 'Mid', qualities: 'Mature & Confident', category: 'social', emoji: '🌟' },
+      { id: 19, key: 'roger', name: 'Roger', accent: 'American', pitch: 'Mid', qualities: 'Calm & Refined', category: 'professional', emoji: '🎩' },
+      { id: 20, key: 'eric', name: 'Eric', accent: 'American', pitch: 'Mid', qualities: 'Calm & Refined', category: 'professional', emoji: '🎙️' }
+    ];
+
+    let selectedVoice = null;
+    let currentCategory = 'all';
+
+    // Initialize voices
+    function initVoices() {
+      renderVoices();
+    }
+
+    // Render voice grid
+    function renderVoices() {
+      const grid = document.getElementById('voiceGrid');
+      const filtered = currentCategory === 'all' 
+        ? voices 
+        : voices.filter(v => v.category === currentCategory);
+      
+      grid.innerHTML = filtered.map(voice => `
+        <div class="voice-card" data-voice="${voice.key}" onclick="selectVoice('${voice.key}')">
+          <div class="voice-icon">${voice.emoji}</div>
+          <div class="voice-name">${voice.name}</div>
+          <div class="voice-accent">${voice.accent} • ${voice.pitch}</div>
+          <div class="voice-qualities">${voice.qualities}</div>
+        </div>
+      `).join('');
+    }
+
+    // Filter voices
+    function filterVoices(category) {
+      currentCategory = category;
+      document.querySelectorAll('.cat-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.textContent.toLowerCase().includes(category) || 
+          (category === 'all' && btn.textContent === 'All'));
+      });
+      renderVoices();
+    }
+
+    // Select voice
+    function selectVoice(voiceKey) {
+      selectedVoice = voices.find(v => v.key === voiceKey);
+      
+      document.querySelectorAll('.voice-card').forEach(card => {
+        card.classList.toggle('selected', card.dataset.voice === voiceKey);
+      });
+      
+      document.getElementById('selectedVoiceName').textContent = selectedVoice.name;
+      updateGenerateButton();
+    }
+
+    // Character count
+    document.getElementById('textInput').addEventListener('input', function() {
+      document.getElementById('charCount').textContent = this.value.length;
+      updateGenerateButton();
+      document.getElementById('errorMessage').classList.remove('visible');
+    });
+
+    function updateGenerateButton() {
+      const hasText = document.getElementById('textInput').value.trim().length > 0;
+      document.getElementById('generateBtn').disabled = !selectedVoice || !hasText;
+    }
+
+    // Generate audio
+    async function generateAudio() {
+      if (!selectedVoice || !document.getElementById('textInput').value.trim()) return;
+      
+      const btn = document.getElementById('generateBtn');
+      const btnText = document.getElementById('btnText');
+      
+      btn.disabled = true;
+      btnText.innerHTML = '<span class="spinner"></span> Generating...';
+      
+      try {
+        const response = await fetch('http://127.0.0.1:8081/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: document.getElementById('textInput').value,
+            voice: selectedVoice.key
+          })
+        });
+        
+        if (!response.ok) throw new Error('TTS failed');
+        
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        
+        document.getElementById('audioPlayer').src = url;
+        document.getElementById('downloadBtn').href = url;
+        document.getElementById('downloadBtn').download = `voxlibrary-${selectedVoice.key}-${Date.now()}.wav`;
+        document.getElementById('resultSection').classList.add('visible');
+        
+      } catch (err) {
+        document.getElementById('errorMessage').textContent = 'Error: ' + err.message;
+        document.getElementById('errorMessage').classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = 'Generate Audio';
+      }
+    }
+
+    // Start over
+    function startOver() {
+      document.getElementById('textInput').value = '';
+      document.getElementById('charCount').textContent = '0';
+      document.getElementById('resultSection').classList.remove('visible');
+      document.getElementById('errorMessage').classList.remove('visible');
+      updateGenerateButton();
+    }
+
+    // Upgrade plan
+    function upgradePlan(plan) {
+      alert('Upgrade to ' + plan + ' coming soon!');
+    }
+
+    // Modals (placeholders)
+    function openBringVoiceModal() {
+      alert('Bring your own voice - coming soon!');
+    }
+
+    function openCreateVoiceModal() {
+      alert('Create voice clone - coming soon!');
+    }
+
+    // Initialize
+    initVoices();
+  </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoxLibrary Studio - Experimental Voice Tools</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    :root {
+      --deep-space: #1E1E24;
+      --surface-1: #26262D;
+      --surface-2: #2E2E36;
+      --surface-3: #36363F;
+      --accent: #FF6B6B;
+      --accent-light: #FF9B9B;
+      --accent-glow: rgba(255, 107, 107, 0.35);
+      --accent-soft: rgba(255, 107, 107, 0.08);
+      --accent-border: rgba(255, 107, 107, 0.25);
+      --text-primary: #EEEEF0;
+      --text-secondary: #8A8B9E;
+      --text-muted: #55566A;
+      --border-subtle: rgba(255, 255, 255, 0.06);
+      --radius: 16px;
+      --radius-sm: 10px;
+      --radius-xs: 6px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background-color: var(--deep-space);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Grain overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 9999;
+      opacity: 0.5;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* NAVBAR */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      z-index: 1000;
+      padding: 20px 0;
+      background: rgba(30, 30, 36, 0.8);
+      backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .navbar .container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .nav-brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--text-primary);
+    }
+
+    .nav-brand img {
+      height: 32px;
+      width: auto;
+    }
+
+    .nav-back {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      padding: 8px 16px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-xs);
+      transition: all 0.2s;
+    }
+
+    .nav-back:hover {
+      color: var(--accent);
+      border-color: var(--accent-border);
+    }
+
+    /* MAIN */
+    main {
+      padding: 120px 0 80px;
+      min-height: 100vh;
+    }
+
+    .coming-soon {
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 60px 40px;
+      background: var(--surface-1);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+    }
+
+    .coming-soon .emoji {
+      font-size: 64px;
+      margin-bottom: 24px;
+    }
+
+    .coming-soon h1 {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+    }
+
+    .coming-soon h1 span {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .coming-soon p {
+      font-size: 18px;
+      color: var(--text-secondary);
+      margin-bottom: 32px;
+    }
+
+    .feature-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      text-align: left;
+      max-width: 400px;
+      margin: 0 auto 32px;
+    }
+
+    .feature-list li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      color: var(--text-secondary);
+      list-style: none;
+    }
+
+    .feature-list li::before {
+      content: '→';
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 14px 28px;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+      font-size: 15px;
+      border-radius: var(--radius-xs);
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-light);
+      transform: translateY(-2px);
+    }
+
+    /* FOOTER */
+    footer {
+      padding: 40px 24px;
+      text-align: center;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    footer p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    footer a {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/" class="nav-brand">
+        <img src="favicon.svg" alt="VoxLibrary">
+        VoxLibrary
+      </a>
+      <a href="/" class="nav-back">← Back</a>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main>
+    <div class="container">
+      <div class="coming-soon">
+        <div class="emoji">🎚️</div>
+        <h1><span>Studio</span> Coming Soon</h1>
+        <p>Experimental voice studio with advanced controls and noise filtering.</p>
+        
+        <ul class="feature-list">
+          <li>A/B voice comparison testing</li>
+          <li>Noise filtering & audio cleanup</li>
+          <li>Pitch & speed controls</li>
+          <li>Batch processing</li>
+        </ul>
+
+        <a href="generation.html" class="btn-primary">Go to Generation →</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2026 VoxLibrary. Powered by <a href="https://jedsvoxlibrary.com">jedsvoxlibrary.com</a></p>
+  </footer>
+</body>
+</html>
