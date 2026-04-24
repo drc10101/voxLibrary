@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Developer API - VoxLibrary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <style>
+    *,
+    *::before,
+    *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    :root {
+        --deep-space: #1E1E24;
+        --surface-1: #26262D;
+        --surface-2: #2E2E36;
+        --surface-3: #36363F;
+        --accent: #FF6B6B;
+        --accent-light: #FF9B9B;
+        --accent-glow: rgba(255, 107, 107, 0.35);
+        --accent-soft: rgba(255, 107, 107, 0.08);
+        --accent-border: rgba(255, 107, 107, 0.25);
+        --text-primary: #EEEEF0;
+        --text-secondary: #8A8B9E;
+        --text-muted: #55566A;
+        --border-subtle: rgba(255, 255, 255, 0.06);
+        --green: #22C55E;
+        --amber: #F59E0B;
+        --radius: 16px;
+        --radius-sm: 10px;
+        --radius-xs: 6px;
+        --radius-pill: 100px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        background-color: var(--deep-space);
+        color: var(--text-primary);
+        line-height: 1.6;
+        min-height: 100vh;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    /* Grain overlay */
+    body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.5;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    .container {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 24px;
+    }
+
+    /* ===== NAVBAR ===== */
+    .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        padding: 20px 0;
+        background: rgba(30, 30, 36, 0.8);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .navbar .container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .nav-brand {
+        font-size: 20px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-primary);
+    }
+
+    .nav-brand img {
+        height: 30px;
+        width: auto;
+    }
+
+    .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        list-style: none;
+    }
+
+    .nav-links a {
+        font-size: 13.5px;
+        font-weight: 500;
+        color: var(--text-muted);
+        transition: color 0.3s;
+        letter-spacing: -0.01em;
+    }
+
+    .nav-links a:hover,
+    .nav-links a.active {
+        color: var(--text-primary);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 22px;
+        border-radius: var(--radius-pill);
+        font-family: inherit;
+        font-size: 13.5px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.3s ease;
+        letter-spacing: -0.01em;
+    }
+
+    .btn-primary {
+        background: var(--accent);
+        color: #fff;
+        box-shadow: 0 0 24px var(--accent-glow),
+                    0 1px 0 rgba(255,255,255,0.1) inset;
+    }
+
+    .btn-primary:hover {
+        background: #FF8585;
+        box-shadow: 0 0 36px var(--accent-glow),
+                    0 1px 0 rgba(255,255,255,0.15) inset;
+        transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+        background: rgba(255,255,255,0.05);
+        color: var(--text-primary);
+        border: 1px solid var(--border-subtle);
+    }
+
+    .btn-secondary:hover {
+        background: rgba(255,255,255,0.08);
+        border-color: rgba(255,255,255,0.1);
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+        position: relative;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 140px 24px 80px;
+        overflow: hidden;
+    }
+
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: 20%;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 800px;
+        height: 600px;
+        background: radial-gradient(circle at center,
+            rgba(255, 107, 107, 0.08) 0%,
+            rgba(255, 107, 107, 0.03) 35%,
+            transparent 55%);
+        pointer-events: none;
+    }
+
+    .hero::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image:
+            linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 80px 80px;
+        mask-image: radial-gradient(ellipse at 50% 40%, black 30%, transparent 70%);
+        -webkit-mask-image: radial-gradient(ellipse at 50% 40%, black 30%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .hero-inner {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        max-width: 600px;
+    }
+
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 16px;
+        background: var(--accent-soft);
+        border: 1px solid rgba(255, 107, 107, 0.2);
+        border-radius: var(--radius-pill);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--accent-light);
+        margin-bottom: 28px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .badge-dot {
+        width: 8px;
+        height: 8px;
+        background: var(--amber);
+        border-radius: 50%;
+        box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        animation: dotPulse 2s ease-in-out infinite;
+    }
+
+    @keyframes dotPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.3; }
+    }
+
+    .hero h1 {
+        font-size: clamp(48px, 8vw, 72px);
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1.05;
+        margin-bottom: 20px;
+    }
+
+    .gradient-text {
+        background: linear-gradient(135deg, #FFD4D4 0%, var(--accent) 60%, #FF9B9B 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-desc {
+        font-size: 17px;
+        color: var(--text-secondary);
+        line-height: 1.7;
+        margin-bottom: 40px;
+    }
+
+    .coming-soon-card {
+        background: var(--surface-1);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius);
+        padding: 48px 40px;
+        margin-bottom: 40px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .coming-soon-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        opacity: 0.5;
+    }
+
+    .coming-soon-icon {
+        width: 64px;
+        height: 64px;
+        background: var(--accent-soft);
+        border: 1px solid rgba(255, 107, 107, 0.15);
+        border-radius: 16px;
+        display: grid;
+        place-items: center;
+        margin: 0 auto 24px;
+        color: var(--accent);
+    }
+
+    .coming-soon-icon svg {
+        width: 28px;
+        height: 28px;
+    }
+
+    .coming-soon-card h2 {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 12px;
+    }
+
+    .coming-soon-card p {
+        color: var(--text-secondary);
+        font-size: 15px;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+
+    .notify-form {
+        display: flex;
+        gap: 10px;
+        max-width: 420px;
+        margin: 0 auto;
+    }
+
+    .notify-input {
+        flex: 1;
+        padding: 14px 20px;
+        background: var(--surface-2);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-sm);
+        color: var(--text-primary);
+        font-family: inherit;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .notify-input:focus {
+        border-color: var(--accent-border);
+        box-shadow: 0 0 0 3px var(--accent-soft);
+    }
+
+    .notify-input::placeholder {
+        color: var(--text-muted);
+    }
+
+    .hero-cta {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+        border-top: 1px solid var(--border-subtle);
+        padding: 40px 0;
+        text-align: center;
+    }
+
+    .footer p {
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+    .footer a {
+        color: var(--accent);
+        transition: color 0.3s;
+    }
+
+    .footer a:hover {
+        color: var(--accent-light);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+        .nav-links {
+            display: none;
+        }
+
+        .coming-soon-card {
+            padding: 36px 24px;
+        }
+
+        .notify-form {
+            flex-direction: column;
+        }
+
+        .hero-cta {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .btn {
+            width: 100%;
+        }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="nav-brand">
+        VoxLibrary
+      </a>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="generation.html">Generate</a></li>
+        <li><a href="studio.html">Studio</a></li>
+        <li><a href="developer.html" class="active">Developer</a></li>
+      </ul>
+      <a href="generation.html" class="btn btn-primary">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Coming Soon
+      </div>
+      <h1><span class="gradient-text">Developer</span> API</h1>
+      <p class="hero-desc">
+        Build powerful voice experiences with the VoxLibrary API. 
+        We're preparing comprehensive documentation and SDKs for your applications.
+      </p>
+
+      <div class="coming-soon-card">
+        <div class="coming-soon-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+          </svg>
+        </div>
+        <h2>API Documentation</h2>
+        <p>We're building something amazing. Get notified when the Developer API launches.</p>
+      </div>
+
+      <form class="notify-form" onsubmit="event.preventDefault(); alert('Thanks! We\'ll notify you when the API launches.');">
+        <input type="email" class="notify-input" placeholder="Enter your email" required>
+        <button type="submit" class="btn btn-primary">Notify Me</button>
+      </form>
+
+      <div class="hero-cta" style="margin-top: 32px;">
+        <a href="generation.html" class="btn btn-primary">
+          Try Voice Generation
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+        <a href="studio.html" class="btn btn-secondary">Visit Studio</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="container">
+      <p>© 2026 VoxLibrary. Powered by <a href="https://jedsvoxlibrary.com">jedsvoxlibrary.com</a></p>
+    </div>
+  </footer>
+</body>
+</html>

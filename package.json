@@ -1,0 +1,14 @@
+{
+  "name": "voxlibrary",
+  "version": "1.0.0",
+  "description": "Professional AI voice generation platform",
+  "main": "serve.js",
+  "scripts": {
+    "start": "node serve.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.9.0",
+    "nodemailer": "^8.0.5",
+    "stripe": "^14.0.0"
+  }
+}

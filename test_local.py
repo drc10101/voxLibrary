@@ -1,0 +1,12 @@
+import urllib.request
+response = urllib.request.urlopen('http://localhost:3333/', timeout=5)
+html = response.read().decode('utf-8')
+print('Length:', len(html))
+g = html.find('id="voice-grid"')
+print('voice-grid at:', g)
+v = html.find('const voices')
+print('const voices at:', v)
+r = html.find('renderVoices()')
+print('renderVoices() at:', r)
+c = html.find('voice-card')
+print('voice-card template at:', c)

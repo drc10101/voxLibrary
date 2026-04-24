@@ -1,0 +1,10 @@
+content = open('index.html', 'r', encoding='utf-8-sig').read()
+browse_start = content.find('id="browse-section"')
+voice_grid = content.find('id="voice-grid"')
+comm = content.find('id="community-voices-section"')
+print('browse-section starts at:', browse_start)
+print('voice-grid at:', voice_grid)
+print('community-voices-section at:', comm)
+print()
+# Show context from voice-grid to community
+print(repr(content[voice_grid:comm+200]))
